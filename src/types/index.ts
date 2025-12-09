@@ -2,10 +2,14 @@ export type TransactionType = 'expense' | 'income';
 
 export type TimeWindow = 'day' | 'week' | 'month' | 'year';
 
+export type Currency = 'ARS' | 'USD_BLUE' | 'USD_MEP' | 'USDT';
+
+export type ExchangeRates = Record<Currency, { toARS: number }>;
+
 export interface Account {
   id?: number;
   name: string;
-  currency: string;
+  currency: Currency;
   initialBalance: number;
   color: string;
   icon: string;
@@ -30,7 +34,7 @@ export interface Transaction {
   categoryId: number;
   type: TransactionType;
   amount: number;
-  currency: string;
+  currency: Currency;
   date: string;
   description: string;
   tagIds: number[];
@@ -40,4 +44,6 @@ export interface AppSettings {
   id?: number;
   defaultAccountId?: number;
   defaultTimeWindow: TimeWindow;
+  displayCurrency: Currency;
+  exchangeRates: ExchangeRates;
 }

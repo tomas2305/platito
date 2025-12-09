@@ -17,7 +17,9 @@ export class PlatitoDB extends Dexie {
   constructor() {
     super('platito_db');
 
-    this.version(1).stores({
+    // v1: initial schema
+    // v2: settings includes displayCurrency and exchangeRates
+    this.version(2).stores({
       accounts: '++id, name, currency, isArchived',
       categories: '++id, name, type',
       tags: '++id, name',
