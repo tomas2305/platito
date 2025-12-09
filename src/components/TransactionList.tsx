@@ -9,6 +9,7 @@ type Props = {
   transactions: Transaction[];
   accounts: Account[];
   categories: Category[];
+  tags: Tag[];
   onEdit?: (tx: Transaction) => void;
   onDelete?: (id: number) => void;
   showActions?: boolean;
