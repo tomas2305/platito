@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Account } from '../types';
+import { AccountIcon } from '../components/AccountIcon';
+import { getColorHex } from '../utils/colors';
 import { formatMonetaryValue } from '../utils/formatters';
 import {
   getActiveAccounts,
@@ -87,7 +89,13 @@ export const AccountsPage = () => {
     <div>
       <h1>Accounts</h1>
       <nav>
-        <Link to="/">Home</Link> | <Link to="/settings">Settings</Link>
+        <Link to="/">Home</Link>
+        {' | '}
+        <Link to="/categories">Categories</Link>
+        {' | '}
+        <Link to="/tags">Tags</Link>
+        {' | '}
+        <Link to="/settings">Settings</Link>
       </nav>
 
       {!showForm && (
@@ -121,15 +129,15 @@ export const AccountsPage = () => {
                     style={{
                       width: '24px',
                       height: '24px',
-                      backgroundColor: acc.color,
+                      backgroundColor: getColorHex(acc.color),
                       borderRadius: '4px',
                     }}
                   />
+                  <AccountIcon name={acc.icon} size={20} />
                   <strong>{acc.name}</strong>
                   <span>
                     {formatMonetaryValue(String(acc.initialBalance))} {acc.currency}
                   </span>
-                  <span>{acc.icon}</span>
                   <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
                     <button onClick={() => handleEdit(acc)}>Edit</button>
                     <button onClick={() => acc.id && handleArchive(acc.id)}>
@@ -166,15 +174,15 @@ export const AccountsPage = () => {
                     style={{
                       width: '24px',
                       height: '24px',
-                      backgroundColor: acc.color,
+                      backgroundColor: getColorHex(acc.color),
                       borderRadius: '4px',
                     }}
                   />
+                  <AccountIcon name={acc.icon} size={20} />
                   <strong>{acc.name}</strong>
                   <span>
                     {formatMonetaryValue(String(acc.initialBalance))} {acc.currency}
                   </span>
-                  <span>{acc.icon}</span>
                   <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
                     <button onClick={() => acc.id && handleUnarchive(acc.id)}>
                       Unarchive

@@ -1,5 +1,6 @@
 import { db } from '../db';
 import type { AppSettings, Currency, ExchangeRates } from '../types';
+import { ensureDefaultCategories } from './categoriesStore';
 
 const SETTINGS_ID = 1;
 
@@ -100,4 +101,17 @@ export const updateSettings = async (
   merged.exchangeRates.ARS = { toARS: 1 };
 
   await db.settings.update(SETTINGS_ID, merged);
+};
+
+export const resetDatabase = async (): Promise<void> => {
+  await db.transaction('rw', [db.accounts, db.categories, db.tags, db.transactions, db.settings], async () => {
+    await db.accounts.clear();
+    await db.categories.clear();
+    await db.tags.clear();
+    await db.transactions.clear();
+    await db.settings.clear();
+  });
+
+  await initializeSettings();
+  await ensureDefaultCategories();
 };

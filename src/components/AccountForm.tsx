@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Account, Currency } from '../types';
 import { SUPPORTED_CURRENCIES } from '../utils/currency';
+import { COLOR_PALETTE, type ColorName } from '../utils/colors';
 import { formatMonetaryValue, parseMonetaryValue } from '../utils/formatters';
 
 interface AccountFormProps {
@@ -9,15 +10,25 @@ interface AccountFormProps {
   onCancel: () => void;
 }
 
-const ICONS = ['wallet', 'bank', 'credit-card', 'piggy-bank', 'cash'];
-const COLORS = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336', '#607D8B'];
+const ICONS = [
+  'IconCash',
+  'IconWallet',
+  'IconBuildingBank',
+  'IconDeviceMobile',
+  'IconCreditCard',
+  'IconPig',
+  'IconTrendingUp',
+  'IconCurrencyDollar',
+  'IconCurrencyEuro',
+  'IconCoins',
+];
 
 export const AccountForm = ({ account, onSubmit, onCancel }: AccountFormProps) => {
   const [name, setName] = useState('');
   const [currency, setCurrency] = useState<Currency>('ARS');
   const [initialBalance, setInitialBalance] = useState('');
-  const [color, setColor] = useState('#4CAF50');
-  const [icon, setIcon] = useState('wallet');
+  const [color, setColor] = useState<ColorName>('green');
+  const [icon, setIcon] = useState('IconCash');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -128,16 +139,16 @@ export const AccountForm = ({ account, onSubmit, onCancel }: AccountFormProps) =
         <label>
           Color:
           <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-            {COLORS.map((c) => (
+            {COLOR_PALETTE.map((colorOption) => (
               <button
-                key={c}
+                key={colorOption.name}
                 type="button"
-                onClick={() => setColor(c)}
+                onClick={() => setColor(colorOption.name)}
                 style={{
                   width: '32px',
                   height: '32px',
-                  backgroundColor: c,
-                  border: color === c ? '3px solid black' : '1px solid #ccc',
+                  backgroundColor: colorOption.hex,
+                  border: color === colorOption.name ? '3px solid black' : '1px solid #ccc',
                   borderRadius: '4px',
                   cursor: 'pointer',
                 }}

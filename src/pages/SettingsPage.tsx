@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { db } from '../db';
-import { getSettings, updateSettings } from '../stores/settingsStore';
+import { getSettings, resetDatabase, updateSettings } from '../stores/settingsStore';
 import type { AppSettings, Account, TimeWindow, Currency, ExchangeRates } from '../types';
 import { SUPPORTED_CURRENCIES } from '../utils/currency';
 import { formatMonetaryValue, parseMonetaryValue } from '../utils/formatters';
@@ -79,6 +79,23 @@ export const SettingsPage = () => {
     setSettings(prev => prev ? { ...prev, exchangeRates } : null);
   };
 
+  const handleResetDatabase = async () => {
+    const confirmed = confirm('Reset all data to defaults? This removes accounts, transactions, tags, and categories.');
+    if (!confirmed) return;
+    setLoading(true);
+    setErrors(null);
+    await resetDatabase();
+    const [settingsData, accountsData] = await Promise.all([
+      getSettings(),
+      db.accounts.toArray(),
+    ]);
+    setSettings(settingsData || null);
+    setAccounts(accountsData);
+    setExchangeRates(settingsData?.exchangeRates ?? null);
+    setDisplayCurrency(settingsData?.displayCurrency ?? 'ARS');
+    setLoading(false);
+  };
+
   const formattedExchangeRates = useMemo(() => {
     const rates: Record<Currency, string> = {
       ARS: '1',
@@ -102,6 +119,12 @@ export const SettingsPage = () => {
       <h1>Settings</h1>
       <nav>
         <Link to="/">Home</Link>
+        {' | '}
+        <Link to="/accounts">Accounts</Link>
+        {' | '}
+        <Link to="/categories">Categories</Link>
+        {' | '}
+        <Link to="/tags">Tags</Link>
       </nav>
 
       <section>
@@ -166,6 +189,16 @@ export const SettingsPage = () => {
         ))}
         {errors && <p style={{ color: 'red' }}>{errors}</p>}
         <button type="button" onClick={handleSaveRates}>Save Rates</button>
+      </section>
+
+      <section style={{ marginTop: '16px' }}>
+        <h2>Reset Data</h2>
+        <p style={{ fontSize: '0.9rem', color: '#555' }}>
+          This will clear accounts, transactions, tags, settings, and categories, then restore defaults.
+        </p>
+        <button type="button" onClick={handleResetDatabase} disabled={loading}>
+          Reset Database
+        </button>
       </section>
     </div>
   );
