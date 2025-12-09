@@ -1,19 +1,22 @@
-import { db } from '../db';
+import { getDB } from '../db';
 import type { Tag } from '../types';
 
 const normalizeName = (name: string): string => name.trim();
 
 const isDuplicateName = async (name: string, excludeId?: number): Promise<boolean> => {
   const normalized = normalizeName(name).toLowerCase();
+  const db = getDB();
   const existing = await db.tags.toArray();
   return existing.some((tag) => tag.id !== excludeId && tag.name.trim().toLowerCase() === normalized);
 };
 
 export const getAllTags = async (): Promise<Tag[]> => {
+  const db = getDB();
   return db.tags.toArray();
 };
 
 export const createTag = async (data: Omit<Tag, 'id'>): Promise<number> => {
+  const db = getDB();
   if (await isDuplicateName(data.name)) {
     throw new Error('Tag name must be unique');
   }
@@ -23,6 +26,7 @@ export const createTag = async (data: Omit<Tag, 'id'>): Promise<number> => {
 };
 
 export const updateTag = async (id: number, patch: Partial<Omit<Tag, 'id'>>): Promise<void> => {
+  const db = getDB();
   const current = await db.tags.get(id);
   if (!current) {
     throw new Error('Tag not found');
@@ -41,5 +45,6 @@ export const updateTag = async (id: number, patch: Partial<Omit<Tag, 'id'>>): Pr
 };
 
 export const deleteTag = async (id: number): Promise<void> => {
+  const db = getDB();
   await db.tags.delete(id);
 };

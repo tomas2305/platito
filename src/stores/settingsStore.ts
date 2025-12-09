@@ -1,4 +1,4 @@
-import { db } from '../db';
+import { getDB } from '../db';
 import type { AppSettings, Currency, ExchangeRates } from '../types';
 import { ensureDefaultCategories } from './categoriesStore';
 
@@ -65,6 +65,7 @@ const validateSettings = (settings: Partial<AppSettings>): void => {
 };
 
 export const initializeSettings = async (): Promise<AppSettings> => {
+  const db = getDB();
   const existing = await db.settings.get(SETTINGS_ID);
   
   if (existing) {
@@ -79,6 +80,7 @@ export const initializeSettings = async (): Promise<AppSettings> => {
 };
 
 export const getSettings = async (): Promise<AppSettings | undefined> => {
+  const db = getDB();
   const existing = await db.settings.get(SETTINGS_ID);
   if (!existing) return undefined;
 
@@ -100,10 +102,12 @@ export const updateSettings = async (
   // Enforce ARS base rule
   merged.exchangeRates.ARS = { toARS: 1 };
 
+  const db = getDB();
   await db.settings.update(SETTINGS_ID, merged);
 };
 
 export const resetDatabase = async (): Promise<void> => {
+  const db = getDB();
   await db.transaction('rw', [db.accounts, db.categories, db.tags, db.transactions, db.settings], async () => {
     await db.transactions.clear();
     await db.accounts.clear();
@@ -114,4 +118,13 @@ export const resetDatabase = async (): Promise<void> => {
 
   await initializeSettings();
   await ensureDefaultCategories();
+
+  // If in testing DB, reseed with sample data
+  const { getActiveDatabaseName, getDatabaseLabels } = await import('../db');
+  const activeName = getActiveDatabaseName();
+  const labels = getDatabaseLabels();
+  if (activeName === labels.testing) {
+    const { seedTestingData } = await import('../db/testingData');
+    await seedTestingData();
+  }
 };

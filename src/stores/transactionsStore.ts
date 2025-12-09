@@ -1,4 +1,4 @@
-import { db } from '../db';
+import { getDB } from '../db';
 import type { Transaction } from '../types';
 import { getAccountById } from './accountsStore';
 import { getCategoryById } from './categoriesStore';
@@ -19,11 +19,13 @@ const assertPositiveAmount = (amount: number): void => {
 };
 
 export const getAllTransactions = async (): Promise<Transaction[]> => {
+  const db = getDB();
   const txs = await db.transactions.toArray();
   return txs.sort((a, b) => b.date.localeCompare(a.date));
 };
 
 export const createTransaction = async (input: CreateTransactionInput): Promise<number> => {
+  const db = getDB();
   assertPositiveAmount(input.amount);
 
   const account = await getAccountById(input.accountId);
@@ -54,6 +56,7 @@ export const updateTransaction = async (
   id: number,
   patch: Partial<CreateTransactionInput>,
 ): Promise<void> => {
+  const db = getDB();
   const current = await db.transactions.get(id);
   if (!current) {
     throw new Error('Transaction not found');
@@ -91,5 +94,6 @@ export const updateTransaction = async (
 };
 
 export const deleteTransaction = async (id: number): Promise<void> => {
+  const db = getDB();
   await db.transactions.delete(id);
 };

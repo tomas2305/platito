@@ -15,8 +15,8 @@ export class PlatitoDB extends Dexie {
   transactions!: Table<Transaction, number>;
   settings!: Table<AppSettings, number>;
 
-  constructor() {
-    super('platito_db');
+  constructor(name = 'platito_db') {
+    super(name);
 
     // v1: initial schema
     // v2: settings includes displayCurrency and exchangeRates

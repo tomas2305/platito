@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { TransactionList } from '../components/TransactionList';
 import type { Account, Category, Tag, Transaction, TransactionType } from '../types';
 import { getActiveAccounts } from '../stores/accountsStore';
 import { getAllCategories } from '../stores/categoriesStore';
@@ -43,9 +44,7 @@ export const TransactionsPage = () => {
   const [loading, setLoading] = useState(true);
   const [newTagName, setNewTagName] = useState('');
 
-  const accountMap = useMemo(() => new Map(accounts.map((a) => [a.id, a])), [accounts]);
   const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
-  const tagMap = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags]);
 
   const loadData = async () => {
     const [acct, cats, tgs, txs] = await Promise.all([
@@ -137,8 +136,7 @@ export const TransactionsPage = () => {
     setError(null);
   };
 
-  const handleDelete = async (id?: number) => {
-    if (!id) return;
+  const handleDelete = async (id: number) => {
     const confirmed = confirm('Delete this transaction?');
     if (!confirmed) return;
     await deleteTransaction(id);
@@ -300,37 +298,16 @@ export const TransactionsPage = () => {
         {error && <p style={{ color: 'red' }}>{error}</p>}
       </section>
 
-      <section>
-        <h2>All Transactions</h2>
-        {transactions.length === 0 ? (
-          <p>No transactions yet</p>
-        ) : (
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {transactions.map((tx) => {
-              const account = accountMap.get(tx.accountId);
-              const category = categoryMap.get(tx.categoryId);
-              const txTags = (tx.tagIds ?? []).map((id) => tagMap.get(id)?.name).filter(Boolean).join(', ');
-              return (
-                <li key={tx.id} style={{ display: 'flex', flexDirection: 'column', gap: '4px', border: '1px solid #ccc', borderRadius: '6px', padding: '8px' }}>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <strong>{formatMonetaryValue(String(tx.amount))} {tx.currency}</strong>
-                    <span>{category?.name ?? 'Category'}</span>
-                    <span>•</span>
-                    <span>{account?.name ?? 'Account'}</span>
-                    <span style={{ marginLeft: 'auto' }}>{tx.date.slice(0, 10)}</span>
-                  </div>
-                  {tx.description && <div style={{ color: '#555' }}>{tx.description}</div>}
-                  {txTags && <div style={{ color: '#666', fontSize: '0.9rem' }}>Tags: {txTags}</div>}
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button type="button" onClick={() => handleEdit(tx)}>Edit</button>
-                    <button type="button" onClick={() => handleDelete(tx.id)}>Delete</button>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+      <TransactionList
+        title="All Transactions"
+        transactions={transactions}
+        accounts={accounts}
+        categories={categories}
+        tags={tags}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        showActions
+      />
     </div>
   );
 };

@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { db } from '../db';
-import { getSettings, resetDatabase, updateSettings } from '../stores/settingsStore';
+import { getActiveDatabaseName, getDatabaseLabels, switchDatabase } from '../db';
+import { seedTestingData } from '../db/testingData';
+import { getAllAccounts } from '../stores/accountsStore';
+import { getSettings, initializeSettings, resetDatabase, updateSettings } from '../stores/settingsStore';
+import { ensureDefaultCategories } from '../stores/categoriesStore';
 import type { AppSettings, Account, TimeWindow, Currency, ExchangeRates } from '../types';
 import { SUPPORTED_CURRENCIES } from '../utils/currency';
 import { formatMonetaryValue, parseMonetaryValue } from '../utils/formatters';
@@ -13,12 +16,14 @@ export const SettingsPage = () => {
   const [exchangeRates, setExchangeRates] = useState<ExchangeRates | null>(null);
   const [displayCurrency, setDisplayCurrency] = useState<Currency>('ARS');
   const [errors, setErrors] = useState<string | null>(null);
+  const [activeDb, setActiveDb] = useState<string>(getActiveDatabaseName());
+  const dbLabels = getDatabaseLabels();
 
   useEffect(() => {
     const loadData = async () => {
       const [settingsData, accountsData] = await Promise.all([
-        getSettings(),
-        db.accounts.toArray(),
+        getSettings().then((s) => s ?? initializeSettings()),
+        getAllAccounts(),
       ]);
       setSettings(settingsData || null);
       setExchangeRates(settingsData?.exchangeRates ?? null);
@@ -87,7 +92,31 @@ export const SettingsPage = () => {
     await resetDatabase();
     const [settingsData, accountsData] = await Promise.all([
       getSettings(),
-      db.accounts.toArray(),
+      getAllAccounts(),
+    ]);
+    setSettings(settingsData || null);
+    setAccounts(accountsData);
+    setExchangeRates(settingsData?.exchangeRates ?? null);
+    setDisplayCurrency(settingsData?.displayCurrency ?? 'ARS');
+    setLoading(false);
+  };
+
+  const handleSwitchDatabase = async (target: 'main' | 'testing') => {
+    setLoading(true);
+    setErrors(null);
+    await switchDatabase(target);
+    setActiveDb(getActiveDatabaseName());
+
+    if (target === 'testing') {
+      await seedTestingData();
+    } else {
+      await initializeSettings();
+      await ensureDefaultCategories();
+    }
+
+    const [settingsData, accountsData] = await Promise.all([
+      getSettings().then((s) => s ?? initializeSettings()),
+      getAllAccounts(),
     ]);
     setSettings(settingsData || null);
     setAccounts(accountsData);
@@ -128,6 +157,32 @@ export const SettingsPage = () => {
         {' | '}
         <Link to="/tags">Tags</Link>
       </nav>
+
+      <section style={{ marginTop: '16px' }}>
+        <h2>Database</h2>
+        <p style={{ fontSize: '0.9rem', color: '#555' }}>
+          Active DB: {activeDb === dbLabels.testing ? 'Testing' : 'Main'} ({activeDb})
+        </p>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => handleSwitchDatabase('main')}
+            disabled={loading || activeDb === dbLabels.main}
+          >
+            Use Main DB
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSwitchDatabase('testing')}
+            disabled={loading || activeDb === dbLabels.testing}
+          >
+            Use Testing DB
+          </button>
+        </div>
+        <p style={{ fontSize: '0.9rem', color: '#555' }}>
+          Switching keeps each database isolated. Testing DB seeds sample data on first use.
+        </p>
+      </section>
 
       <section>
         <h2>Default Account</h2>
