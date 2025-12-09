@@ -120,7 +120,11 @@ export const SettingsPage = () => {
       <nav>
         <Link to="/">Home</Link>
         {' | '}
+        <Link to="/accounts">Accounts</Link>
+        {' | '}
         <Link to="/categories">Categories</Link>
+        {' | '}
+        <Link to="/tags">Tags</Link>
       </nav>
 
       <section>

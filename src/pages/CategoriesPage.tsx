@@ -128,6 +128,8 @@ export const CategoriesPage = () => {
         {' | '}
         <Link to="/accounts">Accounts</Link>
         {' | '}
+        <Link to="/tags">Tags</Link>
+        {' | '}
         <Link to="/settings">Settings</Link>
       </nav>
 
