@@ -93,6 +93,8 @@ export const AccountsPage = () => {
         {' | '}
         <Link to="/categories">Categories</Link>
         {' | '}
+        <Link to="/transactions">Transactions</Link>
+        {' | '}
         <Link to="/tags">Tags</Link>
         {' | '}
         <Link to="/settings">Settings</Link>

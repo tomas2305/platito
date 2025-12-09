@@ -103,6 +103,8 @@ export const TagsPage = () => {
         {' | '}
         <Link to="/categories">Categories</Link>
         {' | '}
+        <Link to="/transactions">Transactions</Link>
+        {' | '}
         <Link to="/settings">Settings</Link>
       </nav>
 

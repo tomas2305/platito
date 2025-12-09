@@ -77,8 +77,24 @@ export const updateCategory = async (
 
 export const deleteCategory = async (id: number): Promise<void> => {
   const current = await db.categories.get(id);
-  if (current?.isDefault) {
+  if (!current) {
+    throw new Error('Category not found');
+  }
+
+  if (current.isDefault) {
     throw new Error('Default categories cannot be deleted');
   }
+
+  const usageCount = await db.transactions.where('categoryId').equals(id).count();
+  if (usageCount > 0) {
+    throw new Error('Cannot delete a category that has transactions. Reassign or delete them first');
+  }
+
   await db.categories.delete(id);
+};
+
+export const getCategoryById = async (
+  id: number,
+): Promise<Category | undefined> => {
+  return db.categories.get(id);
 };

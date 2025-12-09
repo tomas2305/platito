@@ -105,10 +105,10 @@ export const updateSettings = async (
 
 export const resetDatabase = async (): Promise<void> => {
   await db.transaction('rw', [db.accounts, db.categories, db.tags, db.transactions, db.settings], async () => {
+    await db.transactions.clear();
     await db.accounts.clear();
     await db.categories.clear();
     await db.tags.clear();
-    await db.transactions.clear();
     await db.settings.clear();
   });
 
