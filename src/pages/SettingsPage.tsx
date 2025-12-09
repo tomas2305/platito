@@ -8,6 +8,7 @@ import { ensureDefaultCategories } from '../stores/categoriesStore';
 import type { AppSettings, Account, TimeWindow, Currency, ExchangeRates } from '../types';
 import { SUPPORTED_CURRENCIES } from '../utils/currency';
 import { formatMonetaryValue, parseMonetaryValue } from '../utils/formatters';
+import { DatabaseImportExport } from '../components/DatabaseImportExport';
 
 export const SettingsPage = () => {
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -179,6 +180,7 @@ export const SettingsPage = () => {
             Use Testing DB
           </button>
         </div>
+        <DatabaseImportExport activeDb={activeDb} />
         <p style={{ fontSize: '0.9rem', color: '#555' }}>
           Switching keeps each database isolated. Testing DB seeds sample data on first use.
         </p>

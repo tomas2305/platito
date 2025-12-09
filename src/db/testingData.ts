@@ -55,6 +55,25 @@ export const seedTestingData = async (): Promise<void> => {
   await initializeSettings();
   await ensureDefaultCategories();
 
+  // Add a few test-only categories if they don't exist
+  const testCategories = [
+    { name: 'Test Expenses', type: 'expense' as TransactionType, icon: 'alert' },
+    { name: 'Test Income', type: 'income' as TransactionType, icon: 'badge-dollar' },
+    { name: 'Sandbox', type: 'expense' as TransactionType, icon: 'flask' },
+  ];
+
+  for (const cat of testCategories) {
+    const existing = await db.categories
+      .where('name')
+      .equals(cat.name)
+      .and((c) => c.type === cat.type)
+      .first();
+    if (!existing) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await db.categories.add({ ...cat, isDefault: false } as any);
+    }
+  }
+
   // Create accounts from JSON
   const accountIds: number[] = [];
   for (const acc of testingDataJSON.accounts) {

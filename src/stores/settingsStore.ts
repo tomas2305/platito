@@ -1,4 +1,4 @@
-import { getDB } from '../db';
+import { getDB, getActiveDatabaseName } from '../db';
 import type { AppSettings, Currency, ExchangeRates } from '../types';
 import { ensureDefaultCategories } from './categoriesStore';
 
@@ -6,11 +6,24 @@ const SETTINGS_ID = 1;
 
 const AVAILABLE_CURRENCIES: Currency[] = ['ARS', 'USD_BLUE', 'USD_MEP', 'USDT'];
 
-const DEFAULT_EXCHANGE_RATES: ExchangeRates = {
+const DEFAULT_EXCHANGE_RATES_MAIN: ExchangeRates = {
   ARS: { toARS: 1 },
   USD_BLUE: { toARS: 1 },
   USD_MEP: { toARS: 1 },
   USDT: { toARS: 1 },
+};
+
+const DEFAULT_EXCHANGE_RATES_TESTING: ExchangeRates = {
+  ARS: { toARS: 1 },
+  USD_BLUE: { toARS: 900 },
+  USD_MEP: { toARS: 950 },
+  USDT: { toARS: 925 },
+};
+
+const getDefaultRates = (): ExchangeRates => {
+  const active = getActiveDatabaseName();
+  const isTesting = active === 'platito_db_testing';
+  return isTesting ? DEFAULT_EXCHANGE_RATES_TESTING : DEFAULT_EXCHANGE_RATES_MAIN;
 };
 
 const withDefaults = (settings: Partial<AppSettings>): AppSettings => ({
@@ -24,7 +37,7 @@ const withDefaults = (settings: Partial<AppSettings>): AppSettings => ({
 const normalizeExchangeRates = (
   exchangeRates?: ExchangeRates
 ): ExchangeRates => {
-  const normalized: ExchangeRates = { ...DEFAULT_EXCHANGE_RATES };
+  const normalized: ExchangeRates = { ...getDefaultRates() };
 
   if (exchangeRates) {
     for (const currency of AVAILABLE_CURRENCIES) {
