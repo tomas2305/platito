@@ -1,3 +1,5 @@
+import type { ColorName } from '../utils/colors';
+
 export type TransactionType = 'expense' | 'income';
 
 export type TimeWindow = 'day' | 'week' | 'month' | 'year';
@@ -11,7 +13,7 @@ export interface Account {
   name: string;
   currency: Currency;
   initialBalance: number;
-  color: string;
+  color: ColorName;
   icon: string;
   isArchived: boolean;
 }
@@ -20,7 +22,9 @@ export interface Category {
   id?: number;
   name: string;
   type: TransactionType;
-  color: string;
+  color: ColorName;
+  icon: string;
+  isDefault?: boolean;
 }
 
 export interface Tag {

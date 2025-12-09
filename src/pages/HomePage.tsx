@@ -57,7 +57,11 @@ export const HomePage = () => {
     <div>
       <h1>Platito</h1>
       <nav>
-        <Link to="/accounts">Accounts</Link> | <Link to="/settings">Settings</Link>
+        <Link to="/accounts">Accounts</Link>
+        {' | '}
+        <Link to="/categories">Categories</Link>
+        {' | '}
+        <Link to="/settings">Settings</Link>
       </nav>
       <main>
         <p>Welcome to Platito - Your finance tracker</p>
