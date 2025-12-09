@@ -1,6 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { DashboardFilters } from '../components/DashboardFilters';
 import { DashboardCharts } from '../components/DashboardCharts';
 import { CategoryBreakdown } from '../components/CategoryBreakdown';
@@ -237,19 +235,7 @@ export const HomePage = () => {
   return (
     <div>
       <h1>Platito</h1>
-      <nav>
-        <Link to="/accounts">Accounts</Link>
-        {' | '}
-        <Link to="/categories">Categories</Link>
-        {' | '}
-        <Link to="/transactions">Transactions</Link>
-        {' | '}
-        <Link to="/tags">Tags</Link>
-        {' | '}
-        <Link to="/settings">Settings</Link>
-      </nav>
       <main style={{ padding: '16px' }}>
-        <p>Welcome to Platito - Your finance tracker</p>
         <section style={{ marginTop: '12px' }}>
           <h2>Total Balance</h2>
           <p style={{ fontSize: '1.2rem', fontWeight: 600 }}>

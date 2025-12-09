@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import type { Tag } from '../types';
 import {
   createTag,
@@ -96,17 +95,6 @@ export const TagsPage = () => {
   return (
     <div>
       <h1>Tags</h1>
-      <nav>
-        <Link to="/">Home</Link>
-        {' | '}
-        <Link to="/accounts">Accounts</Link>
-        {' | '}
-        <Link to="/categories">Categories</Link>
-        {' | '}
-        <Link to="/transactions">Transactions</Link>
-        {' | '}
-        <Link to="/settings">Settings</Link>
-      </nav>
 
       <section style={{ marginTop: '16px', marginBottom: '16px' }}>
         <h2>{form.id ? 'Edit Tag' : 'Create Tag'}</h2>

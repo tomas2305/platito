@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import type { Account } from '../types';
 import { AccountIcon } from '../components/AccountIcon';
 import { getColorHex } from '../utils/colors';
@@ -88,17 +87,6 @@ export const AccountsPage = () => {
   return (
     <div>
       <h1>Accounts</h1>
-      <nav>
-        <Link to="/">Home</Link>
-        {' | '}
-        <Link to="/categories">Categories</Link>
-        {' | '}
-        <Link to="/transactions">Transactions</Link>
-        {' | '}
-        <Link to="/tags">Tags</Link>
-        {' | '}
-        <Link to="/settings">Settings</Link>
-      </nav>
 
       {!showForm && (
         <button onClick={() => setShowForm(true)}>Create New Account</button>

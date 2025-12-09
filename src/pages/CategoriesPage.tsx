@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import type { Category, TransactionType } from '../types';
 import { CategoryIcon } from '../components/CategoryIcon';
 import { COLOR_PALETTE, type ColorName, getColorHex } from '../utils/colors';
@@ -123,17 +122,6 @@ export const CategoriesPage = () => {
   return (
     <div>
       <h1>Categories</h1>
-      <nav>
-        <Link to="/">Home</Link>
-        {' | '}
-        <Link to="/accounts">Accounts</Link>
-        {' | '}
-        <Link to="/transactions">Transactions</Link>
-        {' | '}
-        <Link to="/tags">Tags</Link>
-        {' | '}
-        <Link to="/settings">Settings</Link>
-      </nav>
 
       <section style={{ marginTop: '16px', marginBottom: '16px' }}>
         <h2>{form.id ? 'Edit Category' : 'Create Category'}</h2>

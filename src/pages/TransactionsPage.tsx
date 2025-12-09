@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { TransactionList } from '../components/TransactionList';
 import type { Account, Category, Tag, Transaction, TransactionType } from '../types';
 import { getActiveAccounts } from '../stores/accountsStore';
@@ -192,17 +191,6 @@ export const TransactionsPage = () => {
   return (
     <div>
       <h1>Transactions</h1>
-      <nav>
-        <Link to="/">Home</Link>
-        {' | '}
-        <Link to="/accounts">Accounts</Link>
-        {' | '}
-        <Link to="/categories">Categories</Link>
-        {' | '}
-        <Link to="/tags">Tags</Link>
-        {' | '}
-        <Link to="/settings">Settings</Link>
-      </nav>
 
       <section style={{ marginTop: '16px', marginBottom: '16px' }}>
         <h2>{form.id ? 'Edit Transaction' : 'Create Transaction'}</h2>
