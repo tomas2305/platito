@@ -2,16 +2,21 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   Button,
   Card,
+  Checkbox,
   Group,
-  MultiSelect,
-  Select,
+  Modal,
   Stack,
   Text,
+  Textarea,
   TextInput,
   Title,
   SegmentedControl,
 } from '@mantine/core';
+import { DateInput } from '@mantine/dates';
 import { TransactionList } from '../components/TransactionList';
+import { AccountIcon } from '../components/AccountIcon';
+import { CategoryIcon } from '../components/CategoryIcon';
+import { CircularSelector } from '../components/CircularSelector';
 import type { Account, Category, Tag, Transaction, TransactionType } from '../types';
 import { getActiveAccounts } from '../stores/accountsStore';
 import { getAllCategories } from '../stores/categoriesStore';
@@ -32,10 +37,13 @@ interface FormState {
   transactionType: TransactionType;
   tagIds: number[];
   description: string;
-  date: string; // yyyy-mm-dd
+  date: Date | null; // Date object for DateInput
 }
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
+const today = () => new Date();
+const formatDateToISO = (date: Date | null) => date ? date.toISOString().slice(0, 10) : todayISO();
+const parseISOToDate = (iso: string) => iso ? new Date(iso + 'T00:00:00') : new Date();
 
 export const TransactionsPage = () => {
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -49,13 +57,28 @@ export const TransactionsPage = () => {
     transactionType: 'expense',
     tagIds: [],
     description: '',
-    date: todayISO(),
+    date: today(),
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [newTagName, setNewTagName] = useState('');
+  const [tagsModalOpened, setTagsModalOpened] = useState(false);
 
   const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
+
+  const top10Tags = useMemo(() => {
+    const tagCounts = new Map<number, number>();
+    for (const tx of transactions) {
+      for (const tagId of tx.tagIds || []) {
+        tagCounts.set(tagId, (tagCounts.get(tagId) || 0) + 1);
+      }
+    }
+    return tags
+      .map((tag) => ({ tag, count: tagCounts.get(tag.id!) || 0 }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10)
+      .map(({ tag }) => tag);
+  }, [tags, transactions]);
 
   const loadData = async () => {
     const [acct, cats, tgs, txs] = await Promise.all([
@@ -106,7 +129,7 @@ export const TransactionsPage = () => {
       categoryId: Number(form.categoryId),
       amount: amountValue,
       description: form.description.trim(),
-      date: form.date,
+      date: formatDateToISO(form.date),
       tagIds: form.tagIds,
     };
 
@@ -124,7 +147,7 @@ export const TransactionsPage = () => {
         transactionType: selectedCategory.type,
         tagIds,
         description: '',
-        date,
+        date: parseISOToDate(date),
       });
       await loadData();
     } catch (err) {
@@ -142,7 +165,7 @@ export const TransactionsPage = () => {
       transactionType: cat?.type ?? 'expense',
       tagIds: tx.tagIds ?? [],
       description: tx.description,
-      date: tx.date.slice(0, 10),
+      date: parseISOToDate(tx.date.slice(0, 10)),
     });
     setError(null);
   };
@@ -186,14 +209,21 @@ export const TransactionsPage = () => {
     }
   };
 
+  const toggleTag = (tagId: number) => {
+    setForm((prev) => ({
+      ...prev,
+      tagIds: prev.tagIds.includes(tagId)
+        ? prev.tagIds.filter((id) => id !== tagId)
+        : [...prev.tagIds, tagId],
+    }));
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
 
   return (
     <Stack gap="lg">
-      <Title order={2}>Transactions</Title>
-
       <Card shadow="sm" radius="md" padding="lg" withBorder>
         <Stack gap="md">
           <Group justify="space-between" align="center">
@@ -240,53 +270,88 @@ export const TransactionsPage = () => {
                   ]}
                 />
 
-                <Select
-                  label="Account"
-                  placeholder="Select account"
-                  value={form.accountId || null}
-                  onChange={(value) => setForm((prev) => ({ ...prev, accountId: value ?? '' }))}
-                  data={accounts.map((acc) => ({ label: `${acc.name} (${acc.currency})`, value: String(acc.id) }))}
-                  searchable
-                  required
-                  style={{ minWidth: 220 }}
-                />
-
-                <Select
-                  label="Category"
-                  placeholder="Select category"
-                  value={form.categoryId || null}
-                  onChange={(value) => setForm((prev) => ({ ...prev, categoryId: value ?? '' }))}
-                  data={categoriesForType.map((cat) => ({ label: cat.name, value: String(cat.id) }))}
-                  searchable
-                  required
-                  style={{ minWidth: 200 }}
-                />
-
-                <TextInput
+                <DateInput
                   label="Date"
-                  type="date"
+                  placeholder="Select date"
                   value={form.date}
-                  onChange={(e) => setForm((prev) => ({ ...prev, date: e.target.value }))}
+                  onChange={(value) => {
+                    let dateObj: Date | null = null;
+                    if (value === null) {
+                      dateObj = null;
+                    } else if (typeof value === 'string') {
+                      dateObj = new Date(value + 'T00:00:00');
+                    } else {
+                      dateObj = value as Date;
+                    }
+                    setForm((prev) => ({ ...prev, date: dateObj }));
+                  }}
+                  maxDate={today()}
                   required
+                  clearable
                 />
               </Group>
 
-              <TextInput
+              <CircularSelector
+                label="Account"
+                items={accounts.map((acc) => ({
+                  id: acc.id!,
+                  name: acc.name,
+                  color: acc.color,
+                  icon: <AccountIcon name={acc.icon} size={28} />,
+                }))}
+                selectedId={form.accountId ? Number(form.accountId) : null}
+                onSelect={(id) => setForm((prev) => ({ ...prev, accountId: String(id) }))}
+                style={{ marginTop: 12 }}
+              />
+
+              <CircularSelector
+                label="Category"
+                items={categoriesForType.map((cat) => ({
+                  id: cat.id!,
+                  name: cat.name,
+                  color: cat.color,
+                  icon: <CategoryIcon name={cat.icon} size={28} />,
+                }))}
+                selectedId={form.categoryId ? Number(form.categoryId) : null}
+                onSelect={(id) => setForm((prev) => ({ ...prev, categoryId: String(id) }))}
+                maxVisible={15}
+              />
+
+              <Textarea
                 label="Description"
                 placeholder="Optional description"
                 value={form.description}
                 onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+                minRows={2}
+                autosize
               />
 
-              <MultiSelect
-                label="Tags"
-                placeholder="Select tags"
-                value={form.tagIds.map(String)}
-                onChange={(values) => setForm((prev) => ({ ...prev, tagIds: values.map(Number) }))}
-                data={tags.map((tag) => ({ label: tag.name, value: String(tag.id) }))}
-                searchable
-                clearable
-              />
+              <Stack gap="xs">
+                <Group justify="space-between" align="center">
+                  <Text size="sm" fw={500}>Tags</Text>
+                  <Button
+                    size="xs"
+                    variant="light"
+                    onClick={() => setTagsModalOpened(true)}
+                  >
+                    View all tags
+                  </Button>
+                </Group>
+                {top10Tags.length > 0 ? (
+                  <Group gap="sm" wrap="wrap">
+                    {top10Tags.map((tag) => (
+                      <Checkbox
+                        key={tag.id}
+                        label={tag.name}
+                        checked={form.tagIds.includes(tag.id!)}
+                        onChange={() => toggleTag(tag.id!)}
+                      />
+                    ))}
+                  </Group>
+                ) : (
+                  <Text size="sm" c="dimmed">No tags available</Text>
+                )}
+              </Stack>
 
               <Group align="flex-end" gap="sm">
                 <TextInput
@@ -326,6 +391,28 @@ export const TransactionsPage = () => {
           </form>
         </Stack>
       </Card>
+
+      <Modal
+        opened={tagsModalOpened}
+        onClose={() => setTagsModalOpened(false)}
+        title="All Tags"
+        size="md"
+      >
+        <Stack gap="xs">
+          {tags.length === 0 ? (
+            <Text c="dimmed">No tags available</Text>
+          ) : (
+            tags.map((tag) => (
+              <Checkbox
+                key={tag.id}
+                label={tag.name}
+                checked={form.tagIds.includes(tag.id!)}
+                onChange={() => toggleTag(tag.id!)}
+              />
+            ))
+          )}
+        </Stack>
+      </Modal>
 
       <TransactionList
         title="All Transactions"

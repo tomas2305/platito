@@ -1,6 +1,20 @@
 import { useMemo, useState } from 'react';
+import {
+  Badge,
+  Button,
+  Group,
+  Paper,
+  SegmentedControl,
+  Select,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core';
 import type { Account, Category, Tag, Transaction, TransactionType } from '../types';
 import { formatMonetaryValue } from '../utils/formatters';
+import { getColorHex } from '../utils/colors';
+import { AccountIcon } from './AccountIcon';
+import { CategoryIcon } from './CategoryIcon';
 
 export type RangeOption = 'day' | 'week' | 'month' | 'year';
 
@@ -64,6 +78,11 @@ const endOfRange = (start: Date, range: RangeOption): Date => {
 };
 
 const formatDateKey = (date: Date): string => date.toISOString().slice(0, 10);
+
+const formatDateHeader = (dateKey: string): string => {
+  const date = new Date(dateKey + 'T00:00:00');
+  return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+};
 
 const formatPeriodLabel = (range: RangeOption, start: Date, end: Date): string => {
   if (range === 'day') {
@@ -138,118 +157,170 @@ export const TransactionList = ({
 
   return (
     <section>
-      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-        {title && <h2 style={{ margin: 0 }}>{title}</h2>}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: title ? 'auto' : 0 }}>
-          <label>
-            Range:
-            {' '}
-            <select
-              value={range}
-              onChange={(e) => {
-                setRange(e.target.value as RangeOption);
+      <Stack gap="md">
+        {title && (
+          <Group justify="space-between" align="center">
+            <Title order={3}>{title}</Title>
+            <Text size="sm" fw={600}>
+              Total:{' '}
+              {totalsByCurrency.size === 0
+                ? '0'
+                : Array.from(totalsByCurrency.entries())
+                    .map(([currency, total]) => `${formatMonetaryValue(String(total))} ${currency}`)
+                    .join(' | ')}
+            </Text>
+          </Group>
+        )}
+
+        <Group gap="sm" wrap="wrap" align="flex-end">
+          <SegmentedControl
+            value={typeFilter}
+            onChange={(value) => setTypeFilter(value as TransactionType)}
+            data={[
+              { label: 'Expense', value: 'expense' },
+              { label: 'Income', value: 'income' },
+            ]}
+          />
+
+          <Select
+            placeholder="All accounts"
+            searchable
+            value={accountFilter === 'all' ? null : String(accountFilter)}
+            onChange={(value) => {
+              setAccountFilter(value ? Number(value) : 'all');
+            }}
+            data={accounts.map((acc) => ({ label: acc.name, value: String(acc.id) }))}
+            renderOption={({ option }) => {
+              const acc = accounts.find(a => String(a.id) === option.value);
+              return (
+                <Group gap="xs">
+                  {acc && <AccountIcon name={acc.icon} size={18} />}
+                  <Text size="sm">{option.label}</Text>
+                </Group>
+              );
+            }}
+            style={{ minWidth: 200 }}
+          />
+
+          <Select
+            placeholder="Range"
+            value={range}
+            onChange={(value) => {
+              if (value) {
+                setRange(value as RangeOption);
                 setRangeOffset(0);
-              }}
+              }
+            }}
+            data={[
+              { value: 'day', label: RANGE_LABELS.day },
+              { value: 'week', label: RANGE_LABELS.week },
+              { value: 'month', label: RANGE_LABELS.month },
+              { value: 'year', label: RANGE_LABELS.year },
+            ]}
+          />
+
+          <Group gap={4}>
+            <Button
+              variant="light"
+              size="sm"
+              onClick={() => setRangeOffset((prev) => prev + 1)}
             >
-              <option value="day">{RANGE_LABELS.day}</option>
-              <option value="week">{RANGE_LABELS.week}</option>
-              <option value="month">{RANGE_LABELS.month}</option>
-              <option value="year">{RANGE_LABELS.year}</option>
-            </select>
-          </label>
-          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-            <button type="button" onClick={() => setRangeOffset((prev) => prev + 1)}>
               Prev
-            </button>
-            <span style={{ minWidth: '180px', textAlign: 'center' }}>
+            </Button>
+            <Text size="sm" fw={500} style={{ minWidth: 160, textAlign: 'center' }}>
               {formatPeriodLabel(range, periodStart, periodEnd)}
-            </span>
-            <button
-              type="button"
+            </Text>
+            <Button
+              variant="light"
+              size="sm"
               disabled={disableNext}
               onClick={() => setRangeOffset((prev) => Math.max(0, prev - 1))}
             >
               Next
-            </button>
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <label>
-            Type:
-            {' '}
-            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as TransactionType)}>
-              <option value="expense">Expense</option>
-              <option value="income">Income</option>
-            </select>
-          </label>
-          <label>
-            Account:
-            {' '}
-            <select
-              value={accountFilter === 'all' ? 'all' : String(accountFilter)}
-              onChange={(e) => {
-                const value = e.target.value;
-                setAccountFilter(value === 'all' ? 'all' : Number(value));
-              }}
-            >
-              <option value="all">All</option>
-              {accounts.map((acc) => (
-                <option key={acc.id} value={acc.id}>{acc.name}</option>
-              ))}
-            </select>
-          </label>
-          <div>
-            Total:{' '}
-            {totalsByCurrency.size === 0
-              ? '0'
-              : Array.from(totalsByCurrency.entries())
-                  .map(([currency, total]) => `${formatMonetaryValue(String(total))} ${currency}`)
-                  .join(' | ')}
-          </div>
-        </div>
-      </div>
+            </Button>
+          </Group>
+        </Group>
 
-      {groupKeys.length === 0 ? (
-        <p>No transactions in this range</p>
-      ) : (
-        groupKeys.map((dateKey) => (
-          <div key={dateKey} style={{ marginBottom: '12px' }}>
-            <h3 style={{ margin: '8px 0' }}>{dateKey}</h3>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {grouped[dateKey].map((tx) => {
-                const account = accountMap.get(tx.accountId);
-                const category = categoryMap.get(tx.categoryId);
-                const txTags = (tx.tagIds ?? [])
-                  .map((id) => tagMap.get(id)?.name)
-                  .filter(Boolean)
-                  .join(', ');
+        {groupKeys.length === 0 ? (
+          <Text c="dimmed">No transactions in this range</Text>
+        ) : (
+          <Stack gap="md">
+            {groupKeys.map((dateKey) => (
+              <Stack key={dateKey} gap="sm">
+                <Text fw={600} size="sm" c="dimmed">{formatDateHeader(dateKey)}</Text>
+                {grouped[dateKey].map((tx) => {
+                  const account = accountMap.get(tx.accountId);
+                  const category = categoryMap.get(tx.categoryId);
+                  const txTags = (tx.tagIds ?? [])
+                    .map((id) => tagMap.get(id)?.name)
+                    .filter(Boolean);
+                  const categoryColor = category ? getColorHex(category.color) : '#999';
 
-                return (
-                  <li key={tx.id} style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '8px' }}>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <strong>{formatMonetaryValue(String(tx.amount))} {tx.currency}</strong>
-                      <span>{category?.name ?? 'Category'}</span>
-                      <span>•</span>
-                      <span>{account?.name ?? 'Account'}</span>
-                      <span style={{ marginLeft: 'auto' }}>{tx.type}</span>
-                    </div>
-                    {tx.description && <div style={{ color: '#555', marginTop: '4px' }}>{tx.description}</div>}
-                    {txTags && <div style={{ color: '#666', fontSize: '0.9rem', marginTop: '4px' }}>Tags: {txTags}</div>}
-                    {showActions && (
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                        {onEdit && <button type="button" onClick={() => onEdit(tx)}>Edit</button>}
-                        {onDelete && tx.id && (
-                          <button type="button" onClick={() => onDelete(tx.id!)}>Delete</button>
+                  return (
+                    <Paper
+                      key={tx.id}
+                      p="md"
+                      radius="md"
+                      withBorder
+                      style={{
+                        backgroundColor: `${categoryColor}15`,
+                        borderLeft: `4px solid ${categoryColor}`,
+                      }}
+                    >
+                      <Stack gap="xs">
+                        <Group justify="space-between" align="center">
+                          <Stack gap={4} align="flex-start">
+                            <Text fw={700} size="xl">{formatMonetaryValue(String(tx.amount))} {tx.currency}</Text>
+                            <Group gap={8} align="center" wrap="wrap">
+                              <Group gap={4} align="center">
+                                {category && <CategoryIcon name={category.icon} size={16} />}
+                                <Text size="sm" fw={500}>{category?.name ?? 'Category'}</Text>
+                              </Group>
+                              <Text size="sm" c="dimmed">•</Text>
+                              <Group gap={4} align="center">
+                                {account && <AccountIcon name={account.icon} size={16} />}
+                                <Text size="sm">{account?.name ?? 'Account'}</Text>
+                              </Group>
+                            </Group>
+                          </Stack>
+                          <Badge variant="light" color={tx.type === 'income' ? 'green' : 'red'}>
+                            {tx.type}
+                          </Badge>
+                        </Group>
+
+                        {tx.description && (
+                          <Text size="sm" style={{ fontStyle: 'italic', opacity: 0.8 }}>
+                            {tx.description}
+                          </Text>
                         )}
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))
-      )}
+
+                        {txTags.length > 0 && (
+                          <Group gap="xs" wrap="wrap">
+                            {txTags.map((tag) => (
+                              <Badge key={tag} variant="dot" size="sm">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </Group>
+                        )}
+
+                        {showActions && (tx.id) && (
+                          <Group gap="xs">
+                            {onEdit && <Button size="xs" variant="light" onClick={() => onEdit(tx)}>Edit</Button>}
+                            {onDelete && (
+                              <Button size="xs" variant="light" color="red" onClick={() => onDelete(tx.id!)}>Delete</Button>
+                            )}
+                          </Group>
+                        )}
+                      </Stack>
+                    </Paper>
+                  );
+                })}
+              </Stack>
+            ))}
+          </Stack>
+        )}
+      </Stack>
     </section>
   );
 };
