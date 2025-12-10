@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Group, Title } from '@mantine/core';
 import { DashboardFilters } from '../components/DashboardFilters';
 import { DashboardCharts } from '../components/DashboardCharts';
 import { CategoryBreakdown } from '../components/CategoryBreakdown';
+import { ActionToggle } from '../components/ActionToggle';
 import { getAllAccounts } from '../stores/accountsStore';
 import { getAllCategories } from '../stores/categoriesStore';
 import { getAllTransactions } from '../stores/transactionsStore';
@@ -234,7 +236,10 @@ export const HomePage = () => {
 
   return (
     <div>
-      <h1>Platito</h1>
+      <Group justify="space-between" align="center" style={{ padding: '16px', paddingBottom: 0 }}>
+        <Title order={2} size="h4">Platito</Title>
+        <ActionToggle />
+      </Group>
       <main style={{ padding: '16px' }}>
         <section style={{ marginTop: '12px' }}>
           <h2>Total Balance</h2>
