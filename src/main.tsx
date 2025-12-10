@@ -8,7 +8,16 @@ import App from './App.tsx'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ColorSchemeScript defaultColorScheme="light" />
-    <MantineProvider defaultColorScheme="light">
+    <MantineProvider
+      defaultColorScheme="light"
+      theme={{
+        fontFamily: 'Manrope, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        headings: {
+          fontFamily: 'Manrope, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+          fontWeight: '700',
+        },
+      }}
+    >
       <App />
     </MantineProvider>
   </StrictMode>,
