@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Group, Title } from '@mantine/core';
+import { Card, Grid, Group, Stack, Text, Title } from '@mantine/core';
 import { DashboardFilters } from '../components/DashboardFilters';
 import { DashboardCharts } from '../components/DashboardCharts';
 import { CategoryBreakdown } from '../components/CategoryBreakdown';
@@ -240,40 +240,56 @@ export const HomePage = () => {
         <Title order={2} size="h4">Platito</Title>
         <ActionToggle />
       </Group>
-      <main style={{ padding: '16px' }}>
-        <section style={{ marginTop: '12px' }}>
-          <h2>Total Balance</h2>
-          <p style={{ fontSize: '1.2rem', fontWeight: 600 }}>
-            {totalDisplay} {settings?.displayCurrency ?? 'ARS'}
-          </p>
-        </section>
 
-        <section style={{ marginTop: '24px' }}>
-          <h2>Dashboard</h2>
-          <DashboardFilters
-            accounts={accounts}
-            typeFilter={typeFilter}
-            setTypeFilter={setTypeFilter}
-            accountFilter={accountFilter}
-            setAccountFilter={setAccountFilter}
-            timeWindow={timeWindow}
-            setTimeWindow={setTimeWindow}
-            periodLabel={periodLabel}
-            handlePrevPeriod={handlePrevPeriod}
-            handleNextPeriod={handleNextPeriod}
-            disableNext={disableNext}
-          />
-          <DashboardCharts
-            timeWindow={timeWindow}
-            timeSeriesData={timeSeriesData}
-            pieChartData={pieChartData}
-          />
-          <div style={{ marginTop: '24px' }}>
-            <h3>Category Breakdown</h3>
-            <CategoryBreakdown data={byCategory} total={totalAmount} />
-          </div>
-        </section>
-      </main>
+      <div style={{ padding: '16px' }}>
+        <Grid gutter="lg">
+          <Grid.Col span={{ base: 12, md: 7 }}>
+            <Stack gap="lg">
+              <Card shadow="sm" padding="lg" radius="md" withBorder>
+                <Stack gap={4}>
+                  <Text size="sm" c="dimmed">Total Balance</Text>
+                  <Text size="xl" fw={700}>
+                    {totalDisplay} {settings?.displayCurrency ?? 'ARS'}
+                  </Text>
+                </Stack>
+              </Card>
+
+              <Card shadow="sm" padding="lg" radius="md" withBorder>
+                <Stack gap="md">
+                  <Title order={4}>Dashboard</Title>
+                  <DashboardFilters
+                    accounts={accounts}
+                    typeFilter={typeFilter}
+                    setTypeFilter={setTypeFilter}
+                    accountFilter={accountFilter}
+                    setAccountFilter={setAccountFilter}
+                    timeWindow={timeWindow}
+                    setTimeWindow={setTimeWindow}
+                    periodLabel={periodLabel}
+                    handlePrevPeriod={handlePrevPeriod}
+                    handleNextPeriod={handleNextPeriod}
+                    disableNext={disableNext}
+                  />
+                  <DashboardCharts
+                    timeWindow={timeWindow}
+                    timeSeriesData={timeSeriesData}
+                    pieChartData={pieChartData}
+                  />
+                </Stack>
+              </Card>
+            </Stack>
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, md: 5 }}>
+            <Card shadow="sm" padding="lg" radius="md" withBorder>
+              <Stack gap="md">
+                <Title order={4}>Category Breakdown</Title>
+                <CategoryBreakdown data={byCategory} total={totalAmount} />
+              </Stack>
+            </Card>
+          </Grid.Col>
+        </Grid>
+      </div>
     </div>
   );
 };

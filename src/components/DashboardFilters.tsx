@@ -1,4 +1,4 @@
-import React from 'react';
+import { Button, Group, SegmentedControl, Select, Text } from '@mantine/core';
 import type { Account, TransactionType, TimeWindow } from '../types';
 
 interface DashboardFiltersProps {
@@ -15,7 +15,7 @@ interface DashboardFiltersProps {
   disableNext: boolean;
 }
 
-export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
+export const DashboardFilters = ({
   accounts,
   typeFilter,
   setTypeFilter,
@@ -27,37 +27,56 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
   handlePrevPeriod,
   handleNextPeriod,
   disableNext,
-}) => (
-  <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '16px' }}>
-    <label>
-      Type:{' '}
-      <select value={typeFilter} onChange={e => setTypeFilter(e.target.value as TransactionType)}>
-        <option value="expense">Expense</option>
-        <option value="income">Income</option>
-      </select>
-    </label>
-    <label>
-      Account:{' '}
-      <select value={accountFilter ?? ''} onChange={e => setAccountFilter(e.target.value ? Number(e.target.value) : null)}>
-        <option value="">All Accounts</option>
-        {accounts.map(acc => (
-          <option key={acc.id} value={acc.id}>{acc.name}</option>
-        ))}
-      </select>
-    </label>
-    <label>
-      Time Window:{' '}
-      <select value={timeWindow} onChange={e => setTimeWindow(e.target.value as TimeWindow)}>
-        <option value="day">Day</option>
-        <option value="week">Week</option>
-        <option value="month">Month</option>
-        <option value="year">Year</option>
-      </select>
-    </label>
-    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-      <button onClick={handlePrevPeriod}>← Prev</button>
-      <span style={{ minWidth: '150px', textAlign: 'center', fontWeight: 500 }}>{periodLabel}</span>
-      <button onClick={handleNextPeriod} disabled={disableNext}>Next →</button>
-    </div>
-  </div>
-);
+}: DashboardFiltersProps) => {
+  return (
+    <Group gap="md" wrap="wrap" align="center">
+      <div>
+        <Text size="sm" fw={500} mb={4}>Type</Text>
+        <SegmentedControl
+          value={typeFilter}
+          onChange={(value) => setTypeFilter(value as TransactionType)}
+          data={[
+            { label: 'Expense', value: 'expense' },
+            { label: 'Income', value: 'income' },
+          ]}
+        />
+      </div>
+
+      <Select
+        label="Account"
+        placeholder="All accounts"
+        data={accounts.map((acc) => ({ value: String(acc.id), label: acc.name }))}
+        value={accountFilter ? String(accountFilter) : null}
+        onChange={(value) => setAccountFilter(value ? Number(value) : null)}
+        clearable
+        searchable
+        withinPortal
+      />
+
+      <Select
+        label="Time window"
+        data={[
+          { value: 'day', label: 'Day' },
+          { value: 'week', label: 'Week' },
+          { value: 'month', label: 'Month' },
+          { value: 'year', label: 'Year' },
+        ]}
+        value={timeWindow}
+        onChange={(value) => setTimeWindow(value as TimeWindow)}
+        withinPortal
+      />
+
+      <Group gap="xs" align="center">
+        <Button variant="light" size="sm" onClick={handlePrevPeriod}>
+          ← Prev
+        </Button>
+        <Text size="sm" fw={500} style={{ minWidth: 150, textAlign: 'center' }}>
+          {periodLabel}
+        </Text>
+        <Button variant="light" size="sm" onClick={handleNextPeriod} disabled={disableNext}>
+          Next →
+        </Button>
+      </Group>
+    </Group>
+  );
+};

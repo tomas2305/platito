@@ -1,4 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
+import {
+  Button,
+  Card,
+  Group,
+  MultiSelect,
+  Select,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+  SegmentedControl,
+} from '@mantine/core';
 import { TransactionList } from '../components/TransactionList';
 import type { Account, Category, Tag, Transaction, TransactionType } from '../types';
 import { getActiveAccounts } from '../stores/accountsStore';
@@ -15,8 +27,8 @@ import { formatMonetaryValue, parseMonetaryValue } from '../utils/formatters';
 interface FormState {
   id?: number;
   amount: string;
-  accountId: number | '';
-  categoryId: number | '';
+  accountId: string;
+  categoryId: string;
   transactionType: TransactionType;
   tagIds: number[];
   description: string;
@@ -59,7 +71,7 @@ export const TransactionsPage = () => {
     setLoading(false);
 
     if (!form.accountId && acct.length > 0) {
-      setForm((prev) => ({ ...prev, accountId: acct[0].id ?? '' }));
+      setForm((prev) => ({ ...prev, accountId: String(acct[0].id ?? '') }));
     }
   };
 
@@ -107,8 +119,8 @@ export const TransactionsPage = () => {
       const { accountId, categoryId, tagIds, date } = payload;
       setForm({
         amount: '',
-        accountId,
-        categoryId,
+        accountId: String(accountId),
+        categoryId: String(categoryId),
         transactionType: selectedCategory.type,
         tagIds,
         description: '',
@@ -125,8 +137,8 @@ export const TransactionsPage = () => {
     setForm({
       id: tx.id,
       amount: formatMonetaryValue(String(tx.amount)),
-      accountId: tx.accountId,
-      categoryId: tx.categoryId,
+      accountId: String(tx.accountId),
+      categoryId: String(tx.categoryId),
       transactionType: cat?.type ?? 'expense',
       tagIds: tx.tagIds ?? [],
       description: tx.description,
@@ -142,16 +154,6 @@ export const TransactionsPage = () => {
     await loadData();
   };
 
-  const toggleTag = (tagId: number) => {
-    setForm((prev) => {
-      const exists = prev.tagIds.includes(tagId);
-      return {
-        ...prev,
-        tagIds: exists ? prev.tagIds.filter((id) => id !== tagId) : [...prev.tagIds, tagId],
-      };
-    });
-  };
-
   const categoriesForType = useMemo(
     () => categories.filter((cat) => cat.type === form.transactionType),
     [categories, form.transactionType],
@@ -160,8 +162,8 @@ export const TransactionsPage = () => {
   const handleTypeChange = (type: TransactionType) => {
     const options = categories.filter((c) => c.type === type);
     setForm((prev) => {
-      const keepCurrent = options.some((c) => c.id === prev.categoryId);
-      const firstCategoryId = keepCurrent ? prev.categoryId : options[0]?.id ?? '';
+      const keepCurrent = options.some((c) => String(c.id) === prev.categoryId);
+      const firstCategoryId = keepCurrent ? prev.categoryId : String(options[0]?.id ?? '');
       return {
         ...prev,
         transactionType: type,
@@ -189,102 +191,141 @@ export const TransactionsPage = () => {
   }
 
   return (
-    <div>
-      <h1>Transactions</h1>
+    <Stack gap="lg">
+      <Title order={2}>Transactions</Title>
 
-      <section style={{ marginTop: '16px', marginBottom: '16px' }}>
-        <h2>{form.id ? 'Edit Transaction' : 'Create Transaction'}</h2>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          <input
-            type="text"
-            inputMode="decimal"
-            placeholder="Amount"
-            value={form.amount}
-            onChange={(e) => setForm((prev) => ({ ...prev, amount: formatMonetaryValue(e.target.value) }))}
-            required
-          />
-          <select
-            value={form.transactionType}
-            onChange={(e) => handleTypeChange(e.target.value as TransactionType)}
-            required
-          >
-            <option value="expense">Expense</option>
-            <option value="income">Income</option>
-          </select>
-          <select
-            value={form.accountId}
-            onChange={(e) => setForm((prev) => ({ ...prev, accountId: Number(e.target.value) }))}
-            required
-          >
-            <option value="" disabled>Select account</option>
-            {accounts.map((acc) => (
-              <option key={acc.id} value={acc.id}>
-                {acc.name} ({acc.currency})
-              </option>
-            ))}
-          </select>
-          <select
-            value={form.categoryId}
-            onChange={(e) => setForm((prev) => ({ ...prev, categoryId: Number(e.target.value) }))}
-            required
-          >
-            <option value="" disabled>Select category</option>
-            {categoriesForType.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
-          <input
-            type="date"
-            value={form.date}
-            onChange={(e) => setForm((prev) => ({ ...prev, date: e.target.value }))}
-            required
-          />
-          <input
-            type="text"
-            placeholder="Description"
-            value={form.description}
-            onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-          />
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-            {tags.map((tag) => (
-              <label key={tag.id} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <input
-                  type="checkbox"
-                  checked={form.tagIds.includes(tag.id!)}
-                  onChange={() => toggleTag(tag.id!)}
+      <Card shadow="sm" radius="md" padding="lg" withBorder>
+        <Stack gap="md">
+          <Group justify="space-between" align="center">
+            <Title order={3}>{form.id ? 'Edit Transaction' : 'Create Transaction'}</Title>
+            {form.id && (
+              <Button
+                variant="subtle"
+                color="gray"
+                onClick={() => setForm({
+                  amount: '',
+                  accountId: form.accountId,
+                  categoryId: form.categoryId,
+                  transactionType: form.transactionType,
+                  tagIds: form.tagIds,
+                  description: '',
+                  date: form.date,
+                })}
+              >
+                Cancel edit
+              </Button>
+            )}
+          </Group>
+
+          <form onSubmit={handleSubmit}>
+            <Stack gap="sm">
+              <Group align="flex-end" gap="sm" wrap="wrap">
+                <TextInput
+                  label="Amount"
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="Amount"
+                  value={form.amount}
+                  onChange={(e) => setForm((prev) => ({ ...prev, amount: formatMonetaryValue(e.target.value) }))}
+                  required
+                  style={{ minWidth: 160 }}
                 />
-                {tag.name}
-              </label>
-            ))}
-          </div>
-          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-            <input
-              type="text"
-              placeholder="New tag"
-              value={newTagName}
-              onChange={(e) => setNewTagName(e.target.value)}
-            />
-            <button type="button" onClick={handleQuickAddTag}>Add tag</button>
-          </div>
-          <button type="submit">{form.id ? 'Update' : 'Create'}</button>
-          {form.id && (
-            <button type="button" onClick={() => setForm({
-              amount: '',
-              accountId: form.accountId,
-              categoryId: form.categoryId,
-              transactionType: form.transactionType,
-              tagIds: form.tagIds,
-              description: '',
-              date: form.date,
-            })}>
-              Cancel edit
-            </button>
-          )}
-        </form>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-      </section>
+
+                <SegmentedControl
+                  value={form.transactionType}
+                  onChange={(value) => handleTypeChange(value as TransactionType)}
+                  data={[
+                    { label: 'Expense', value: 'expense' },
+                    { label: 'Income', value: 'income' },
+                  ]}
+                />
+
+                <Select
+                  label="Account"
+                  placeholder="Select account"
+                  value={form.accountId || null}
+                  onChange={(value) => setForm((prev) => ({ ...prev, accountId: value ?? '' }))}
+                  data={accounts.map((acc) => ({ label: `${acc.name} (${acc.currency})`, value: String(acc.id) }))}
+                  searchable
+                  required
+                  style={{ minWidth: 220 }}
+                />
+
+                <Select
+                  label="Category"
+                  placeholder="Select category"
+                  value={form.categoryId || null}
+                  onChange={(value) => setForm((prev) => ({ ...prev, categoryId: value ?? '' }))}
+                  data={categoriesForType.map((cat) => ({ label: cat.name, value: String(cat.id) }))}
+                  searchable
+                  required
+                  style={{ minWidth: 200 }}
+                />
+
+                <TextInput
+                  label="Date"
+                  type="date"
+                  value={form.date}
+                  onChange={(e) => setForm((prev) => ({ ...prev, date: e.target.value }))}
+                  required
+                />
+              </Group>
+
+              <TextInput
+                label="Description"
+                placeholder="Optional description"
+                value={form.description}
+                onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+              />
+
+              <MultiSelect
+                label="Tags"
+                placeholder="Select tags"
+                value={form.tagIds.map(String)}
+                onChange={(values) => setForm((prev) => ({ ...prev, tagIds: values.map(Number) }))}
+                data={tags.map((tag) => ({ label: tag.name, value: String(tag.id) }))}
+                searchable
+                clearable
+              />
+
+              <Group align="flex-end" gap="sm">
+                <TextInput
+                  label="Quick add tag"
+                  placeholder="New tag"
+                  value={newTagName}
+                  onChange={(e) => setNewTagName(e.target.value)}
+                  style={{ minWidth: 200 }}
+                />
+                <Button type="button" variant="light" onClick={handleQuickAddTag}>Add tag</Button>
+              </Group>
+
+              <Group gap="sm">
+                <Button type="submit">{form.id ? 'Update' : 'Create'}</Button>
+                {form.id && (
+                  <Button
+                    type="button"
+                    variant="light"
+                    color="gray"
+                    onClick={() => setForm({
+                      amount: '',
+                      accountId: form.accountId,
+                      categoryId: form.categoryId,
+                      transactionType: form.transactionType,
+                      tagIds: form.tagIds,
+                      description: '',
+                      date: form.date,
+                    })}
+                  >
+                    Cancel edit
+                  </Button>
+                )}
+              </Group>
+
+              {error && <Text c="red" size="sm">{error}</Text>}
+            </Stack>
+          </form>
+        </Stack>
+      </Card>
 
       <TransactionList
         title="All Transactions"
@@ -296,6 +337,6 @@ export const TransactionsPage = () => {
         onDelete={handleDelete}
         showActions
       />
-    </div>
+    </Stack>
   );
 };
