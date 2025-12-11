@@ -1,5 +1,6 @@
 import { Button, Group, SegmentedControl, Select, Text } from '@mantine/core';
 import type { Account, TransactionType, TimeWindow } from '../types';
+import { AccountIcon } from './AccountIcon';
 
 interface DashboardFiltersProps {
   accounts: Account[];
@@ -45,26 +46,36 @@ export const DashboardFilters = ({
       <Select
         label="Account"
         placeholder="All accounts"
-        data={accounts.map((acc) => ({ value: String(acc.id), label: acc.name }))}
+        data={accounts.map((acc) => ({ value: String(acc.id), label: acc.name, icon: acc.icon }))}
         value={accountFilter ? String(accountFilter) : null}
         onChange={(value) => setAccountFilter(value ? Number(value) : null)}
         clearable
         searchable
         withinPortal
+        renderOption={({ option }) => {
+          const account = accounts.find(acc => String(acc.id) === option.value);
+          return (
+            <Group gap="sm">
+              {account && <AccountIcon name={account.icon} size={20} />}
+              <span>{option.label}</span>
+            </Group>
+          );
+        }}
       />
 
-      <Select
-        label="Time window"
-        data={[
-          { value: 'day', label: 'Day' },
-          { value: 'week', label: 'Week' },
-          { value: 'month', label: 'Month' },
-          { value: 'year', label: 'Year' },
-        ]}
-        value={timeWindow}
-        onChange={(value) => setTimeWindow(value as TimeWindow)}
-        withinPortal
-      />
+      <div>
+        <Text size="sm" fw={500} mb={4}>Time window</Text>
+        <SegmentedControl
+          value={timeWindow}
+          onChange={(value) => setTimeWindow(value as TimeWindow)}
+          data={[
+            { label: 'Day', value: 'day' },
+            { label: 'Week', value: 'week' },
+            { label: 'Month', value: 'month' },
+            { label: 'Year', value: 'year' },
+          ]}
+        />
+      </div>
 
       <Group gap="xs" align="center">
         <Button variant="light" size="sm" onClick={handlePrevPeriod}>

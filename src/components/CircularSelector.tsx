@@ -1,4 +1,4 @@
-import { Button, Group, Modal, Stack, Text, useMantineTheme } from '@mantine/core';
+import { Button, Group, Modal, Stack, Text } from '@mantine/core';
 import { useState } from 'react';
 import { getColorHex } from '../utils/colors';
 
@@ -27,7 +27,6 @@ export function CircularSelector({
   style,
 }: CircularSelectorProps) {
   const [modalOpened, setModalOpened] = useState(false);
-  const theme = useMantineTheme();
   
   // If something is selected that's not in the first maxVisible items, show it first
   const orderedItems = selectedId && !items.slice(0, maxVisible).some(item => item.id === selectedId)
@@ -36,12 +35,11 @@ export function CircularSelector({
   
   const visibleItems = orderedItems.slice(0, maxVisible);
   const hasMore = orderedItems.length > maxVisible;
-  const labelColor = theme.colors.gray[9];
 
   return (
     <>
       <Stack gap="xs" style={{ flexBasis: '100%', width: '100%', ...style }}>
-        <Text component="label" fw={500} size="sm" style={{ color: labelColor, textAlign: 'left' }}>
+        <Text component="label" fw={500} size="sm" style={{ textAlign: 'left' }}>
           {label}
         </Text>
         <Group gap="md">
@@ -65,7 +63,7 @@ export function CircularSelector({
             >
               <Stack gap={4} align="center" style={{ width: '100%' }}>
                 {item.icon}
-                <Text size="xs" fw={500} ta="center" style={{ wordBreak: 'break-word', fontSize: '11px', color: labelColor }}>
+                <Text size="xs" fw={500} ta="center" style={{ wordBreak: 'break-word', fontSize: '11px' }}>
                   {item.name}
                 </Text>
               </Stack>
@@ -127,7 +125,7 @@ export function CircularSelector({
             >
               <Stack gap={4} align="center" style={{ width: '100%' }}>
                 {item.icon}
-                <Text size="xs" fw={500} ta="center" style={{ wordBreak: 'break-word', fontSize: '10px', color: labelColor }}>
+                <Text size="xs" fw={500} ta="center" style={{ wordBreak: 'break-word', fontSize: '10px' }}>
                   {item.name}
                 </Text>
               </Stack>

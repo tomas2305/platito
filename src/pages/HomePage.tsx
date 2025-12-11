@@ -99,6 +99,32 @@ export const HomePage = () => {
     return new Date(now.getFullYear() - rangeOffset, 0, 1);
   }, [timeWindow, rangeOffset]);
 
+  const endOfPeriod = useMemo(() => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    if (timeWindow === 'day') {
+      const end = new Date(now);
+      end.setDate(now.getDate() - rangeOffset + 1);
+      return end;
+    }
+
+    if (timeWindow === 'week') {
+      const start = new Date(now);
+      const day = (now.getDay() + 6) % 7;
+      start.setDate(now.getDate() - day - rangeOffset * 7);
+      const end = new Date(start);
+      end.setDate(start.getDate() + 7);
+      return end;
+    }
+
+    if (timeWindow === 'month') {
+      return new Date(now.getFullYear(), now.getMonth() - rangeOffset + 1, 1);
+    }
+
+    return new Date(now.getFullYear() - rangeOffset + 1, 0, 1);
+  }, [timeWindow, rangeOffset]);
+
   const filtered = useMemo(() => {
     const now = new Date();
     return transactions.filter((tx) => {
@@ -107,9 +133,9 @@ export const HomePage = () => {
       const txDate = new Date(tx.date);
       if (Number.isNaN(txDate.getTime())) return false;
       if (txDate > now) return false;
-      return txDate >= startOfPeriod;
+      return txDate >= startOfPeriod && txDate < endOfPeriod;
     });
-  }, [transactions, typeFilter, accountFilter, startOfPeriod]);
+  }, [transactions, typeFilter, accountFilter, startOfPeriod, endOfPeriod]);
 
   const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
 
@@ -131,13 +157,11 @@ export const HomePage = () => {
   const totalAmount = useMemo(() => byCategory.reduce((sum, x) => sum + x.amount, 0), [byCategory]);
 
   const pieChartData = useMemo(() => {
-    return byCategory.map((x, idx) => {
-      const hues = [0, 30, 60, 120, 180, 240, 270, 330];
-      const hue = hues[idx % hues.length];
+    return byCategory.map((x) => {
       return {
         name: x.category.name,
         value: x.amount,
-        fill: `hsl(${hue}, 70%, 60%)`,
+        fill: x.category.color,
       };
     });
   }, [byCategory]);
@@ -236,27 +260,26 @@ export const HomePage = () => {
 
   return (
     <div>
-      <Group justify="space-between" align="center" style={{ padding: '16px', paddingBottom: 0 }}>
-        <Title order={2} size="h4">Platito</Title>
-        <ActionToggle />
-      </Group>
-
-      <div style={{ padding: '16px' }}>
-        <Grid gutter="lg">
-          <Grid.Col span={{ base: 12, md: 7 }}>
-            <Stack gap="lg">
-              <Card shadow="sm" padding="lg" radius="md" withBorder>
-                <Stack gap={4}>
+      <div style={{ padding: '12px', paddingTop: '16px' }}>
+        <Grid gutter="md">
+          <Grid.Col span={12}>
+            <Card shadow="sm" padding="md" radius="md" withBorder>
+              <Group justify="space-between" align="center">
+                <div>
                   <Text size="sm" c="dimmed">Total Balance</Text>
                   <Text size="xl" fw={700}>
                     {totalDisplay} {settings?.displayCurrency ?? 'ARS'}
                   </Text>
-                </Stack>
-              </Card>
+                </div>
+                <ActionToggle />
+              </Group>
+            </Card>
+          </Grid.Col>
 
-              <Card shadow="sm" padding="lg" radius="md" withBorder>
-                <Stack gap="md">
-                  <Title order={4}>Dashboard</Title>
+          <Grid.Col span={{ base: 12, lg: 8 }}>
+            <Card shadow="sm" padding="md" radius="md" withBorder>
+              <Stack gap="md">
+                <Title order={4} size="h5">Dashboard</Title>
                   <DashboardFilters
                     accounts={accounts}
                     typeFilter={typeFilter}
@@ -277,13 +300,12 @@ export const HomePage = () => {
                   />
                 </Stack>
               </Card>
-            </Stack>
           </Grid.Col>
 
-          <Grid.Col span={{ base: 12, md: 5 }}>
-            <Card shadow="sm" padding="lg" radius="md" withBorder>
+          <Grid.Col span={{ base: 12, lg: 4 }}>
+            <Card shadow="sm" padding="md" radius="md" withBorder>
               <Stack gap="md">
-                <Title order={4}>Category Breakdown</Title>
+                <Title order={4} size="h5">Category Breakdown</Title>
                 <CategoryBreakdown data={byCategory} total={totalAmount} />
               </Stack>
             </Card>
