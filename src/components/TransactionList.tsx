@@ -128,7 +128,8 @@ export const TransactionList = ({
     return transactions.filter((tx) => {
       if (tx.type !== typeFilter) return false;
       if (accountFilter !== 'all' && tx.accountId !== accountFilter) return false;
-      const txDate = new Date(tx.date);
+      // Parse date as local time (YYYY-MM-DD)
+      const txDate = new Date(tx.date + 'T00:00:00');
       if (Number.isNaN(txDate.getTime())) return false;
       if (txDate > now) return false;
       return txDate >= periodStart && txDate <= periodEnd;

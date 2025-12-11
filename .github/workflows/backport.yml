@@ -1,0 +1,66 @@
+name: Backport to develop
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  backport:
+    runs-on: ubuntu-latest
+    # Solo si el PR fue mergeado y tiene la etiqueta backport-to-develop
+    if: >
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'backport-to-develop')
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Config git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Crear branch de backport y cherry-pick
+        env:
+          TARGET_BRANCH: develop
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: |
+          BACKPORT_BRANCH=backport/pr-${PR_NUMBER}-to-${TARGET_BRANCH}
+
+          # Traer develop
+          git fetch origin ${TARGET_BRANCH}
+          git checkout -b ${BACKPORT_BRANCH} origin/${TARGET_BRANCH}
+
+          # Cherry-pick del merge de main
+          git cherry-pick -m 1 -x ${MERGE_SHA}
+
+          git push origin ${BACKPORT_BRANCH}
+
+      - name: Crear PR hacia develop
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: develop
+          branch: backport/pr-${{ github.event.pull_request.number }}-to-develop
+          title: "Backport #${{ github.event.pull_request.number }} to develop"
+          body: |
+            🔄 Backport automático de #${{ github.event.pull_request.number }} a `develop`.
+            
+            **PR original:** #${{ github.event.pull_request.number }}
+            **Commit:** ${{ github.event.pull_request.merge_commit_sha }}
+            
+            ---
+            _Este PR fue creado automáticamente por el workflow de backport._
+          labels: backport
+          delete-branch: true
