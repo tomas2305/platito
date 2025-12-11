@@ -1,8 +1,9 @@
 import { getDB, getActiveDatabaseName } from '../db';
-import type { AppSettings, Currency, ExchangeRates } from '../types';
+import type { AppSettings, AutoUpdateInterval, Currency, ExchangeRates } from '../types';
 import { ensureDefaultCategories } from './categoriesStore';
 
 const SETTINGS_ID = 1;
+const MIN_UPDATE_INTERVAL_MS = 10000;
 
 const AVAILABLE_CURRENCIES: Currency[] = ['ARS', 'USD_BLUE', 'USD_MEP', 'USDT'];
 
@@ -32,6 +33,9 @@ const withDefaults = (settings: Partial<AppSettings>): AppSettings => ({
   defaultTimeWindow: settings.defaultTimeWindow ?? 'month',
   displayCurrency: settings.displayCurrency ?? 'ARS',
   exchangeRates: normalizeExchangeRates(settings.exchangeRates),
+  autoUpdateInterval: settings.autoUpdateInterval ?? 'none',
+  lastFxUpdate: settings.lastFxUpdate,
+  fxUpdateCount: settings.fxUpdateCount ?? 0,
 });
 
 const normalizeExchangeRates = (
@@ -117,6 +121,74 @@ export const updateSettings = async (
 
   const db = getDB();
   await db.settings.update(SETTINGS_ID, merged);
+};
+
+export const fetchAndUpdateExchangeRates = async (force = false): Promise<ExchangeRates> => {
+  const current = await getSettings();
+  if (!current) {
+    throw new Error('Settings not initialized');
+  }
+
+  if (!force && current.lastFxUpdate) {
+    const timeSinceLastUpdate = Date.now() - new Date(current.lastFxUpdate).getTime();
+    if (timeSinceLastUpdate < MIN_UPDATE_INTERVAL_MS) {
+      const waitTime = Math.ceil((MIN_UPDATE_INTERVAL_MS - timeSinceLastUpdate) / 1000);
+      throw new Error(`Please wait ${waitTime} seconds before updating again`);
+    }
+  }
+
+  const { fetchExchangeRatesFromAPI } = await import('../utils/fxRates');
+  const rates = await fetchExchangeRatesFromAPI();
+  
+  await updateSettings({ 
+    exchangeRates: rates,
+    lastFxUpdate: new Date().toISOString(),
+    fxUpdateCount: current.fxUpdateCount + 1,
+  });
+  
+  return rates;
+};
+
+const getIntervalMs = (interval: AutoUpdateInterval): number | null => {
+  switch (interval) {
+    case '6h': return 6 * 60 * 60 * 1000;
+    case '12h': return 12 * 60 * 60 * 1000;
+    case '24h': return 24 * 60 * 60 * 1000;
+    case 'none': return null;
+  }
+};
+
+export const shouldAutoUpdate = async (): Promise<boolean> => {
+  const settings = await getSettings();
+  if (!settings || settings.autoUpdateInterval === 'none') {
+    return false;
+  }
+
+  if (!settings.lastFxUpdate) {
+    return true;
+  }
+
+  const intervalMs = getIntervalMs(settings.autoUpdateInterval);
+  if (intervalMs === null) {
+    return false;
+  }
+
+  const timeSinceLastUpdate = Date.now() - new Date(settings.lastFxUpdate).getTime();
+  return timeSinceLastUpdate >= intervalMs;
+};
+
+export const autoUpdateExchangeRates = async (): Promise<ExchangeRates | null> => {
+  const shouldUpdate = await shouldAutoUpdate();
+  if (!shouldUpdate) {
+    return null;
+  }
+
+  try {
+    return await fetchAndUpdateExchangeRates(true);
+  } catch (error) {
+    console.error('Auto-update failed:', error);
+    return null;
+  }
 };
 
 export const resetDatabase = async (): Promise<void> => {
