@@ -2,7 +2,7 @@ import { getDB } from './index';
 import { ensureDefaultCategories } from '../stores/categoriesStore';
 import { createTransaction } from '../stores/transactionsStore';
 import { initializeSettings } from '../stores/settingsStore';
-import type { Category, TransactionType, Currency } from '../types';
+import type { Category, TransactionType } from '../types';
 import testingDataJSON from './testingData.json';
 
 const findCategoryId = async (name: string, type: Category['type']): Promise<number> => {

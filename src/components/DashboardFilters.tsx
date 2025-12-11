@@ -52,7 +52,6 @@ export const DashboardFilters = ({
         onChange={(value) => setAccountFilter(value ? Number(value) : null)}
         clearable
         searchable
-        withinPortal
         renderOption={({ option }) => {
           const account = accounts.find(acc => String(acc.id) === option.value);
           return (
