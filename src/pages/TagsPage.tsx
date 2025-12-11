@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Button, Card, Group, Stack, Text, TextInput, Title } from '@mantine/core';
 import type { Tag } from '../types';
 import {
   createTag,
@@ -94,56 +94,50 @@ export const TagsPage = () => {
   }
 
   return (
-    <div>
-      <h1>Tags</h1>
-      <nav>
-        <Link to="/">Home</Link>
-        {' | '}
-        <Link to="/accounts">Accounts</Link>
-        {' | '}
-        <Link to="/categories">Categories</Link>
-        {' | '}
-        <Link to="/transactions">Transactions</Link>
-        {' | '}
-        <Link to="/settings">Settings</Link>
-      </nav>
+    <Stack gap="lg">
+      <Title order={2}>Tags</Title>
 
-      <section style={{ marginTop: '16px', marginBottom: '16px' }}>
-        <h2>{form.id ? 'Edit Tag' : 'Create Tag'}</h2>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          <input
-            type="text"
-            placeholder="Tag name"
-            value={form.name}
-            onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-            required
-          />
-          <button type="submit">{form.id ? 'Update' : 'Create'}</button>
-          {form.id && (
-            <button type="button" onClick={handleCancel}>
-              Cancel
-            </button>
+      <Card shadow="sm" radius="md" padding="lg" withBorder>
+        <Stack gap="sm">
+          <Group justify="space-between" align="center">
+            <Title order={3}>{form.id ? 'Edit Tag' : 'Create Tag'}</Title>
+            {form.id && <Button variant="subtle" color="gray" onClick={handleCancel}>Cancel</Button>}
+          </Group>
+
+          <form onSubmit={handleSubmit}>
+            <Group align="flex-end" gap="sm" wrap="wrap">
+              <TextInput
+                label="Tag name"
+                placeholder="Tag name"
+                value={form.name}
+                onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                required
+              />
+              <Button type="submit">{form.id ? 'Update' : 'Create'}</Button>
+            </Group>
+          </form>
+          {error && <Text c="red" size="sm">{error}</Text>}
+        </Stack>
+      </Card>
+
+      <Card shadow="xs" radius="md" padding="lg" withBorder>
+        <Stack gap="sm">
+          <Title order={3}>All Tags</Title>
+          {tags.length === 0 ? (
+            <Text c="dimmed">No tags</Text>
+          ) : (
+            <Stack gap="xs">
+              {tags.map((tag) => (
+                <Group key={tag.id} align="center" gap="sm">
+                  <Text style={{ flex: 1 }}>{tag.name}</Text>
+                  <Button size="xs" variant="light" onClick={() => handleEdit(tag)}>Edit</Button>
+                  <Button size="xs" variant="light" color="red" onClick={() => handleDelete(tag.id)}>Delete</Button>
+                </Group>
+              ))}
+            </Stack>
           )}
-        </form>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-      </section>
-
-      <section>
-        <h2>All Tags</h2>
-        {tags.length === 0 ? (
-          <p>No tags</p>
-        ) : (
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {tags.map((tag) => (
-              <li key={tag.id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ flex: 1 }}>{tag.name}</span>
-                <button type="button" onClick={() => handleEdit(tag)}>Edit</button>
-                <button type="button" onClick={() => handleDelete(tag.id)}>Delete</button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </div>
+        </Stack>
+      </Card>
+    </Stack>
   );
 };

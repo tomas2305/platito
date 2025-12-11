@@ -1,5 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import {
+  Button,
+  Card,
+  ColorSwatch,
+  Group,
+  Select,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+  SegmentedControl,
+} from '@mantine/core';
 import type { Category, TransactionType } from '../types';
 import { CategoryIcon } from '../components/CategoryIcon';
 import { COLOR_PALETTE, type ColorName, getColorHex } from '../utils/colors';
@@ -121,113 +132,112 @@ export const CategoriesPage = () => {
   }
 
   return (
-    <div>
-      <h1>Categories</h1>
-      <nav>
-        <Link to="/">Home</Link>
-        {' | '}
-        <Link to="/accounts">Accounts</Link>
-        {' | '}
-        <Link to="/transactions">Transactions</Link>
-        {' | '}
-        <Link to="/tags">Tags</Link>
-        {' | '}
-        <Link to="/settings">Settings</Link>
-      </nav>
-
-      <section style={{ marginTop: '16px', marginBottom: '16px' }}>
-        <h2>{form.id ? 'Edit Category' : 'Create Category'}</h2>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          <input
-            type="text"
-            placeholder="Name"
-            value={form.name}
-            onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-            required
-          />
-          <select
-            value={form.type}
-            onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value as TransactionType }))}
-          >
-            {TYPE_OPTIONS.map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-          <select
-            value={form.icon}
-            onChange={(e) => setForm((prev) => ({ ...prev, icon: e.target.value }))}
-          >
-            {CATEGORY_ICON_OPTIONS.map((icon) => (
-              <option key={icon} value={icon}>{icon}</option>
-            ))}
-          </select>
-          <button type="submit">{form.id ? 'Update' : 'Create'}</button>
-          {form.id && (
-            <button type="button" onClick={handleCancel}>
-              Cancel
-            </button>
-          )}
-        </form>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
-          {COLOR_PALETTE.map((colorOption) => (
-            <button
-              key={colorOption.name}
-              type="button"
-              onClick={() => setForm((prev) => ({ ...prev, color: colorOption.name }))}
-              style={{
-                width: '32px',
-                height: '32px',
-                backgroundColor: colorOption.hex,
-                border: form.color === colorOption.name ? '3px solid black' : '1px solid #ccc',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-        {TYPE_OPTIONS.map((type) => (
-          <div key={type} style={{ minWidth: '240px' }}>
-            <h3 style={{ textTransform: 'capitalize' }}>{type}</h3>
-            {grouped[type].length === 0 ? (
-              <p style={{ color: '#555' }}>No categories</p>
-            ) : (
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {grouped[type].map((cat) => (
-                  <li key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span
-                      style={{
-                        width: '16px',
-                        height: '16px',
-                        borderRadius: '4px',
-                        backgroundColor: getColorHex(cat.color),
-                        display: 'inline-block',
-                      }}
-                    />
-                    <CategoryIcon name={cat.icon} />
-                    <span style={{ flex: 1 }}>{cat.name}</span>
-                    {!cat.isDefault && (
-                      <>
-                        <button type="button" onClick={() => handleEdit(cat)}>Edit</button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(cat.id)}
-                        >
-                          Delete
-                        </button>
-                      </>
-                    )}
-                    {cat.isDefault && <span style={{ fontSize: '0.8rem', color: '#666' }}>Default</span>}
-                  </li>
-                ))}
-              </ul>
+    <Stack gap="lg">
+      <Card shadow="sm" radius="md" padding="lg" withBorder>
+        <Stack gap="md">
+          <Group justify="space-between" align="center">
+            <Title order={3}>{form.id ? 'Edit Category' : 'Create Category'}</Title>
+            {form.id && (
+              <Button variant="subtle" color="gray" onClick={handleCancel}>Cancel</Button>
             )}
-          </div>
+          </Group>
+
+          <form onSubmit={handleSubmit}>
+            <Stack gap="sm">
+              <Group align="flex-end" gap="sm" wrap="wrap">
+                <TextInput
+                  label="Name"
+                  placeholder="Category name"
+                  value={form.name}
+                  onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                  required
+                  style={{ minWidth: 180 }}
+                />
+
+                <SegmentedControl
+                  value={form.type}
+                  onChange={(value) => setForm((prev) => ({ ...prev, type: value as TransactionType }))}
+                  data={TYPE_OPTIONS.map((t) => ({ label: t.charAt(0).toUpperCase() + t.slice(1), value: t }))}
+                />
+
+                <Select
+                  label="Icon"
+                  placeholder="Select icon"
+                  searchable
+                  value={form.icon}
+                  onChange={(value) => setForm((prev) => ({ ...prev, icon: value || 'tag' }))}
+                  data={CATEGORY_ICON_OPTIONS.map((icon) => ({ label: icon, value: icon }))}
+                  style={{ minWidth: 180 }}
+                />
+
+                <Button type="submit">{form.id ? 'Update' : 'Create'}</Button>
+              </Group>
+
+              <Stack gap={4}>
+                <Text size="sm" c="dimmed">Color</Text>
+                <Group gap="xs" wrap="wrap">
+                  {COLOR_PALETTE.map((colorOption) => (
+                    <ColorSwatch
+                      key={colorOption.name}
+                      color={colorOption.hex}
+                      radius="sm"
+                      size={32}
+                      style={{ border: form.color === colorOption.name ? '2px solid var(--mantine-color-blue-6)' : '1px solid var(--mantine-color-default-border)' }}
+                      onClick={() => setForm((prev) => ({ ...prev, color: colorOption.name }))}
+                    />
+                  ))}
+                </Group>
+              </Stack>
+
+              {error && <Text c="red" size="sm">{error}</Text>}
+            </Stack>
+          </form>
+        </Stack>
+      </Card>
+
+      <Group align="stretch" gap="lg" wrap="nowrap" style={{ flexGrow: 1 }}>
+        {TYPE_OPTIONS.map((type) => (
+          <Card 
+            key={type} 
+            shadow="xs" 
+            radius="md" 
+            padding="md" 
+            withBorder 
+            style={{ 
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              minWidth: 0,
+            }}
+          >
+            <Stack gap="sm" style={{ height: '100%' }}>
+              <Title order={4} style={{ textTransform: 'capitalize' }}>{type}</Title>
+              {grouped[type].length === 0 ? (
+                <Text c="dimmed">No categories</Text>
+              ) : (
+                <Stack gap="xs" style={{ maxHeight: '500px', overflowY: 'auto', flex: 1 }}>
+                  {grouped[type].map((cat) => (
+                    <Group key={cat.id} align="center" gap="sm" wrap="nowrap" justify="flex-start">
+                      <ColorSwatch color={getColorHex(cat.color)} size={18} radius="sm" style={{ flexShrink: 0 }} />
+                      <CategoryIcon name={cat.icon} size={20} />
+                      <Text style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left' }}>{cat.name}</Text>
+                      {!cat.isDefault && (
+                        <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
+                          <Button size="xs" variant="light" onClick={() => handleEdit(cat)}>Edit</Button>
+                          <Button size="xs" variant="light" color="red" onClick={() => handleDelete(cat.id)}>
+                            Delete
+                          </Button>
+                        </Group>
+                      )}
+                      {cat.isDefault && <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>Default</Text>}
+                    </Group>
+                  ))}
+                </Stack>
+              )}
+            </Stack>
+          </Card>
         ))}
-      </section>
-    </div>
+      </Group>
+    </Stack>
   );
 };

@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import {
+  Button,
+  Card,
+  Group,
+  Select,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from '@mantine/core';
 import { getActiveDatabaseName, getDatabaseLabels, switchDatabase } from '../db';
 import { seedTestingData } from '../db/testingData';
 import { getAllAccounts } from '../stores/accountsStore';
@@ -145,120 +154,108 @@ export const SettingsPage = () => {
   }
 
   return (
-    <div>
-      <h1>Settings</h1>
-      <nav>
-        <Link to="/">Home</Link>
-        {' | '}
-        <Link to="/accounts">Accounts</Link>
-        {' | '}
-        <Link to="/categories">Categories</Link>
-        {' | '}
-        <Link to="/transactions">Transactions</Link>
-        {' | '}
-        <Link to="/tags">Tags</Link>
-      </nav>
+    <Stack gap="lg">
+      <Title order={2}>Settings</Title>
 
-      <section style={{ marginTop: '16px' }}>
-        <h2>Database</h2>
-        <p style={{ fontSize: '0.9rem', color: '#555' }}>
-          Active DB: {activeDb === dbLabels.testing ? 'Testing' : 'Main'} ({activeDb})
-        </p>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            onClick={() => handleSwitchDatabase('main')}
-            disabled={loading || activeDb === dbLabels.main}
-          >
-            Use Main DB
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSwitchDatabase('testing')}
-            disabled={loading || activeDb === dbLabels.testing}
-          >
-            Use Testing DB
-          </button>
-        </div>
-        <DatabaseImportExport activeDb={activeDb} />
-        <p style={{ fontSize: '0.9rem', color: '#555' }}>
-          Switching keeps each database isolated. Testing DB seeds sample data on first use.
-        </p>
-      </section>
+      <Card shadow="sm" radius="md" padding="lg" withBorder>
+        <Stack gap="sm">
+          <Title order={3}>Database</Title>
+          <Text size="sm" c="dimmed">
+            Active DB: {activeDb === dbLabels.testing ? 'Testing' : 'Main'} ({activeDb})
+          </Text>
+          <Group gap="sm" wrap="wrap">
+            <Button
+              type="button"
+              onClick={() => handleSwitchDatabase('main')}
+              disabled={loading || activeDb === dbLabels.main}
+            >
+              Use Main DB
+            </Button>
+            <Button
+              type="button"
+              variant="light"
+              onClick={() => handleSwitchDatabase('testing')}
+              disabled={loading || activeDb === dbLabels.testing}
+            >
+              Use Testing DB
+            </Button>
+          </Group>
+          <DatabaseImportExport activeDb={activeDb} />
+          <Text size="sm" c="dimmed">
+            Switching keeps each database isolated. Testing DB seeds sample data on first use.
+          </Text>
+        </Stack>
+      </Card>
 
-      <section>
-        <h2>Default Account</h2>
-        <select
-          value={settings?.defaultAccountId ?? ''}
-          onChange={(e) => handleDefaultAccountChange(e.target.value)}
-        >
-          <option value="">None</option>
-          {accounts.map((acc) => (
-            <option key={acc.id} value={acc.id}>
-              {acc.name}
-            </option>
-          ))}
-        </select>
-      </section>
+      <Card shadow="xs" radius="md" padding="lg" withBorder>
+        <Stack gap="md">
+          <Title order={3}>Defaults</Title>
+          <Stack gap="sm">
+            <Select
+              label="Default account"
+              placeholder="None"
+              value={settings?.defaultAccountId ? String(settings.defaultAccountId) : ''}
+              onChange={(value) => handleDefaultAccountChange(value ?? '')}
+              data={[{ label: 'None', value: '' }, ...accounts.map((acc) => ({ label: acc.name, value: String(acc.id) }))]}
+            />
 
-      <section>
-        <h2>Default Time Window</h2>
-        <select
-          value={settings?.defaultTimeWindow ?? 'month'}
-          onChange={(e) => handleTimeWindowChange(e.target.value as TimeWindow)}
-        >
-          <option value="day">Day</option>
-          <option value="week">Week</option>
-          <option value="month">Month</option>
-          <option value="year">Year</option>
-        </select>
-      </section>
+            <Select
+              label="Default time window"
+              value={settings?.defaultTimeWindow ?? 'month'}
+              onChange={(value) => value && handleTimeWindowChange(value as TimeWindow)}
+              data={[
+                { value: 'day', label: 'Day' },
+                { value: 'week', label: 'Week' },
+                { value: 'month', label: 'Month' },
+                { value: 'year', label: 'Year' },
+              ]}
+            />
 
-      <section>
-        <h2>Display Currency</h2>
-        <select
-          value={displayCurrency}
-          onChange={(e) => handleDisplayCurrencyChange(e.target.value as Currency)}
-        >
-          {SUPPORTED_CURRENCIES.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-      </section>
+            <Select
+              label="Display currency"
+              value={displayCurrency}
+              onChange={(value) => value && handleDisplayCurrencyChange(value as Currency)}
+              data={SUPPORTED_CURRENCIES.map((c) => ({ label: c, value: c }))}
+            />
+          </Stack>
+        </Stack>
+      </Card>
 
-      <section>
-        <h2>Exchange Rates (to ARS)</h2>
-        <p style={{ fontSize: '0.9rem', color: '#555' }}>
-          ARS is fixed to 1. Other currencies must be &gt; 0.
-        </p>
-        {SUPPORTED_CURRENCIES.map((c) => (
-          <div key={c} style={{ marginBottom: '8px' }}>
-            <label>
-              {c} to ARS:
-              {' '}
-              <input
+      <Card shadow="xs" radius="md" padding="lg" withBorder>
+        <Stack gap="sm">
+          <Title order={3}>Exchange Rates (to ARS)</Title>
+          <Text size="sm" c="dimmed">
+            ARS is fixed to 1. Other currencies must be &gt; 0.
+          </Text>
+          <Stack gap="sm">
+            {SUPPORTED_CURRENCIES.map((c) => (
+              <TextInput
+                key={c}
+                label={`${c} to ARS`}
                 type="text"
                 inputMode="decimal"
                 value={formattedExchangeRates[c]}
                 onChange={(e) => handleRateChange(c, e.target.value)}
                 disabled={c === 'ARS'}
               />
-            </label>
-          </div>
-        ))}
-        {errors && <p style={{ color: 'red' }}>{errors}</p>}
-        <button type="button" onClick={handleSaveRates}>Save Rates</button>
-      </section>
+            ))}
+          </Stack>
+          {errors && <Text c="red" size="sm">{errors}</Text>}
+          <Button type="button" onClick={handleSaveRates}>Save Rates</Button>
+        </Stack>
+      </Card>
 
-      <section style={{ marginTop: '16px' }}>
-        <h2>Reset Data</h2>
-        <p style={{ fontSize: '0.9rem', color: '#555' }}>
-          This will clear accounts, transactions, tags, settings, and categories, then restore defaults.
-        </p>
-        <button type="button" onClick={handleResetDatabase} disabled={loading}>
-          Reset Database
-        </button>
-      </section>
-    </div>
+      <Card shadow="xs" radius="md" padding="lg" withBorder>
+        <Stack gap="sm">
+          <Title order={3}>Reset Data</Title>
+          <Text size="sm" c="dimmed">
+            This will clear accounts, transactions, tags, settings, and categories, then restore defaults.
+          </Text>
+          <Button type="button" color="red" variant="light" onClick={handleResetDatabase} disabled={loading}>
+            Reset Database
+          </Button>
+        </Stack>
+      </Card>
+    </Stack>
   );
 };

@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
+import { Card, Grid, Group, Stack, Text, Title } from '@mantine/core';
 import { DashboardFilters } from '../components/DashboardFilters';
 import { DashboardCharts } from '../components/DashboardCharts';
 import { CategoryBreakdown } from '../components/CategoryBreakdown';
+import { ActionToggle } from '../components/ActionToggle';
 import { getAllAccounts } from '../stores/accountsStore';
 import { getAllCategories } from '../stores/categoriesStore';
 import { getAllTransactions } from '../stores/transactionsStore';
 import { getSettings, initializeSettings } from '../stores/settingsStore';
 import { convertToARS } from '../utils/currency';
 import { formatMonetaryValue } from '../utils/formatters';
+import { formatPeriodLabel } from '../utils/dateFormatters';
 import type { Account, AppSettings, Category, Currency, ExchangeRates, Transaction, TransactionType, TimeWindow } from '../types';
 
 export const HomePage = () => {
@@ -99,6 +100,32 @@ export const HomePage = () => {
     return new Date(now.getFullYear() - rangeOffset, 0, 1);
   }, [timeWindow, rangeOffset]);
 
+  const endOfPeriod = useMemo(() => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    if (timeWindow === 'day') {
+      const end = new Date(now);
+      end.setDate(now.getDate() - rangeOffset + 1);
+      return end;
+    }
+
+    if (timeWindow === 'week') {
+      const start = new Date(now);
+      const day = (now.getDay() + 6) % 7;
+      start.setDate(now.getDate() - day - rangeOffset * 7);
+      const end = new Date(start);
+      end.setDate(start.getDate() + 7);
+      return end;
+    }
+
+    if (timeWindow === 'month') {
+      return new Date(now.getFullYear(), now.getMonth() - rangeOffset + 1, 1);
+    }
+
+    return new Date(now.getFullYear() - rangeOffset + 1, 0, 1);
+  }, [timeWindow, rangeOffset]);
+
   const filtered = useMemo(() => {
     const now = new Date();
     return transactions.filter((tx) => {
@@ -107,9 +134,9 @@ export const HomePage = () => {
       const txDate = new Date(tx.date);
       if (Number.isNaN(txDate.getTime())) return false;
       if (txDate > now) return false;
-      return txDate >= startOfPeriod;
+      return txDate >= startOfPeriod && txDate < endOfPeriod;
     });
-  }, [transactions, typeFilter, accountFilter, startOfPeriod]);
+  }, [transactions, typeFilter, accountFilter, startOfPeriod, endOfPeriod]);
 
   const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
 
@@ -131,13 +158,11 @@ export const HomePage = () => {
   const totalAmount = useMemo(() => byCategory.reduce((sum, x) => sum + x.amount, 0), [byCategory]);
 
   const pieChartData = useMemo(() => {
-    return byCategory.map((x, idx) => {
-      const hues = [0, 30, 60, 120, 180, 240, 270, 330];
-      const hue = hues[idx % hues.length];
+    return byCategory.map((x) => {
       return {
         name: x.category.name,
         value: x.amount,
-        fill: `hsl(${hue}, 70%, 60%)`,
+        fill: x.category.color,
       };
     });
   }, [byCategory]);
@@ -197,31 +222,8 @@ export const HomePage = () => {
   }, [transactions, typeFilter, accountFilter, timeWindow, rangeOffset]);
 
   const periodLabel = useMemo(() => {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-
-    if (timeWindow === 'day') {
-      const d = new Date(now);
-      d.setDate(now.getDate() - rangeOffset);
-      return d.toISOString().slice(0, 10);
-    }
-
-    if (timeWindow === 'week') {
-      const start = new Date(now);
-      const day = (now.getDay() + 6) % 7;
-      start.setDate(now.getDate() - day - rangeOffset * 7);
-      const end = new Date(start);
-      end.setDate(start.getDate() + 6);
-      return `${start.toISOString().slice(0, 10)} to ${end.toISOString().slice(0, 10)}`;
-    }
-
-    if (timeWindow === 'month') {
-      const d = new Date(now.getFullYear(), now.getMonth() - rangeOffset, 1);
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    }
-
-    return String(now.getFullYear() - rangeOffset);
-  }, [timeWindow, rangeOffset]);
+    return formatPeriodLabel(timeWindow, startOfPeriod, endOfPeriod);
+  }, [timeWindow, startOfPeriod, endOfPeriod]);
 
   const disableNext = rangeOffset === 0;
 
@@ -236,53 +238,58 @@ export const HomePage = () => {
 
   return (
     <div>
-      <h1>Platito</h1>
-      <nav>
-        <Link to="/accounts">Accounts</Link>
-        {' | '}
-        <Link to="/categories">Categories</Link>
-        {' | '}
-        <Link to="/transactions">Transactions</Link>
-        {' | '}
-        <Link to="/tags">Tags</Link>
-        {' | '}
-        <Link to="/settings">Settings</Link>
-      </nav>
-      <main style={{ padding: '16px' }}>
-        <p>Welcome to Platito - Your finance tracker</p>
-        <section style={{ marginTop: '12px' }}>
-          <h2>Total Balance</h2>
-          <p style={{ fontSize: '1.2rem', fontWeight: 600 }}>
-            {totalDisplay} {settings?.displayCurrency ?? 'ARS'}
-          </p>
-        </section>
+      <div style={{ padding: '12px', paddingTop: '16px' }}>
+        <Grid gutter="md">
+          <Grid.Col span={12}>
+            <Card shadow="sm" padding="md" radius="md" withBorder>
+              <Group justify="space-between" align="center">
+                <div>
+                  <Text size="sm" c="dimmed">Total Balance</Text>
+                  <Text size="xl" fw={700}>
+                    {totalDisplay} {settings?.displayCurrency ?? 'ARS'}
+                  </Text>
+                </div>
+                <ActionToggle />
+              </Group>
+            </Card>
+          </Grid.Col>
 
-        <section style={{ marginTop: '24px' }}>
-          <h2>Dashboard</h2>
-          <DashboardFilters
-            accounts={accounts}
-            typeFilter={typeFilter}
-            setTypeFilter={setTypeFilter}
-            accountFilter={accountFilter}
-            setAccountFilter={setAccountFilter}
-            timeWindow={timeWindow}
-            setTimeWindow={setTimeWindow}
-            periodLabel={periodLabel}
-            handlePrevPeriod={handlePrevPeriod}
-            handleNextPeriod={handleNextPeriod}
-            disableNext={disableNext}
-          />
-          <DashboardCharts
-            timeWindow={timeWindow}
-            timeSeriesData={timeSeriesData}
-            pieChartData={pieChartData}
-          />
-          <div style={{ marginTop: '24px' }}>
-            <h3>Category Breakdown</h3>
-            <CategoryBreakdown data={byCategory} total={totalAmount} />
-          </div>
-        </section>
-      </main>
+          <Grid.Col span={{ base: 12, lg: 8 }}>
+            <Card shadow="sm" padding="md" radius="md" withBorder>
+              <Stack gap="md">
+                <Title order={4} size="h5">Dashboard</Title>
+                  <DashboardFilters
+                    accounts={accounts}
+                    typeFilter={typeFilter}
+                    setTypeFilter={setTypeFilter}
+                    accountFilter={accountFilter}
+                    setAccountFilter={setAccountFilter}
+                    timeWindow={timeWindow}
+                    setTimeWindow={setTimeWindow}
+                    periodLabel={periodLabel}
+                    handlePrevPeriod={handlePrevPeriod}
+                    handleNextPeriod={handleNextPeriod}
+                    disableNext={disableNext}
+                  />
+                  <DashboardCharts
+                    timeWindow={timeWindow}
+                    timeSeriesData={timeSeriesData}
+                    pieChartData={pieChartData}
+                  />
+                </Stack>
+              </Card>
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, lg: 4 }}>
+            <Card shadow="sm" padding="md" radius="md" withBorder>
+              <Stack gap="md">
+                <Title order={4} size="h5">Category Breakdown</Title>
+                <CategoryBreakdown data={byCategory} total={totalAmount} />
+              </Stack>
+            </Card>
+          </Grid.Col>
+        </Grid>
+      </div>
     </div>
   );
 };

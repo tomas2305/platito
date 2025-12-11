@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Button, Group, Paper, Stack, Text, Title } from '@mantine/core';
 import type { Account } from '../types';
 import { AccountIcon } from '../components/AccountIcon';
 import { getColorHex } from '../utils/colors';
@@ -19,7 +19,7 @@ export const AccountsPage = () => {
   const [activeAccounts, setActiveAccounts] = useState<Account[]>([]);
   const [archivedAccounts, setArchivedAccounts] = useState<Account[]>([]);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [modalOpened, setModalOpened] = useState(false);
 
   const loadAccounts = async () => {
     const [active, archived] = await Promise.all([
@@ -46,15 +46,12 @@ export const AccountsPage = () => {
   const handleCreate = async (data: Omit<Account, 'id'>) => {
     await createAccount(data);
     await loadAccounts();
-    setShowForm(false);
   };
 
   const handleUpdate = async (data: Omit<Account, 'id'>) => {
     if (editingAccount?.id) {
       await updateAccount(editingAccount.id, data);
       await loadAccounts();
-      setEditingAccount(null);
-      setShowForm(false);
     }
   };
 
@@ -77,56 +74,42 @@ export const AccountsPage = () => {
 
   const handleEdit = (account: Account) => {
     setEditingAccount(account);
-    setShowForm(true);
+    setModalOpened(true);
   };
 
-  const handleCancel = () => {
+  const handleOpenCreate = () => {
     setEditingAccount(null);
-    setShowForm(false);
+    setModalOpened(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpened(false);
+    setEditingAccount(null);
   };
 
   return (
-    <div>
-      <h1>Accounts</h1>
-      <nav>
-        <Link to="/">Home</Link>
-        {' | '}
-        <Link to="/categories">Categories</Link>
-        {' | '}
-        <Link to="/transactions">Transactions</Link>
-        {' | '}
-        <Link to="/tags">Tags</Link>
-        {' | '}
-        <Link to="/settings">Settings</Link>
-      </nav>
+    <Stack gap="md">
+      <Group justify="space-between" align="center">
+        <Title order={2}>Accounts</Title>
+        <Button onClick={handleOpenCreate}>Create New Account</Button>
+      </Group>
 
-      {!showForm && (
-        <button onClick={() => setShowForm(true)}>Create New Account</button>
-      )}
-
-      {showForm && (
-        <AccountForm
-          account={editingAccount || undefined}
-          onSubmit={editingAccount ? handleUpdate : handleCreate}
-          onCancel={handleCancel}
-        />
-      )}
+      <AccountForm
+        account={editingAccount || undefined}
+        opened={modalOpened}
+        onClose={handleCloseModal}
+        onSubmit={editingAccount ? handleUpdate : handleCreate}
+      />
 
       <section>
-        <h2>Active Accounts</h2>
+        <Title order={3}>Active Accounts</Title>
         {activeAccounts.length === 0 ? (
-          <p>No active accounts</p>
+          <Text c="dimmed">No active accounts</Text>
         ) : (
-          <ul>
+          <Stack gap="sm">
             {activeAccounts.map((acc) => (
-              <li key={acc.id} style={{ marginBottom: '12px' }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                  }}
-                >
+              <Paper key={acc.id} shadow="xs" radius="md" p="md" withBorder>
+                <Group align="center" gap="sm">
                   <div
                     style={{
                       width: '24px',
@@ -136,42 +119,35 @@ export const AccountsPage = () => {
                     }}
                   />
                   <AccountIcon name={acc.icon} size={20} />
-                  <strong>{acc.name}</strong>
-                  <span>
+                  <Text fw={600}>{acc.name}</Text>
+                  <Text>
                     {formatMonetaryValue(String(acc.initialBalance))} {acc.currency}
-                  </span>
-                  <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
-                    <button onClick={() => handleEdit(acc)}>Edit</button>
-                    <button onClick={() => acc.id && handleArchive(acc.id)}>
+                  </Text>
+                  <Group gap="xs" ml="auto">
+                    <Button size="xs" variant="light" onClick={() => handleEdit(acc)}>Edit</Button>
+                    <Button size="xs" variant="light" color="yellow" onClick={() => acc.id && handleArchive(acc.id)}>
                       Archive
-                    </button>
-                    <button onClick={() => acc.id && handleDelete(acc.id)}>
+                    </Button>
+                    <Button size="xs" variant="light" color="red" onClick={() => acc.id && handleDelete(acc.id)}>
                       Delete
-                    </button>
-                  </div>
-                </div>
-              </li>
+                    </Button>
+                  </Group>
+                </Group>
+              </Paper>
             ))}
-          </ul>
+          </Stack>
         )}
       </section>
 
       <section>
-        <h2>Archived Accounts</h2>
+        <Title order={3}>Archived Accounts</Title>
         {archivedAccounts.length === 0 ? (
-          <p>No archived accounts</p>
+          <Text c="dimmed">No archived accounts</Text>
         ) : (
-          <ul>
+          <Stack gap="sm">
             {archivedAccounts.map((acc) => (
-              <li key={acc.id} style={{ marginBottom: '12px' }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    opacity: 0.6,
-                  }}
-                >
+              <Paper key={acc.id} shadow="xs" radius="md" p="md" withBorder style={{ opacity: 0.7 }}>
+                <Group align="center" gap="sm">
                   <div
                     style={{
                       width: '24px',
@@ -181,24 +157,24 @@ export const AccountsPage = () => {
                     }}
                   />
                   <AccountIcon name={acc.icon} size={20} />
-                  <strong>{acc.name}</strong>
-                  <span>
+                  <Text fw={600}>{acc.name}</Text>
+                  <Text>
                     {formatMonetaryValue(String(acc.initialBalance))} {acc.currency}
-                  </span>
-                  <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
-                    <button onClick={() => acc.id && handleUnarchive(acc.id)}>
+                  </Text>
+                  <Group gap="xs" ml="auto">
+                    <Button size="xs" variant="light" color="green" onClick={() => acc.id && handleUnarchive(acc.id)}>
                       Unarchive
-                    </button>
-                    <button onClick={() => acc.id && handleDelete(acc.id)}>
+                    </Button>
+                    <Button size="xs" variant="light" color="red" onClick={() => acc.id && handleDelete(acc.id)}>
                       Delete
-                    </button>
-                  </div>
-                </div>
-              </li>
+                    </Button>
+                  </Group>
+                </Group>
+              </Paper>
             ))}
-          </ul>
+          </Stack>
         )}
       </section>
-    </div>
+    </Stack>
   );
 };

@@ -1,6 +1,25 @@
 import { useMemo, useState } from 'react';
+import {
+  ActionIcon,
+  Badge,
+  Button,
+  Collapse,
+  Group,
+  Paper,
+  SegmentedControl,
+  Select,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core';
+import { IconChevronDown, IconChevronUp } from '@tabler/icons-react';
 import type { Account, Category, Tag, Transaction, TransactionType } from '../types';
 import { formatMonetaryValue } from '../utils/formatters';
+import { getColorHex } from '../utils/colors';
+import { formatPeriodLabel } from '../utils/dateFormatters';
+import { AccountIcon } from './AccountIcon';
+import { CategoryIcon } from './CategoryIcon';
+import { PeriodNavigator } from './PeriodNavigator';
 
 export type RangeOption = 'day' | 'week' | 'month' | 'year';
 
@@ -63,19 +82,9 @@ const endOfRange = (start: Date, range: RangeOption): Date => {
   return end;
 };
 
-const formatDateKey = (date: Date): string => date.toISOString().slice(0, 10);
-
-const formatPeriodLabel = (range: RangeOption, start: Date, end: Date): string => {
-  if (range === 'day') {
-    return formatDateKey(start);
-  }
-  if (range === 'week') {
-    return `${formatDateKey(start)} - ${formatDateKey(end)}`;
-  }
-  if (range === 'month') {
-    return start.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-  }
-  return String(start.getFullYear());
+const formatDateHeader = (dateKey: string): string => {
+  const date = new Date(dateKey + 'T00:00:00');
+  return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 };
 
 export const TransactionList = ({
@@ -92,6 +101,19 @@ export const TransactionList = ({
   const [rangeOffset, setRangeOffset] = useState(0);
   const [typeFilter, setTypeFilter] = useState<TransactionType>('expense');
   const [accountFilter, setAccountFilter] = useState<number | 'all'>('all');
+  const [expandedTxIds, setExpandedTxIds] = useState<Set<number>>(new Set());
+
+  const toggleExpanded = (txId: number) => {
+    setExpandedTxIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(txId)) {
+        next.delete(txId);
+      } else {
+        next.add(txId);
+      }
+      return next;
+    });
+  };
 
   const accountMap = useMemo(() => new Map(accounts.map((a) => [a.id, a])), [accounts]);
   const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
@@ -138,118 +160,202 @@ export const TransactionList = ({
 
   return (
     <section>
-      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-        {title && <h2 style={{ margin: 0 }}>{title}</h2>}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: title ? 'auto' : 0 }}>
-          <label>
-            Range:
-            {' '}
-            <select
-              value={range}
-              onChange={(e) => {
-                setRange(e.target.value as RangeOption);
+      <Stack gap="md">
+        {title && (
+          <Group justify="space-between" align="center">
+            <Title order={3}>{title}</Title>
+            <Text size="sm" fw={600}>
+              Total:{' '}
+              {totalsByCurrency.size === 0
+                ? '0'
+                : Array.from(totalsByCurrency.entries())
+                    .map(([currency, total]) => `${formatMonetaryValue(String(total))} ${currency}`)
+                    .join(' | ')}
+            </Text>
+          </Group>
+        )}
+
+        <Group gap="sm" wrap="wrap" align="flex-end">
+          <SegmentedControl
+            value={typeFilter}
+            onChange={(value) => setTypeFilter(value as TransactionType)}
+            data={[
+              { label: 'Expense', value: 'expense' },
+              { label: 'Income', value: 'income' },
+            ]}
+          />
+
+          <Select
+            placeholder="All accounts"
+            searchable
+            clearable
+            value={accountFilter === 'all' ? 'all' : String(accountFilter)}
+            onChange={(value) => {
+              setAccountFilter(value === 'all' || !value ? 'all' : Number(value));
+            }}
+            data={[
+              { label: 'All accounts', value: 'all' },
+              ...accounts.map((acc) => ({ label: acc.name, value: String(acc.id) }))
+            ]}
+            renderOption={({ option }) => {
+              if (option.value === 'all') {
+                return <Text size="sm" fw={500}>All accounts</Text>;
+              }
+              const acc = accounts.find(a => String(a.id) === option.value);
+              return (
+                <Group gap="xs">
+                  {acc && <AccountIcon name={acc.icon} size={18} />}
+                  <Text size="sm">{option.label}</Text>
+                </Group>
+              );
+            }}
+            style={{ minWidth: 200 }}
+          />
+
+          <Select
+            placeholder="Range"
+            value={range}
+            onChange={(value) => {
+              if (value) {
+                setRange(value as RangeOption);
                 setRangeOffset(0);
-              }}
-            >
-              <option value="day">{RANGE_LABELS.day}</option>
-              <option value="week">{RANGE_LABELS.week}</option>
-              <option value="month">{RANGE_LABELS.month}</option>
-              <option value="year">{RANGE_LABELS.year}</option>
-            </select>
-          </label>
-          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-            <button type="button" onClick={() => setRangeOffset((prev) => prev + 1)}>
-              Prev
-            </button>
-            <span style={{ minWidth: '180px', textAlign: 'center' }}>
-              {formatPeriodLabel(range, periodStart, periodEnd)}
-            </span>
-            <button
-              type="button"
-              disabled={disableNext}
-              onClick={() => setRangeOffset((prev) => Math.max(0, prev - 1))}
-            >
-              Next
-            </button>
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <label>
-            Type:
-            {' '}
-            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as TransactionType)}>
-              <option value="expense">Expense</option>
-              <option value="income">Income</option>
-            </select>
-          </label>
-          <label>
-            Account:
-            {' '}
-            <select
-              value={accountFilter === 'all' ? 'all' : String(accountFilter)}
-              onChange={(e) => {
-                const value = e.target.value;
-                setAccountFilter(value === 'all' ? 'all' : Number(value));
-              }}
-            >
-              <option value="all">All</option>
-              {accounts.map((acc) => (
-                <option key={acc.id} value={acc.id}>{acc.name}</option>
-              ))}
-            </select>
-          </label>
-          <div>
-            Total:{' '}
-            {totalsByCurrency.size === 0
-              ? '0'
-              : Array.from(totalsByCurrency.entries())
-                  .map(([currency, total]) => `${formatMonetaryValue(String(total))} ${currency}`)
-                  .join(' | ')}
-          </div>
-        </div>
-      </div>
+              }
+            }}
+            data={[
+              { value: 'day', label: RANGE_LABELS.day },
+              { value: 'week', label: RANGE_LABELS.week },
+              { value: 'month', label: RANGE_LABELS.month },
+              { value: 'year', label: RANGE_LABELS.year },
+            ]}
+          />
 
-      {groupKeys.length === 0 ? (
-        <p>No transactions in this range</p>
-      ) : (
-        groupKeys.map((dateKey) => (
-          <div key={dateKey} style={{ marginBottom: '12px' }}>
-            <h3 style={{ margin: '8px 0' }}>{dateKey}</h3>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {grouped[dateKey].map((tx) => {
-                const account = accountMap.get(tx.accountId);
-                const category = categoryMap.get(tx.categoryId);
-                const txTags = (tx.tagIds ?? [])
-                  .map((id) => tagMap.get(id)?.name)
-                  .filter(Boolean)
-                  .join(', ');
+          <PeriodNavigator
+            periodLabel={formatPeriodLabel(range, periodStart, periodEnd)}
+            onPrev={() => setRangeOffset((prev) => prev + 1)}
+            onNext={() => setRangeOffset((prev) => Math.max(0, prev - 1))}
+            disableNext={disableNext}
+          />
+        </Group>
 
-                return (
-                  <li key={tx.id} style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '8px' }}>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <strong>{formatMonetaryValue(String(tx.amount))} {tx.currency}</strong>
-                      <span>{category?.name ?? 'Category'}</span>
-                      <span>•</span>
-                      <span>{account?.name ?? 'Account'}</span>
-                      <span style={{ marginLeft: 'auto' }}>{tx.type}</span>
-                    </div>
-                    {tx.description && <div style={{ color: '#555', marginTop: '4px' }}>{tx.description}</div>}
-                    {txTags && <div style={{ color: '#666', fontSize: '0.9rem', marginTop: '4px' }}>Tags: {txTags}</div>}
-                    {showActions && (
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                        {onEdit && <button type="button" onClick={() => onEdit(tx)}>Edit</button>}
-                        {onDelete && tx.id && (
-                          <button type="button" onClick={() => onDelete(tx.id!)}>Delete</button>
+        {groupKeys.length === 0 ? (
+          <Text c="dimmed">No transactions in this range</Text>
+        ) : (
+          <Stack gap="md" style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '4px' }}>
+            {groupKeys.map((dateKey) => (
+              <Stack key={dateKey} gap="sm">
+                <Text fw={600} size="sm" c="dimmed">{formatDateHeader(dateKey)}</Text>
+                {grouped[dateKey].map((tx) => {
+                  const account = accountMap.get(tx.accountId);
+                  const category = categoryMap.get(tx.categoryId);
+                  const txTags = (tx.tagIds ?? [])
+                    .map((id) => tagMap.get(id)?.name)
+                    .filter(Boolean);
+                  const categoryColor = category ? getColorHex(category.color) : '#999';
+                  const isExpanded = expandedTxIds.has(tx.id!);
+                  const hasDescription = !!tx.description;
+                  const hasTags = txTags.length > 0;
+                  const hasDetails = hasDescription || hasTags;
+
+                  return (
+                    <Paper
+                      key={tx.id}
+                      p="sm"
+                      radius="md"
+                      withBorder
+                      style={{
+                        backgroundColor: `${categoryColor}08`,
+                        borderLeft: `3px solid ${categoryColor}`,
+                      }}
+                    >
+                      <Stack gap="xs">
+                        {/* Línea principal */}
+                        <Group justify="space-between" align="center" wrap="nowrap" gap="xs">
+                          <Group gap="sm" align="center" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+                            {/* Precio */}
+                            <Text fw={700} size="md" style={{ whiteSpace: 'nowrap', minWidth: '90px' }}>
+                              {formatMonetaryValue(String(tx.amount))} {tx.currency}
+                            </Text>
+                            
+                            {/* Categoría */}
+                            <Group gap={6} align="center" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+                              {category && <CategoryIcon name={category.icon} size={18} />}
+                              <Text fw={500} size="sm" truncate>
+                                {category?.name ?? 'Category'}
+                              </Text>
+                            </Group>
+
+                            {/* Cuenta */}
+                            {account && (
+                              <Group gap={4} align="center" wrap="nowrap">
+                                <AccountIcon name={account.icon} size={14} />
+                                <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
+                                  {account.name}
+                                </Text>
+                              </Group>
+                            )}
+                          </Group>
+
+                          {/* Acciones */}
+                          <Group gap={4} wrap="nowrap">
+                            {showActions && tx.id && (
+                              <>
+                                {onEdit && (
+                                  <Button size="xs" variant="subtle" onClick={() => onEdit(tx)}>
+                                    Edit
+                                  </Button>
+                                )}
+                                {onDelete && (
+                                  <Button size="xs" variant="subtle" color="red" onClick={() => onDelete(tx.id!)}>
+                                    Delete
+                                  </Button>
+                                )}
+                              </>
+                            )}
+
+                            {hasDetails && (
+                              <ActionIcon
+                                size="sm"
+                                variant="subtle"
+                                color="gray"
+                                onClick={() => toggleExpanded(tx.id!)}
+                              >
+                                {isExpanded ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+                              </ActionIcon>
+                            )}
+                          </Group>
+                        </Group>
+
+                        {/* Detalles expandibles */}
+                        {hasDetails && (
+                          <Collapse in={isExpanded}>
+                            <Stack gap="xs" pt="xs" pl="md" style={{ borderTop: '1px solid #e9ecef' }}>
+                              {tx.description && (
+                                <Text size="sm" c="dimmed" style={{ fontStyle: 'italic' }}>
+                                  {tx.description}
+                                </Text>
+                              )}
+
+                              {txTags.length > 0 && (
+                                <Group gap="xs" wrap="wrap">
+                                  {txTags.map((tag) => (
+                                    <Badge key={tag} variant="dot" size="sm" color="gray">
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                </Group>
+                              )}
+                            </Stack>
+                          </Collapse>
                         )}
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))
-      )}
+                      </Stack>
+                    </Paper>
+                  );
+                })}
+              </Stack>
+            ))}
+          </Stack>
+        )}
+      </Stack>
     </section>
   );
 };

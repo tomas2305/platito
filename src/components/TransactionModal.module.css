@@ -1,0 +1,11 @@
+.modalContent :global(.mantine-ScrollArea-scrollbar) {
+  background-color: #f5f5f5;
+}
+
+.modalContent :global(.mantine-ScrollArea-thumb) {
+  background-color: #d0d0d0;
+}
+
+.modalContent :global(.mantine-ScrollArea-thumb:hover) {
+  background-color: #b0b0b0;
+}
