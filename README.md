@@ -1,75 +1,205 @@
-# React + TypeScript + Vite
+# 💰 Platito
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Platito** es una aplicación web progresiva (PWA) de gestión financiera personal que te permite controlar tus ingresos, gastos y múltiples cuentas en diferentes monedas, todo desde tu navegador.
 
-Currently, two official plugins are available:
+## 🌐 Acceso a la Aplicación
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+La aplicación está disponible en: **https://platito-62961.web.app/**
 
-## React Compiler
+### ¿Qué es una PWA?
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+Una **Progressive Web App (PWA)** es una aplicación web que combina lo mejor de las páginas web tradicionales y las aplicaciones nativas. Platito puede:
 
-Note: This will impact Vite dev & build performances.
+- ✅ **Instalarse en tu dispositivo** como una aplicación nativa (escritorio o móvil)
+- ✅ **Funcionar offline** - tus datos están almacenados localmente
+- ✅ **Actualizarse automáticamente** cuando haya nuevas versiones
+- ✅ **Ser rápida y ligera** sin necesidad de descargas desde tiendas de apps
+- ✅ **Funcionar en cualquier dispositivo** con un navegador moderno
 
-## Expanding the ESLint configuration
+### 📲 Cómo Instalar Platito
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+**En Escritorio (Chrome, Edge):**
+1. Visita https://platito-62961.web.app/
+2. Haz clic en el ícono de instalación (➕) en la barra de direcciones
+3. Confirma la instalación
+4. La app aparecerá como una aplicación independiente
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+**En Móvil (Android):**
+1. Abre https://platito-62961.web.app/ en Chrome
+2. Toca el menú (⋮) y selecciona "Agregar a pantalla de inicio"
+3. Confirma y la app se agregará como un ícono en tu dispositivo
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+**En Móvil (iOS):**
+1. Abre https://platito-62961.web.app/ en Safari
+2. Toca el botón de compartir (⬆️)
+3. Selecciona "Agregar a pantalla de inicio"
+4. Confirma y tendrás Platito como una app
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 📋 Características Principales
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### 1. 🏠 Dashboard (Inicio)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+El dashboard es tu centro de control financiero:
+
+- **Resumen General**: Visualiza tus ingresos, gastos y balance total
+- **Gráficos Interactivos**:
+  - **Gráfico de Pastel**: Distribución de gastos por categoría
+  - **Serie Temporal**: Evolución de tus finanzas a lo largo del tiempo
+  - **Desglose por Categorías**: Detalle de gastos e ingresos por categoría
+- **Filtros Personalizables**:
+  - Filtra por ventana de tiempo (día, semana, mes, año)
+  - Navega entre diferentes períodos
+  - Selecciona cuentas específicas o visualiza todas
+
+### 2. 💳 Cuentas
+
+Administra múltiples cuentas bancarias o billeteras:
+
+- **Crear Cuentas**: Define nombre, moneda, balance inicial
+- **Personalización**: Elige color e ícono para cada cuenta
+- **Múltiples Monedas**: Soporta ARS, USD Blue, USD MEP y USDT
+- **Balance en Tiempo Real**: Calcula automáticamente según transacciones
+- **Archivar Cuentas**: Oculta cuentas que ya no uses sin perder datos
+
+### 3. 📊 Transacciones
+
+Registra y gestiona todos tus movimientos financieros:
+
+- **Registro Rápido**: Agrega ingresos o gastos en segundos
+- **Detalles Completos**:
+  - Cuenta asociada
+  - Categoría (personalizable)
+  - Monto y moneda
+  - Fecha
+  - Descripción
+  - Etiquetas múltiples
+- **Búsqueda y Filtros**: Encuentra transacciones por fecha, cuenta, categoría o tipo
+- **Edición y Eliminación**: Modifica o borra transacciones fácilmente
+- **Lista Ordenada**: Visualiza cronológicamente todos tus movimientos
+
+### 4. 🏷️ Categorías
+
+Organiza tus transacciones con categorías personalizadas:
+
+- **Categorías por Defecto**: Incluye categorías comunes pre-configuradas
+- **Crear Categorías**: Define categorías para ingresos o gastos
+- **Personalización Visual**: Asigna colores e íconos únicos
+- **Tipos Separados**: Categorías independientes para ingresos y gastos
+- **Sin Límites**: Crea tantas categorías como necesites
+
+### 5. 🔖 Etiquetas
+
+Añade contexto adicional a tus transacciones:
+
+- **Etiquetado Flexible**: Asigna múltiples etiquetas por transacción
+- **Organización Avanzada**: Agrupa transacciones por proyectos, eventos o conceptos
+- **Gestión Simple**: Crea, edita o elimina etiquetas según necesites
+- **Filtrado Mejorado**: Encuentra transacciones con etiquetas específicas
+
+### 6. ⚙️ Configuración
+
+Personaliza la aplicación según tus necesidades:
+
+- **Cuenta por Defecto**: Define la cuenta que se pre-selecciona al crear transacciones
+- **Ventana de Tiempo**: Configura el período inicial del dashboard
+- **Moneda de Visualización**: Elige en qué moneda ver los totales consolidados
+- **Tipos de Cambio**: 
+  - Actualiza manualmente las cotizaciones
+  - Configura actualizaciones automáticas (cada 6h, 12h, 24h o desactivado)
+  - Consulta la última actualización
+- **Importar/Exportar Datos**:
+  - **Exportar**: Descarga toda tu información como respaldo (JSON)
+  - **Importar**: Restaura datos desde un archivo de respaldo
+  - **Datos de Prueba**: Carga datos de ejemplo para explorar la app
+
+---
+
+## 🎯 Cómo Usar Platito
+
+### Primeros Pasos
+
+1. **Accede a la App**: Visita https://platito-62961.web.app/
+2. **Crea tu Primera Cuenta**:
+   - Ve a la sección "Cuentas"
+   - Haz clic en "Agregar Cuenta"
+   - Ingresa nombre, moneda y balance inicial
+   - Personaliza con color e ícono
+3. **Registra una Transacción**:
+   - Ve a "Transacciones"
+   - Haz clic en "Nueva Transacción"
+   - Selecciona tipo (ingreso/gasto), cuenta, categoría
+   - Ingresa monto, fecha y descripción
+   - Guarda
+4. **Visualiza tu Dashboard**:
+   - Vuelve a "Inicio"
+   - Explora gráficos y resumen financiero
+   - Ajusta filtros según necesites
+
+### Flujo de Trabajo Recomendado
+
+1. **Configuración Inicial**:
+   - Crea todas tus cuentas (banco, efectivo, billeteras digitales)
+   - Revisa y personaliza categorías
+   - Configura tipos de cambio si usas múltiples monedas
+
+2. **Uso Diario**:
+   - Registra cada transacción cuando ocurra
+   - Usa etiquetas para proyectos o eventos especiales
+   - Revisa el dashboard periódicamente
+
+3. **Análisis Mensual**:
+   - Cambia la vista del dashboard a "mes"
+   - Analiza gastos por categoría
+   - Identifica áreas de mejora
+   - Compara con meses anteriores
+
+4. **Mantenimiento**:
+   - Exporta respaldos regularmente
+   - Archiva cuentas obsoletas
+   - Ajusta tipos de cambio según necesidad
+
+---
+
+## 🔐 Privacidad y Seguridad
+
+- **Datos Locales**: Toda tu información se almacena en tu navegador (IndexedDB)
+- **Sin Servidor**: No enviamos tus datos financieros a ningún servidor
+- **Control Total**: Solo tú tienes acceso a tu información
+- **Respaldos**: Exporta tus datos para mantener copias de seguridad
+
+---
+
+## 💡 Consejos y Trucos
+
+- **Usa Etiquetas**: Perfectas para rastrear gastos de vacaciones, proyectos o eventos
+- **Múltiples Monedas**: Si manejas criptomonedas o moneda extranjera, crea cuentas separadas
+- **Categorías Específicas**: Mientras más detalladas, mejor análisis obtendrás
+- **Revisión Regular**: Dedica 5 minutos semanales a revisar tus finanzas
+- **Colores Consistentes**: Usa colores similares para categorías relacionadas
+
+---
+
+## 🛠️ Tecnología
+
+Platito está construido con tecnologías web modernas:
+
+- **React 19** con TypeScript
+- **Vite** para desarrollo rápido
+- **Dexie.js** (IndexedDB) para almacenamiento local
+- **Mantine UI** para interfaz moderna
+- **Recharts** para visualizaciones
+- **Firebase Hosting** para despliegue
+
+---
+
+## 📞 Soporte
+
+Si encuentras problemas o tienes sugerencias:
+- Reporta issues en el repositorio del proyecto
+- Todos tus datos están en tu dispositivo, nunca los perdemos nosotros
+
+---
+
+**¡Disfruta controlando tus finanzas con Platito!** 💰✨
