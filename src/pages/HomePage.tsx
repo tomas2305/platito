@@ -163,7 +163,8 @@ export const HomePage = () => {
     return transactions.filter((tx) => {
       if (tx.type !== typeFilter) return false;
       if (accountFilter !== null && tx.accountId !== accountFilter) return false;
-      const txDate = new Date(tx.date);
+      // Parse date as local time (YYYY-MM-DD)
+      const txDate = new Date(tx.date + 'T00:00:00');
       if (Number.isNaN(txDate.getTime())) return false;
       if (txDate > now) return false;
       return txDate >= startOfPeriod && txDate < endOfPeriod;
@@ -241,7 +242,8 @@ export const HomePage = () => {
         .filter((tx) => {
           if (tx.type !== typeFilter) return false;
           if (accountFilter !== null && tx.accountId !== accountFilter) return false;
-          const txDate = new Date(tx.date);
+          // Parse date as local time (YYYY-MM-DD)
+          const txDate = new Date(tx.date + 'T00:00:00');
           if (Number.isNaN(txDate.getTime())) return false;
           return txDate >= periodStart && txDate < periodEnd;
         })

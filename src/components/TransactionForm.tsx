@@ -40,7 +40,13 @@ interface Props {
 }
 
 const today = () => new Date();
-const formatDateToISO = (date: Date | null) => date ? date.toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+const formatDateToISO = (date: Date | null) => {
+  const d = date ?? new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 export const TransactionForm = ({
   accounts,
