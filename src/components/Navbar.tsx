@@ -33,8 +33,8 @@ function NavbarLink({ icon: Icon, label, active, onClick }: NavbarLinkProps) {
 
 const navigationLinks = [
   { icon: IconHome2, label: 'Home', path: '/' },
-  { icon: IconWallet, label: 'Accounts', path: '/accounts' },
   { icon: IconLayoutList, label: 'Transactions', path: '/transactions' },
+  { icon: IconWallet, label: 'Accounts', path: '/accounts' },
   { icon: IconFolder, label: 'Categories', path: '/categories' },
   { icon: IconTag, label: 'Tags', path: '/tags' },
   { icon: IconSettings, label: 'Settings', path: '/settings' },

@@ -8,6 +8,8 @@ export type Currency = 'ARS' | 'USD_BLUE' | 'USD_MEP' | 'USDT';
 
 export type ExchangeRates = Record<Currency, { toARS: number }>;
 
+export type AutoUpdateInterval = 'none' | '6h' | '12h' | '24h';
+
 export interface Account {
   id?: number;
   name: string;
@@ -50,4 +52,7 @@ export interface AppSettings {
   defaultTimeWindow: TimeWindow;
   displayCurrency: Currency;
   exchangeRates: ExchangeRates;
+  autoUpdateInterval: AutoUpdateInterval;
+  lastFxUpdate?: string;
+  fxUpdateCount: number;
 }

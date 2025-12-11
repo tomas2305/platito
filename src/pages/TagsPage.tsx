@@ -95,8 +95,6 @@ export const TagsPage = () => {
 
   return (
     <Stack gap="lg">
-      <Title order={2}>Tags</Title>
-
       <Card shadow="sm" radius="md" padding="lg" withBorder>
         <Stack gap="sm">
           <Group justify="space-between" align="center">

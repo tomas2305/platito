@@ -12,9 +12,9 @@ import {
 import { getActiveDatabaseName, getDatabaseLabels, switchDatabase } from '../db';
 import { seedTestingData } from '../db/testingData';
 import { getAllAccounts } from '../stores/accountsStore';
-import { getSettings, initializeSettings, resetDatabase, updateSettings } from '../stores/settingsStore';
+import { fetchAndUpdateExchangeRates, getSettings, initializeSettings, resetDatabase, updateSettings } from '../stores/settingsStore';
 import { ensureDefaultCategories } from '../stores/categoriesStore';
-import type { AppSettings, Account, TimeWindow, Currency, ExchangeRates } from '../types';
+import type { AppSettings, Account, AutoUpdateInterval, TimeWindow, Currency, ExchangeRates } from '../types';
 import { SUPPORTED_CURRENCIES } from '../utils/currency';
 import { formatMonetaryValue, parseMonetaryValue } from '../utils/formatters';
 import { DatabaseImportExport } from '../components/DatabaseImportExport';
@@ -27,6 +27,8 @@ export const SettingsPage = () => {
   const [displayCurrency, setDisplayCurrency] = useState<Currency>('ARS');
   const [errors, setErrors] = useState<string | null>(null);
   const [activeDb, setActiveDb] = useState<string>(getActiveDatabaseName());
+  const [fetchingRates, setFetchingRates] = useState(false);
+  const [remainingSeconds, setRemainingSeconds] = useState<number>(0);
   const dbLabels = getDatabaseLabels();
 
   useEffect(() => {
@@ -44,6 +46,31 @@ export const SettingsPage = () => {
     loadData();
   }, []);
 
+  useEffect(() => {
+    const MIN_UPDATE_INTERVAL_MS = 10000;
+
+    const updateRemainingTime = () => {
+      if (!settings?.lastFxUpdate) {
+        setRemainingSeconds(0);
+        return;
+      }
+
+      const timeSinceLastUpdate = Date.now() - new Date(settings.lastFxUpdate).getTime();
+      const remaining = MIN_UPDATE_INTERVAL_MS - timeSinceLastUpdate;
+
+      if (remaining <= 0) {
+        setRemainingSeconds(0);
+      } else {
+        setRemainingSeconds(Math.ceil(remaining / 1000));
+      }
+    };
+
+    updateRemainingTime();
+    const interval = setInterval(updateRemainingTime, 1000);
+
+    return () => clearInterval(interval);
+  }, [settings?.lastFxUpdate]);
+
   const handleDefaultAccountChange = async (accountId: string) => {
     const id = accountId === '' ? undefined : Number(accountId);
     await updateSettings({ defaultAccountId: id });
@@ -59,6 +86,11 @@ export const SettingsPage = () => {
     await updateSettings({ displayCurrency: currency });
     setDisplayCurrency(currency);
     setSettings(prev => prev ? { ...prev, displayCurrency: currency } : null);
+  };
+
+  const handleAutoUpdateIntervalChange = async (interval: AutoUpdateInterval) => {
+    await updateSettings({ autoUpdateInterval: interval });
+    setSettings(prev => prev ? { ...prev, autoUpdateInterval: interval } : null);
   };
 
   const validateRates = (rates: ExchangeRates): string | null => {
@@ -92,6 +124,21 @@ export const SettingsPage = () => {
     }
     await updateSettings({ exchangeRates });
     setSettings(prev => prev ? { ...prev, exchangeRates } : null);
+  };
+
+  const handleFetchRates = async () => {
+    setFetchingRates(true);
+    setErrors(null);
+    try {
+      const newRates = await fetchAndUpdateExchangeRates();
+      setExchangeRates(newRates);
+      const updatedSettings = await getSettings();
+      setSettings(updatedSettings || null);
+    } catch (error) {
+      setErrors(error instanceof Error ? error.message : 'Failed to fetch exchange rates');
+    } finally {
+      setFetchingRates(false);
+    }
   };
 
   const handleResetDatabase = async () => {
@@ -217,6 +264,18 @@ export const SettingsPage = () => {
               onChange={(value) => value && handleDisplayCurrencyChange(value as Currency)}
               data={SUPPORTED_CURRENCIES.map((c) => ({ label: c, value: c }))}
             />
+
+            <Select
+              label="Auto-update exchange rates"
+              value={settings?.autoUpdateInterval ?? 'none'}
+              onChange={(value) => value && handleAutoUpdateIntervalChange(value as AutoUpdateInterval)}
+              data={[
+                { value: 'none', label: 'Disabled' },
+                { value: '6h', label: 'Every 6 hours' },
+                { value: '12h', label: 'Every 12 hours' },
+                { value: '24h', label: 'Every 24 hours' },
+              ]}
+            />
           </Stack>
         </Stack>
       </Card>
@@ -227,6 +286,22 @@ export const SettingsPage = () => {
           <Text size="sm" c="dimmed">
             ARS is fixed to 1. Other currencies must be &gt; 0.
           </Text>
+          {settings?.lastFxUpdate && (
+            <Text size="xs" c="dimmed">
+              Last updated: {new Date(settings.lastFxUpdate).toLocaleString()} (Total updates: {settings.fxUpdateCount})
+            </Text>
+          )}
+          <Group gap="sm">
+            <Button 
+              type="button" 
+              variant="light" 
+              onClick={handleFetchRates}
+              loading={fetchingRates}
+              disabled={remainingSeconds > 0}
+            >
+              {remainingSeconds > 0 ? `Wait ${remainingSeconds}s` : 'Fetch currencies'}
+            </Button>
+          </Group>
           <Stack gap="sm">
             {SUPPORTED_CURRENCIES.map((c) => (
               <TextInput

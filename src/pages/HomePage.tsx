@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Card, Grid, Group, Stack, Text, Title } from '@mantine/core';
+import { Button, Card, Grid, Group, Stack, Text, Title } from '@mantine/core';
 import { DashboardFilters } from '../components/DashboardFilters';
 import { DashboardCharts } from '../components/DashboardCharts';
 import { CategoryBreakdown } from '../components/CategoryBreakdown';
@@ -7,7 +7,7 @@ import { ActionToggle } from '../components/ActionToggle';
 import { getAllAccounts } from '../stores/accountsStore';
 import { getAllCategories } from '../stores/categoriesStore';
 import { getAllTransactions } from '../stores/transactionsStore';
-import { getSettings, initializeSettings } from '../stores/settingsStore';
+import { autoUpdateExchangeRates, fetchAndUpdateExchangeRates, getSettings, initializeSettings } from '../stores/settingsStore';
 import { convertToARS } from '../utils/currency';
 import { formatMonetaryValue } from '../utils/formatters';
 import { formatPeriodLabel } from '../utils/dateFormatters';
@@ -24,6 +24,8 @@ export const HomePage = () => {
   const [timeWindow, setTimeWindow] = useState<TimeWindow>('month');
   const [rangeOffset, setRangeOffset] = useState(0);
   const [accountFilter, setAccountFilter] = useState<number | null>(null);
+  const [fetchingRates, setFetchingRates] = useState(false);
+  const [remainingSeconds, setRemainingSeconds] = useState<number>(0);
 
   const computeTotal = (
     accountsList: Account[],
@@ -51,30 +53,60 @@ export const HomePage = () => {
         getAllTransactions(),
       ]);
 
-
       setAccounts(allAccounts);
       setCategories(allCategories);
       setTransactions(allTransactions);
       setSettings(loadedSettings);
 
-      // Set default account filter if available
       if (loadedSettings.defaultAccountId && allAccounts.some(acc => acc.id === loadedSettings.defaultAccountId)) {
         setAccountFilter(loadedSettings.defaultAccountId);
       } else {
         setAccountFilter(null);
       }
 
+      const newRates = await autoUpdateExchangeRates();
+      const ratesToUse = newRates ?? loadedSettings.exchangeRates;
+      
+      if (newRates) {
+        setSettings(prev => prev ? { ...prev, exchangeRates: newRates } : loadedSettings);
+      }
+
       const total = computeTotal(
         allAccounts,
-        loadedSettings.exchangeRates,
+        ratesToUse,
         loadedSettings.displayCurrency,
       );
-      setTotalDisplay(formatMonetaryValue(String(total)));
+      setTotalDisplay(formatMonetaryValue(total.toFixed(2)));
       setLoading(false);
     };
 
     load();
   }, []);
+
+  useEffect(() => {
+    const MIN_UPDATE_INTERVAL_MS = 10000;
+
+    const updateRemainingTime = () => {
+      if (!settings?.lastFxUpdate) {
+        setRemainingSeconds(0);
+        return;
+      }
+
+      const timeSinceLastUpdate = Date.now() - new Date(settings.lastFxUpdate).getTime();
+      const remaining = MIN_UPDATE_INTERVAL_MS - timeSinceLastUpdate;
+
+      if (remaining <= 0) {
+        setRemainingSeconds(0);
+      } else {
+        setRemainingSeconds(Math.ceil(remaining / 1000));
+      }
+    };
+
+    updateRemainingTime();
+    const interval = setInterval(updateRemainingTime, 1000);
+
+    return () => clearInterval(interval);
+  }, [settings?.lastFxUpdate]);
 
   const startOfPeriod = useMemo(() => {
     const now = new Date();
@@ -232,6 +264,26 @@ export const HomePage = () => {
     if (!disableNext) setRangeOffset((prev) => prev - 1);
   };
 
+  const handleFetchRates = async () => {
+    setFetchingRates(true);
+    try {
+      const newRates = await fetchAndUpdateExchangeRates();
+      const updatedSettings = await getSettings();
+      setSettings(updatedSettings || null);
+      
+      const total = computeTotal(
+        accounts,
+        newRates,
+        settings?.displayCurrency ?? 'ARS',
+      );
+      setTotalDisplay(formatMonetaryValue(total.toFixed(2)));
+    } catch (error) {
+      console.error('Failed to fetch exchange rates:', error);
+    } finally {
+      setFetchingRates(false);
+    }
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -249,7 +301,18 @@ export const HomePage = () => {
                     {totalDisplay} {settings?.displayCurrency ?? 'ARS'}
                   </Text>
                 </div>
-                <ActionToggle />
+                <Group gap="sm">
+                  <Button 
+                    variant="light" 
+                    size="xs"
+                    onClick={handleFetchRates}
+                    loading={fetchingRates}
+                    disabled={remainingSeconds > 0}
+                  >
+                    {remainingSeconds > 0 ? `${remainingSeconds}s` : 'Update Rates'}
+                  </Button>
+                  <ActionToggle />
+                </Group>
               </Group>
             </Card>
           </Grid.Col>
