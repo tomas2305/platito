@@ -1,6 +1,7 @@
-import { Button, Group, SegmentedControl, Select, Text } from '@mantine/core';
+import { Group, SegmentedControl, Select, Text } from '@mantine/core';
 import type { Account, TransactionType, TimeWindow } from '../types';
 import { AccountIcon } from './AccountIcon';
+import { PeriodNavigator } from './PeriodNavigator';
 
 interface DashboardFiltersProps {
   accounts: Account[];
@@ -77,17 +78,12 @@ export const DashboardFilters = ({
         />
       </div>
 
-      <Group gap="xs" align="center">
-        <Button variant="light" size="sm" onClick={handlePrevPeriod}>
-          ← Prev
-        </Button>
-        <Text size="sm" fw={500} style={{ minWidth: 150, textAlign: 'center' }}>
-          {periodLabel}
-        </Text>
-        <Button variant="light" size="sm" onClick={handleNextPeriod} disabled={disableNext}>
-          Next →
-        </Button>
-      </Group>
+      <PeriodNavigator
+        periodLabel={periodLabel}
+        onPrev={handlePrevPeriod}
+        onNext={handleNextPeriod}
+        disableNext={disableNext}
+      />
     </Group>
   );
 };

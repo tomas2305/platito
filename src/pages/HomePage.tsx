@@ -10,6 +10,7 @@ import { getAllTransactions } from '../stores/transactionsStore';
 import { getSettings, initializeSettings } from '../stores/settingsStore';
 import { convertToARS } from '../utils/currency';
 import { formatMonetaryValue } from '../utils/formatters';
+import { formatPeriodLabel } from '../utils/dateFormatters';
 import type { Account, AppSettings, Category, Currency, ExchangeRates, Transaction, TransactionType, TimeWindow } from '../types';
 
 export const HomePage = () => {
@@ -221,31 +222,8 @@ export const HomePage = () => {
   }, [transactions, typeFilter, accountFilter, timeWindow, rangeOffset]);
 
   const periodLabel = useMemo(() => {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-
-    if (timeWindow === 'day') {
-      const d = new Date(now);
-      d.setDate(now.getDate() - rangeOffset);
-      return d.toISOString().slice(0, 10);
-    }
-
-    if (timeWindow === 'week') {
-      const start = new Date(now);
-      const day = (now.getDay() + 6) % 7;
-      start.setDate(now.getDate() - day - rangeOffset * 7);
-      const end = new Date(start);
-      end.setDate(start.getDate() + 6);
-      return `${start.toISOString().slice(0, 10)} to ${end.toISOString().slice(0, 10)}`;
-    }
-
-    if (timeWindow === 'month') {
-      const d = new Date(now.getFullYear(), now.getMonth() - rangeOffset, 1);
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    }
-
-    return String(now.getFullYear() - rangeOffset);
-  }, [timeWindow, rangeOffset]);
+    return formatPeriodLabel(timeWindow, startOfPeriod, endOfPeriod);
+  }, [timeWindow, startOfPeriod, endOfPeriod]);
 
   const disableNext = rangeOffset === 0;
 

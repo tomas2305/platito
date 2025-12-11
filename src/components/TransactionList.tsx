@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import {
+  ActionIcon,
   Badge,
   Button,
+  Collapse,
   Group,
   Paper,
   SegmentedControl,
@@ -10,11 +12,14 @@ import {
   Text,
   Title,
 } from '@mantine/core';
+import { IconChevronDown, IconChevronUp } from '@tabler/icons-react';
 import type { Account, Category, Tag, Transaction, TransactionType } from '../types';
 import { formatMonetaryValue } from '../utils/formatters';
 import { getColorHex } from '../utils/colors';
+import { formatPeriodLabel } from '../utils/dateFormatters';
 import { AccountIcon } from './AccountIcon';
 import { CategoryIcon } from './CategoryIcon';
+import { PeriodNavigator } from './PeriodNavigator';
 
 export type RangeOption = 'day' | 'week' | 'month' | 'year';
 
@@ -77,24 +82,9 @@ const endOfRange = (start: Date, range: RangeOption): Date => {
   return end;
 };
 
-const formatDateKey = (date: Date): string => date.toISOString().slice(0, 10);
-
 const formatDateHeader = (dateKey: string): string => {
   const date = new Date(dateKey + 'T00:00:00');
   return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-};
-
-const formatPeriodLabel = (range: RangeOption, start: Date, end: Date): string => {
-  if (range === 'day') {
-    return formatDateKey(start);
-  }
-  if (range === 'week') {
-    return `${formatDateKey(start)} - ${formatDateKey(end)}`;
-  }
-  if (range === 'month') {
-    return start.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-  }
-  return String(start.getFullYear());
 };
 
 export const TransactionList = ({
@@ -111,6 +101,19 @@ export const TransactionList = ({
   const [rangeOffset, setRangeOffset] = useState(0);
   const [typeFilter, setTypeFilter] = useState<TransactionType>('expense');
   const [accountFilter, setAccountFilter] = useState<number | 'all'>('all');
+  const [expandedTxIds, setExpandedTxIds] = useState<Set<number>>(new Set());
+
+  const toggleExpanded = (txId: number) => {
+    setExpandedTxIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(txId)) {
+        next.delete(txId);
+      } else {
+        next.add(txId);
+      }
+      return next;
+    });
+  };
 
   const accountMap = useMemo(() => new Map(accounts.map((a) => [a.id, a])), [accounts]);
   const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
@@ -185,12 +188,19 @@ export const TransactionList = ({
           <Select
             placeholder="All accounts"
             searchable
-            value={accountFilter === 'all' ? null : String(accountFilter)}
+            clearable
+            value={accountFilter === 'all' ? 'all' : String(accountFilter)}
             onChange={(value) => {
-              setAccountFilter(value ? Number(value) : 'all');
+              setAccountFilter(value === 'all' || !value ? 'all' : Number(value));
             }}
-            data={accounts.map((acc) => ({ label: acc.name, value: String(acc.id) }))}
+            data={[
+              { label: 'All accounts', value: 'all' },
+              ...accounts.map((acc) => ({ label: acc.name, value: String(acc.id) }))
+            ]}
             renderOption={({ option }) => {
+              if (option.value === 'all') {
+                return <Text size="sm" fw={500}>All accounts</Text>;
+              }
               const acc = accounts.find(a => String(a.id) === option.value);
               return (
                 <Group gap="xs">
@@ -219,32 +229,18 @@ export const TransactionList = ({
             ]}
           />
 
-          <Group gap={4}>
-            <Button
-              variant="light"
-              size="sm"
-              onClick={() => setRangeOffset((prev) => prev + 1)}
-            >
-              Prev
-            </Button>
-            <Text size="sm" fw={500} style={{ minWidth: 160, textAlign: 'center' }}>
-              {formatPeriodLabel(range, periodStart, periodEnd)}
-            </Text>
-            <Button
-              variant="light"
-              size="sm"
-              disabled={disableNext}
-              onClick={() => setRangeOffset((prev) => Math.max(0, prev - 1))}
-            >
-              Next
-            </Button>
-          </Group>
+          <PeriodNavigator
+            periodLabel={formatPeriodLabel(range, periodStart, periodEnd)}
+            onPrev={() => setRangeOffset((prev) => prev + 1)}
+            onNext={() => setRangeOffset((prev) => Math.max(0, prev - 1))}
+            disableNext={disableNext}
+          />
         </Group>
 
         {groupKeys.length === 0 ? (
           <Text c="dimmed">No transactions in this range</Text>
         ) : (
-          <Stack gap="md">
+          <Stack gap="md" style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '4px' }}>
             {groupKeys.map((dateKey) => (
               <Stack key={dateKey} gap="sm">
                 <Text fw={600} size="sm" c="dimmed">{formatDateHeader(dateKey)}</Text>
@@ -255,62 +251,101 @@ export const TransactionList = ({
                     .map((id) => tagMap.get(id)?.name)
                     .filter(Boolean);
                   const categoryColor = category ? getColorHex(category.color) : '#999';
+                  const isExpanded = expandedTxIds.has(tx.id!);
+                  const hasDescription = !!tx.description;
+                  const hasTags = txTags.length > 0;
+                  const hasDetails = hasDescription || hasTags;
 
                   return (
                     <Paper
                       key={tx.id}
-                      p="md"
+                      p="sm"
                       radius="md"
                       withBorder
                       style={{
-                        backgroundColor: `${categoryColor}15`,
-                        borderLeft: `4px solid ${categoryColor}`,
+                        backgroundColor: `${categoryColor}08`,
+                        borderLeft: `3px solid ${categoryColor}`,
                       }}
                     >
                       <Stack gap="xs">
-                        <Group justify="space-between" align="center">
-                          <Stack gap={4} align="flex-start">
-                            <Text fw={700} size="xl">{formatMonetaryValue(String(tx.amount))} {tx.currency}</Text>
-                            <Group gap={8} align="center" wrap="wrap">
-                              <Group gap={4} align="center">
-                                {category && <CategoryIcon name={category.icon} size={16} />}
-                                <Text size="sm" fw={500}>{category?.name ?? 'Category'}</Text>
-                              </Group>
-                              <Text size="sm" c="dimmed">•</Text>
-                              <Group gap={4} align="center">
-                                {account && <AccountIcon name={account.icon} size={16} />}
-                                <Text size="sm">{account?.name ?? 'Account'}</Text>
-                              </Group>
+                        {/* Línea principal */}
+                        <Group justify="space-between" align="center" wrap="nowrap" gap="xs">
+                          <Group gap="sm" align="center" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+                            {/* Precio */}
+                            <Text fw={700} size="md" style={{ whiteSpace: 'nowrap', minWidth: '90px' }}>
+                              {formatMonetaryValue(String(tx.amount))} {tx.currency}
+                            </Text>
+                            
+                            {/* Categoría */}
+                            <Group gap={6} align="center" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+                              {category && <CategoryIcon name={category.icon} size={18} />}
+                              <Text fw={500} size="sm" truncate>
+                                {category?.name ?? 'Category'}
+                              </Text>
                             </Group>
-                          </Stack>
-                          <Badge variant="light" color={tx.type === 'income' ? 'green' : 'red'}>
-                            {tx.type}
-                          </Badge>
-                        </Group>
 
-                        {tx.description && (
-                          <Text size="sm" style={{ fontStyle: 'italic', opacity: 0.8 }}>
-                            {tx.description}
-                          </Text>
-                        )}
-
-                        {txTags.length > 0 && (
-                          <Group gap="xs" wrap="wrap">
-                            {txTags.map((tag) => (
-                              <Badge key={tag} variant="dot" size="sm">
-                                {tag}
-                              </Badge>
-                            ))}
-                          </Group>
-                        )}
-
-                        {showActions && (tx.id) && (
-                          <Group gap="xs">
-                            {onEdit && <Button size="xs" variant="light" onClick={() => onEdit(tx)}>Edit</Button>}
-                            {onDelete && (
-                              <Button size="xs" variant="light" color="red" onClick={() => onDelete(tx.id!)}>Delete</Button>
+                            {/* Cuenta */}
+                            {account && (
+                              <Group gap={4} align="center" wrap="nowrap">
+                                <AccountIcon name={account.icon} size={14} />
+                                <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
+                                  {account.name}
+                                </Text>
+                              </Group>
                             )}
                           </Group>
+
+                          {/* Acciones */}
+                          <Group gap={4} wrap="nowrap">
+                            {showActions && tx.id && (
+                              <>
+                                {onEdit && (
+                                  <Button size="xs" variant="subtle" onClick={() => onEdit(tx)}>
+                                    Edit
+                                  </Button>
+                                )}
+                                {onDelete && (
+                                  <Button size="xs" variant="subtle" color="red" onClick={() => onDelete(tx.id!)}>
+                                    Delete
+                                  </Button>
+                                )}
+                              </>
+                            )}
+
+                            {hasDetails && (
+                              <ActionIcon
+                                size="sm"
+                                variant="subtle"
+                                color="gray"
+                                onClick={() => toggleExpanded(tx.id!)}
+                              >
+                                {isExpanded ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+                              </ActionIcon>
+                            )}
+                          </Group>
+                        </Group>
+
+                        {/* Detalles expandibles */}
+                        {hasDetails && (
+                          <Collapse in={isExpanded}>
+                            <Stack gap="xs" pt="xs" pl="md" style={{ borderTop: '1px solid #e9ecef' }}>
+                              {tx.description && (
+                                <Text size="sm" c="dimmed" style={{ fontStyle: 'italic' }}>
+                                  {tx.description}
+                                </Text>
+                              )}
+
+                              {txTags.length > 0 && (
+                                <Group gap="xs" wrap="wrap">
+                                  {txTags.map((tag) => (
+                                    <Badge key={tag} variant="dot" size="sm" color="gray">
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                </Group>
+                              )}
+                            </Stack>
+                          </Collapse>
                         )}
                       </Stack>
                     </Paper>

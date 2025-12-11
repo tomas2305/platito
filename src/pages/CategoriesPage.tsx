@@ -133,8 +133,6 @@ export const CategoriesPage = () => {
 
   return (
     <Stack gap="lg">
-      <Title order={2}>Categories</Title>
-
       <Card shadow="sm" radius="md" padding="lg" withBorder>
         <Stack gap="md">
           <Group justify="space-between" align="center">
@@ -197,29 +195,41 @@ export const CategoriesPage = () => {
         </Stack>
       </Card>
 
-      <Group align="flex-start" gap="lg" wrap="wrap">
+      <Group align="stretch" gap="lg" wrap="nowrap" style={{ flexGrow: 1 }}>
         {TYPE_OPTIONS.map((type) => (
-          <Card key={type} shadow="xs" radius="md" padding="md" withBorder style={{ minWidth: 260 }}>
-            <Stack gap="sm">
+          <Card 
+            key={type} 
+            shadow="xs" 
+            radius="md" 
+            padding="md" 
+            withBorder 
+            style={{ 
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              minWidth: 0,
+            }}
+          >
+            <Stack gap="sm" style={{ height: '100%' }}>
               <Title order={4} style={{ textTransform: 'capitalize' }}>{type}</Title>
               {grouped[type].length === 0 ? (
                 <Text c="dimmed">No categories</Text>
               ) : (
-                <Stack gap="xs">
+                <Stack gap="xs" style={{ maxHeight: '500px', overflowY: 'auto', flex: 1 }}>
                   {grouped[type].map((cat) => (
-                    <Group key={cat.id} align="center" gap="sm">
-                      <ColorSwatch color={getColorHex(cat.color)} size={18} radius="sm" />
-                      <CategoryIcon name={cat.icon} />
-                      <Text style={{ flex: 1 }}>{cat.name}</Text>
+                    <Group key={cat.id} align="center" gap="sm" wrap="nowrap" justify="flex-start">
+                      <ColorSwatch color={getColorHex(cat.color)} size={18} radius="sm" style={{ flexShrink: 0 }} />
+                      <CategoryIcon name={cat.icon} size={20} />
+                      <Text style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left' }}>{cat.name}</Text>
                       {!cat.isDefault && (
-                        <Group gap="xs">
+                        <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
                           <Button size="xs" variant="light" onClick={() => handleEdit(cat)}>Edit</Button>
                           <Button size="xs" variant="light" color="red" onClick={() => handleDelete(cat.id)}>
                             Delete
                           </Button>
                         </Group>
                       )}
-                      {cat.isDefault && <Text size="xs" c="dimmed">Default</Text>}
+                      {cat.isDefault && <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>Default</Text>}
                     </Group>
                   ))}
                 </Stack>
