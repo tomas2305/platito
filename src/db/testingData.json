@@ -1,0 +1,320 @@
+{
+  "accounts": [
+    {
+      "name": "Wallet ARS",
+      "currency": "ARS",
+      "initialBalance": 250000,
+      "color": "red",
+      "icon": "wallet",
+      "isArchived": false
+    },
+    {
+      "name": "Credit Card",
+      "currency": "ARS",
+      "initialBalance": -5000,
+      "color": "blue",
+      "icon": "credit-card",
+      "isArchived": false
+    },
+    {
+      "name": "USD Savings",
+      "currency": "USD_BLUE",
+      "initialBalance": 2500,
+      "color": "green",
+      "icon": "pig-money",
+      "isArchived": false
+    },
+    {
+      "name": "MEP Account",
+      "currency": "USD_MEP",
+      "initialBalance": 1800,
+      "color": "cyan",
+      "icon": "coin",
+      "isArchived": false
+    }
+  ],
+  "tags": [
+    { "name": "Groceries" },
+    { "name": "Essentials" },
+    { "name": "Dining" },
+    { "name": "Rent" },
+    { "name": "Income" },
+    { "name": "Utilities" },
+    { "name": "Transport" },
+    { "name": "Entertainment" },
+    { "name": "Health" },
+    { "name": "Work" }
+  ],
+  "transactions": [
+    {
+      "categoryName": "Food & Groceries",
+      "type": "expense",
+      "accountIndex": 0,
+      "amount": 4500,
+      "description": "Supermarket weekly shop",
+      "daysAgo": 2,
+      "tagNames": ["Groceries", "Essentials"]
+    },
+    {
+      "categoryName": "Fuel",
+      "type": "expense",
+      "accountIndex": 0,
+      "amount": 3200,
+      "description": "Gas station",
+      "daysAgo": 3,
+      "tagNames": ["Transport", "Essentials"]
+    },
+    {
+      "categoryName": "Restaurants",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 2800,
+      "description": "Lunch with colleagues",
+      "daysAgo": 1,
+      "tagNames": ["Dining"]
+    },
+    {
+      "categoryName": "Restaurants",
+      "type": "expense",
+      "accountIndex": 0,
+      "amount": 1950,
+      "description": "Coffee and pastry",
+      "daysAgo": 0,
+      "tagNames": ["Dining"]
+    },
+    {
+      "categoryName": "Utilities",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 8500,
+      "description": "Electricity bill",
+      "daysAgo": 5,
+      "tagNames": ["Utilities", "Essentials"]
+    },
+    {
+      "categoryName": "Internet",
+      "type": "expense",
+      "accountIndex": 0,
+      "amount": 2500,
+      "description": "Internet subscription",
+      "daysAgo": 7,
+      "tagNames": ["Utilities"]
+    },
+    {
+      "categoryName": "Entertainment",
+      "type": "expense",
+      "accountIndex": 0,
+      "amount": 1500,
+      "description": "Movie tickets",
+      "daysAgo": 4,
+      "tagNames": ["Entertainment"]
+    },
+    {
+      "categoryName": "Shopping",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 6800,
+      "description": "Clothing store",
+      "daysAgo": 6,
+      "tagNames": []
+    },
+    {
+      "categoryName": "Health",
+      "type": "expense",
+      "accountIndex": 0,
+      "amount": 3500,
+      "description": "Pharmacy",
+      "daysAgo": 3,
+      "tagNames": ["Health"]
+    },
+    {
+      "categoryName": "Personal Care",
+      "type": "expense",
+      "accountIndex": 0,
+      "amount": 1200,
+      "description": "Haircut",
+      "daysAgo": 9,
+      "tagNames": []
+    },
+    {
+      "categoryName": "Transport",
+      "type": "expense",
+      "accountIndex": 0,
+      "amount": 2100,
+      "description": "Uber rides",
+      "daysAgo": 2,
+      "tagNames": ["Transport"]
+    },
+    {
+      "categoryName": "Rent",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 45000,
+      "description": "Monthly rent",
+      "daysAgo": 12,
+      "tagNames": ["Rent", "Essentials"]
+    },
+    {
+      "categoryName": "Education",
+      "type": "expense",
+      "accountIndex": 0,
+      "amount": 5000,
+      "description": "Online course",
+      "daysAgo": 15,
+      "tagNames": ["Work"]
+    },
+    {
+      "categoryName": "Misc",
+      "type": "expense",
+      "accountIndex": 0,
+      "amount": 800,
+      "description": "Birthday gift",
+      "daysAgo": 8,
+      "tagNames": []
+    },
+    {
+      "categoryName": "Work Expenses",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 2400,
+      "description": "Office supplies",
+      "daysAgo": 11,
+      "tagNames": ["Work"]
+    },
+    {
+      "categoryName": "Phone",
+      "type": "expense",
+      "accountIndex": 0,
+      "amount": 1800,
+      "description": "Mobile bill",
+      "daysAgo": 10,
+      "tagNames": ["Utilities"]
+    },
+    {
+      "categoryName": "Home",
+      "type": "expense",
+      "accountIndex": 0,
+      "amount": 3600,
+      "description": "Home decor",
+      "daysAgo": 18,
+      "tagNames": []
+    },
+    {
+      "categoryName": "Pets",
+      "type": "expense",
+      "accountIndex": 0,
+      "amount": 2200,
+      "description": "Pet food and supplies",
+      "daysAgo": 20,
+      "tagNames": []
+    },
+    {
+      "categoryName": "Gifts",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 4500,
+      "description": "Christmas gifts",
+      "daysAgo": 25,
+      "tagNames": []
+    },
+    {
+      "categoryName": "Salary",
+      "type": "income",
+      "accountIndex": 0,
+      "amount": 120000,
+      "description": "Monthly salary",
+      "daysAgo": 15,
+      "tagNames": ["Income"]
+    },
+    {
+      "categoryName": "Salary",
+      "type": "income",
+      "accountIndex": 2,
+      "amount": 850,
+      "description": "Salary bonus (USD)",
+      "daysAgo": 14,
+      "tagNames": ["Income"]
+    },
+    {
+      "categoryName": "Freelance",
+      "type": "income",
+      "accountIndex": 0,
+      "amount": 18500,
+      "description": "Web design project",
+      "daysAgo": 10,
+      "tagNames": ["Work", "Income"]
+    },
+    {
+      "categoryName": "Freelance",
+      "type": "income",
+      "accountIndex": 2,
+      "amount": 650,
+      "description": "Freelance writing",
+      "daysAgo": 22,
+      "tagNames": ["Work", "Income"]
+    },
+    {
+      "categoryName": "Investments",
+      "type": "income",
+      "accountIndex": 3,
+      "amount": 2300,
+      "description": "Dividend payment",
+      "daysAgo": 5,
+      "tagNames": ["Income"]
+    },
+    {
+      "categoryName": "Reimbursements",
+      "type": "income",
+      "accountIndex": 0,
+      "amount": 5600,
+      "description": "Travel reimbursement",
+      "daysAgo": 8,
+      "tagNames": ["Income"]
+    },
+    {
+      "categoryName": "Misc Income",
+      "type": "income",
+      "accountIndex": 1,
+      "amount": 3200,
+      "description": "Sale of used items",
+      "daysAgo": 30,
+      "tagNames": []
+    },
+    {
+      "categoryName": "Food & Groceries",
+      "type": "expense",
+      "accountIndex": 2,
+      "amount": 45,
+      "description": "USD snacks",
+      "daysAgo": 1,
+      "tagNames": ["Groceries"]
+    },
+    {
+      "categoryName": "Restaurants",
+      "type": "expense",
+      "accountIndex": 2,
+      "amount": 32,
+      "description": "Dinner USD",
+      "daysAgo": 4,
+      "tagNames": ["Dining"]
+    },
+    {
+      "categoryName": "Transport",
+      "type": "expense",
+      "accountIndex": 3,
+      "amount": 18,
+      "description": "Cab ride",
+      "daysAgo": 7,
+      "tagNames": ["Transport"]
+    },
+    {
+      "categoryName": "Entertainment",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 2500,
+      "description": "Concert tickets",
+      "daysAgo": 16,
+      "tagNames": ["Entertainment"]
+    }
+  ]
+}
