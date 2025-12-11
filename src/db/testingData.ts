@@ -36,9 +36,11 @@ const findOrCreateTag = async (name: string): Promise<number> => {
 
 const isoDaysAgo = (days: number) => {
   const d = new Date();
-  d.setHours(12, 0, 0, 0);
   d.setDate(d.getDate() - days);
-  return d.toISOString();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 export const seedTestingData = async (): Promise<void> => {
