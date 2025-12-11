@@ -1,4 +1,5 @@
 import React from 'react';
+import { Title } from '@mantine/core';
 import { TimeSeriesChart } from './TimeSeriesChart';
 import { CategoryPieChart } from './CategoryPieChart';
 
@@ -11,11 +12,11 @@ interface DashboardChartsProps {
 export const DashboardCharts: React.FC<DashboardChartsProps> = ({ timeWindow, timeSeriesData, pieChartData }) => (
   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '16px' }}>
     <div>
-      <h3>Time Series ({timeWindow})</h3>
+      <Title order={5} mb="md">Time Series ({timeWindow})</Title>
       <TimeSeriesChart data={timeSeriesData} />
     </div>
     <div>
-      <h3>By Category</h3>
+      <Title order={5} mb="md">By Category</Title>
       <CategoryPieChart data={pieChartData} />
     </div>
   </div>
