@@ -7,11 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2024-12-11
+
 ### Fixed
 - Fixed date timezone issues causing transactions to appear in wrong month filters
   - Transaction dates now use local timezone instead of UTC
   - Affects transaction creation, filtering, and display across all views
   - Testing database sample data now generates with correct local dates
+
+### Added
+- Automatic backport workflow for merging changes from main to develop
+- CHANGELOG.md file to track version history and changes
 
 ## [1.1.0] - 2024-12-11
 
@@ -64,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - React Router for navigation
 - Recharts for data visualization
 
-[Unreleased]: https://github.com/tomas2305/platito/compare/1.1.0...HEAD
+[Unreleased]: https://github.com/tomas2305/platito/compare/1.1.1...HEAD
+[1.1.1]: https://github.com/tomas2305/platito/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/tomas2305/platito/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/tomas2305/platito/releases/tag/1.0.0
