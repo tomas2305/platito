@@ -19,7 +19,7 @@ export const AccountsPage = () => {
   const [activeAccounts, setActiveAccounts] = useState<Account[]>([]);
   const [archivedAccounts, setArchivedAccounts] = useState<Account[]>([]);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [modalOpened, setModalOpened] = useState(false);
 
   const loadAccounts = async () => {
     const [active, archived] = await Promise.all([
@@ -46,15 +46,12 @@ export const AccountsPage = () => {
   const handleCreate = async (data: Omit<Account, 'id'>) => {
     await createAccount(data);
     await loadAccounts();
-    setShowForm(false);
   };
 
   const handleUpdate = async (data: Omit<Account, 'id'>) => {
     if (editingAccount?.id) {
       await updateAccount(editingAccount.id, data);
       await loadAccounts();
-      setEditingAccount(null);
-      setShowForm(false);
     }
   };
 
@@ -77,30 +74,32 @@ export const AccountsPage = () => {
 
   const handleEdit = (account: Account) => {
     setEditingAccount(account);
-    setShowForm(true);
+    setModalOpened(true);
   };
 
-  const handleCancel = () => {
+  const handleOpenCreate = () => {
     setEditingAccount(null);
-    setShowForm(false);
+    setModalOpened(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpened(false);
+    setEditingAccount(null);
   };
 
   return (
     <Stack gap="md">
       <Group justify="space-between" align="center">
         <Title order={2}>Accounts</Title>
-        {!showForm && (
-          <Button onClick={() => setShowForm(true)}>Create New Account</Button>
-        )}
+        <Button onClick={handleOpenCreate}>Create New Account</Button>
       </Group>
 
-      {showForm && (
-        <AccountForm
-          account={editingAccount || undefined}
-          onSubmit={editingAccount ? handleUpdate : handleCreate}
-          onCancel={handleCancel}
-        />
-      )}
+      <AccountForm
+        account={editingAccount || undefined}
+        opened={modalOpened}
+        onClose={handleCloseModal}
+        onSubmit={editingAccount ? handleUpdate : handleCreate}
+      />
 
       <section>
         <Title order={3}>Active Accounts</Title>

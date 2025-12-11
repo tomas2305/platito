@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
+import { Button, Group, Modal, Select, Stack, Text, TextInput, Title } from '@mantine/core';
 import type { Account, Currency } from '../types';
 import { SUPPORTED_CURRENCIES } from '../utils/currency';
 import { COLOR_PALETTE, type ColorName } from '../utils/colors';
 import { formatMonetaryValue, parseMonetaryValue } from '../utils/formatters';
+import { AccountIcon } from './AccountIcon';
 
 interface AccountFormProps {
   account?: Account;
+  opened: boolean;
+  onClose: () => void;
   onSubmit: (data: Omit<Account, 'id'>) => Promise<void>;
-  onCancel: () => void;
 }
 
 const ICONS = [
@@ -23,7 +26,7 @@ const ICONS = [
   'IconCoins',
 ];
 
-export const AccountForm = ({ account, onSubmit, onCancel }: AccountFormProps) => {
+export const AccountForm = ({ account, opened, onClose, onSubmit }: AccountFormProps) => {
   const [name, setName] = useState('');
   const [currency, setCurrency] = useState<Currency>('ARS');
   const [initialBalance, setInitialBalance] = useState('');
@@ -38,12 +41,17 @@ export const AccountForm = ({ account, onSubmit, onCancel }: AccountFormProps) =
       setInitialBalance(formatMonetaryValue(String(account.initialBalance)));
       setColor(account.color);
       setIcon(account.icon);
+    } else {
+      setName('');
+      setCurrency('ARS');
+      setInitialBalance('');
+      setColor('green');
+      setIcon('IconCash');
     }
-  }, [account]);
+  }, [account, opened]);
 
-  const handleBalanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value;
-    const formatted = formatMonetaryValue(rawValue);
+  const handleBalanceChange = (value: string) => {
+    const formatted = formatMonetaryValue(value);
     setInitialBalance(formatted);
   };
 
@@ -60,113 +68,112 @@ export const AccountForm = ({ account, onSubmit, onCancel }: AccountFormProps) =
         icon,
         isArchived: account?.isArchived ?? false,
       });
+      onClose();
     } finally {
       setLoading(false);
     }
   };
 
-  const getButtonText = () => {
-    if (loading) return 'Saving...';
-    return account ? 'Update' : 'Create';
-  };
-
   return (
-    <form onSubmit={handleSubmit}>
-      <h3>{account ? 'Edit Account' : 'Create Account'}</h3>
-
-      <div>
-        <label>
-          Name:
-          {' '}
-          <input
-            type="text"
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title={<Title order={4}>{account ? 'Edit Account' : 'Create Account'}</Title>}
+      size="md"
+    >
+      <form onSubmit={handleSubmit}>
+        <Stack gap="md">
+          <TextInput
+            label="Name"
+            placeholder="Account name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
             disabled={loading}
           />
-        </label>
-      </div>
 
-      <div>
-        <label>
-          Currency:
-          {' '}
-          <select
+          <Select
+            label="Currency"
+            data={SUPPORTED_CURRENCIES.map((c) => ({ value: c, label: c }))}
             value={currency}
-            onChange={(e) => setCurrency(e.target.value as Currency)}
+            onChange={(value) => setCurrency(value as Currency)}
             disabled={loading || Boolean(account)}
-          >
-            {SUPPORTED_CURRENCIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+            required
+          />
 
-      <div>
-        <label>
-          Initial Balance:
-          {' '}
-          <input
+          <TextInput
+            label="Initial Balance"
+            placeholder="0"
             type="text"
             inputMode="decimal"
             value={initialBalance}
-            onChange={handleBalanceChange}
+            onChange={(e) => handleBalanceChange(e.target.value)}
             disabled={loading}
-            placeholder="0"
           />
-        </label>
-      </div>
 
-      <div>
-        <label>
-          Icon:
-          {' '}
-          <select value={icon} onChange={(e) => setIcon(e.target.value)} disabled={loading}>
-            {ICONS.map((i) => (
-              <option key={i} value={i}>
-                {i}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      <div>
-        <label>
-          Color:
-          <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-            {COLOR_PALETTE.map((colorOption) => (
-              <button
-                key={colorOption.name}
-                type="button"
-                onClick={() => setColor(colorOption.name)}
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  backgroundColor: colorOption.hex,
-                  border: color === colorOption.name ? '3px solid black' : '1px solid #ccc',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                }}
-                disabled={loading}
-              />
-            ))}
+          <div>
+            <Text size="sm" fw={500} mb={8}>Icon</Text>
+            <Group gap="sm">
+              {ICONS.map((iconName) => (
+                <button
+                  key={iconName}
+                  type="button"
+                  onClick={() => setIcon(iconName)}
+                  style={{
+                    width: '50px',
+                    height: '50px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: icon === iconName ? '3px solid var(--mantine-color-blue-6)' : '2px solid var(--mantine-color-gray-4)',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    backgroundColor: 'transparent',
+                  }}
+                  disabled={loading}
+                  aria-label={iconName}
+                >
+                  <AccountIcon name={iconName} size={28} />
+                </button>
+              ))}
+            </Group>
           </div>
-        </label>
-      </div>
 
-      <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
-        <button type="submit" disabled={loading}>
-          {getButtonText()}
-        </button>
-        <button type="button" onClick={onCancel} disabled={loading}>
-          Cancel
-        </button>
-      </div>
-    </form>
+          <div>
+            <Text size="sm" fw={500} mb={8}>Color</Text>
+            <Group gap="sm">
+              {COLOR_PALETTE.map((colorOption) => (
+                <button
+                  key={colorOption.name}
+                  type="button"
+                  onClick={() => setColor(colorOption.name)}
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    backgroundColor: colorOption.hex,
+                    border: color === colorOption.name ? '3px solid var(--mantine-color-blue-6)' : '2px solid transparent',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  disabled={loading}
+                  aria-label={colorOption.name}
+                />
+              ))}
+            </Group>
+          </div>
+
+          <Group justify="flex-end" gap="sm" mt="md">
+            <Button variant="subtle" onClick={onClose} disabled={loading}>
+              Cancel
+            </Button>
+            <Button type="submit" loading={loading}>
+              {account ? 'Update' : 'Create'}
+            </Button>
+          </Group>
+        </Stack>
+      </form>
+    </Modal>
   );
 };
