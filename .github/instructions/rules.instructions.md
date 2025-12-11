@@ -21,3 +21,5 @@ Optionally, add unit test examples if applicable.
 Code and comments should be in English only. - For test titles, follow the pattern "when, it should".
 - Do NOT use emojis.
 - Do NOT generate explanatory documents unless explicitly stated otherwise.
+
+Use Mantine UI components and conventions where applicable.
