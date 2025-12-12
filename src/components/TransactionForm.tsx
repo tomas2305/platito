@@ -204,10 +204,27 @@ export const TransactionForm = ({
       // Save the used date
       saveLastUsedDate(form.date);
       
+      const selectedAccount = accounts.find(acc => acc.id === Number(form.accountId));
+      const formattedAmount = formatMonetaryValue(String(amountValue));
+      const formattedDate = form.date?.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      }) || '';
+      
       notifications.show({
-        title: 'Success',
-        message: 'Transaction created successfully',
+        title: '✓ Transaction created',
+        message: (
+          <Text size="sm">
+            <Text component="span" fw={700}>{formattedAmount} {selectedAccount?.currency || ''}</Text>
+            {' · '}
+            <Text component="span" fw={700}>{selectedCategory.name}</Text>
+            {' · '}
+            <Text component="span" fw={700}>{formattedDate}</Text>
+          </Text>
+        ),
         color: 'green',
+        autoClose: 4000,
       });
 
       setForm({
@@ -395,7 +412,7 @@ export const TransactionForm = ({
                 )}
               </Stack>
 
-              <Group align="flex-end" gap="sm" mt={10}>
+              <Group align="flex-end" gap="sm" mt={7}>
                 <TextInput
                   label="Quick add tag"
                   placeholder="New tag"
