@@ -168,6 +168,12 @@ export const CategoriesPage = () => {
                   onChange={(value) => setForm((prev) => ({ ...prev, icon: value || 'tag' }))}
                   data={CATEGORY_ICON_OPTIONS.map((icon) => ({ label: icon, value: icon }))}
                   style={{ minWidth: 180 }}
+                  renderOption={({ option }) => (
+                    <Group gap="xs">
+                      <CategoryIcon name={option.value} size={20} />
+                      <span>{option.label}</span>
+                    </Group>
+                  )}
                 />
 
                 <Button type="submit">{form.id ? 'Update' : 'Create'}</Button>

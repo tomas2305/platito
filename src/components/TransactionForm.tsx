@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
+  ActionIcon,
   Button,
   Card,
   Checkbox,
@@ -13,6 +14,7 @@ import {
   Title,
 } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
+import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { AccountIcon } from './AccountIcon';
 import { CategoryIcon } from './CategoryIcon';
@@ -39,7 +41,38 @@ interface Props {
   onCreateTag: (name: string) => Promise<number>;
 }
 
+const LAST_DATE_KEY = 'platito_last_transaction_date';
+
 const today = () => new Date();
+
+const getLastUsedDate = (): Date => {
+  try {
+    const stored = localStorage.getItem(LAST_DATE_KEY);
+    if (stored) {
+      const date = new Date(stored + 'T00:00:00');
+      if (!Number.isNaN(date.getTime())) {
+        return date;
+      }
+    }
+  } catch {
+    // Ignore localStorage errors
+  }
+  return today();
+};
+
+const saveLastUsedDate = (date: Date | null) => {
+  try {
+    if (date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      localStorage.setItem(LAST_DATE_KEY, `${year}-${month}-${day}`);
+    }
+  } catch {
+    // Ignore localStorage errors
+  }
+};
+
 const formatDateToISO = (date: Date | null) => {
   const d = date ?? new Date();
   const year = d.getFullYear();
@@ -80,17 +113,47 @@ export const TransactionForm = ({
     transactionType: 'expense',
     tagIds: [],
     description: '',
-    date: today(),
+    date: getLastUsedDate(),
   });
 
   const [error, setError] = useState<string | null>(null);
   const [newTagName, setNewTagName] = useState('');
   const [tagsModalOpened, setTagsModalOpened] = useState(false);
 
-  const categoriesForType = useMemo(
-    () => categories.filter((cat) => cat.type === form.transactionType),
-    [categories, form.transactionType],
-  );
+  const categoriesForType = useMemo(() => {
+    const filtered = categories.filter((cat) => cat.type === form.transactionType);
+    
+    // Get the last 10 transactions of the current type
+    const recentTransactions = transactions
+      .filter((tx) => tx.type === form.transactionType)
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 10);
+    
+    // Create an order map based on last usage
+    const lastUsedOrder = new Map<number, number>();
+    recentTransactions.forEach((tx, index) => {
+      if (!lastUsedOrder.has(tx.categoryId)) {
+        lastUsedOrder.set(tx.categoryId, index);
+      }
+    });
+    
+    // Sort: recently used first, then alphabetically
+    return filtered.sort((a, b) => {
+      const aOrder = lastUsedOrder.get(a.id!);
+      const bOrder = lastUsedOrder.get(b.id!);
+      
+      // If both are in recent history
+      if (aOrder !== undefined && bOrder !== undefined) {
+        return aOrder - bOrder;
+      }
+      // If only 'a' is in history
+      if (aOrder !== undefined) return -1;
+      // If only 'b' is in history
+      if (bOrder !== undefined) return 1;
+      // If neither is in history, sort alphabetically
+      return a.name.localeCompare(b.name);
+    });
+  }, [categories, form.transactionType, transactions]);
 
   const handleTypeChange = (type: TransactionType) => {
     const options = categories.filter((c) => c.type === type);
@@ -138,6 +201,9 @@ export const TransactionForm = ({
     try {
       await onSubmit(payload);
       
+      // Save the used date
+      saveLastUsedDate(form.date);
+      
       notifications.show({
         title: 'Success',
         message: 'Transaction created successfully',
@@ -151,7 +217,7 @@ export const TransactionForm = ({
         transactionType: form.transactionType,
         tagIds: form.tagIds,
         description: '',
-        date: today(),
+        date: form.date, // Keep the same date
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error saving transaction');
@@ -213,25 +279,58 @@ export const TransactionForm = ({
                   ]}
                 />
 
-                <DateInput
-                  label="Date"
-                  placeholder="Select date"
-                  value={form.date}
-                  onChange={(value) => {
-                    let dateObj: Date | null = null;
-                    if (value === null) {
-                      dateObj = null;
-                    } else if (typeof value === 'string') {
-                      dateObj = new Date(value + 'T00:00:00');
-                    } else {
-                      dateObj = value as Date;
-                    }
-                    setForm((prev) => ({ ...prev, date: dateObj }));
-                  }}
-                  maxDate={today()}
-                  required
-                  clearable
-                />
+                <Group gap="xs" align="flex-end">
+                  <DateInput
+                    label="Date"
+                    placeholder="Select date"
+                    value={form.date}
+                    onChange={(value) => {
+                      let dateObj: Date | null = null;
+                      if (value === null) {
+                        dateObj = null;
+                      } else if (typeof value === 'string') {
+                        dateObj = new Date(value + 'T00:00:00');
+                      } else {
+                        dateObj = value as Date;
+                      }
+                      setForm((prev) => ({ ...prev, date: dateObj }));
+                    }}
+                    maxDate={today()}
+                    required
+                    clearable
+                  />
+                  <ActionIcon
+                    variant="default"
+                    size="lg"
+                    onClick={() => {
+                      if (form.date) {
+                        const newDate = new Date(form.date);
+                        newDate.setDate(newDate.getDate() - 1);
+                        setForm((prev) => ({ ...prev, date: newDate }));
+                      }
+                    }}
+                    disabled={!form.date}
+                  >
+                    <IconChevronLeft size={18} />
+                  </ActionIcon>
+                  <ActionIcon
+                    variant="default"
+                    size="lg"
+                    onClick={() => {
+                      if (form.date) {
+                        const newDate = new Date(form.date);
+                        newDate.setDate(newDate.getDate() + 1);
+                        const maxDate = today();
+                        if (newDate <= maxDate) {
+                          setForm((prev) => ({ ...prev, date: newDate }));
+                        }
+                      }
+                    }}
+                    disabled={!form.date || (form.date && form.date >= today())}
+                  >
+                    <IconChevronRight size={18} />
+                  </ActionIcon>
+                </Group>
               </Group>
 
               <CircularSelector
@@ -257,7 +356,7 @@ export const TransactionForm = ({
                 }))}
                 selectedId={form.categoryId ? Number(form.categoryId) : null}
                 onSelect={(id) => setForm((prev) => ({ ...prev, categoryId: String(id) }))}
-                maxVisible={15}
+                maxVisible={7}
               />
 
               <Textarea
@@ -296,7 +395,7 @@ export const TransactionForm = ({
                 )}
               </Stack>
 
-              <Group align="flex-end" gap="sm">
+              <Group align="flex-end" gap="sm" mt={10}>
                 <TextInput
                   label="Quick add tag"
                   placeholder="New tag"
