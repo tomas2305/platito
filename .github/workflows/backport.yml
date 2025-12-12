@@ -41,7 +41,33 @@ jobs:
           git checkout -b ${BACKPORT_BRANCH} origin/${TARGET_BRANCH}
 
           # Cherry-pick del merge de main
-          git cherry-pick -m 1 -x ${MERGE_SHA}
+          if ! git cherry-pick -m 1 -x ${MERGE_SHA}; then
+            echo "Cherry-pick failed, attempting to auto-resolve conflicts"
+            
+            # Check if CHANGELOG.md has conflicts
+            if git status | grep -q "CHANGELOG.md"; then
+              echo "CHANGELOG.md has conflicts, auto-resolving..."
+              
+              # Accept both changes for CHANGELOG (ours + theirs)
+              git show HEAD:CHANGELOG.md > /tmp/changelog_ours.md || true
+              git show ${MERGE_SHA}:CHANGELOG.md > /tmp/changelog_theirs.md || true
+              
+              # Merge CHANGELOG sections manually (keep unreleased from theirs, rest from ours)
+              # For now, accept theirs (incoming changes from main)
+              git checkout --theirs CHANGELOG.md
+              git add CHANGELOG.md
+            fi
+            
+            # Check if there are still conflicts
+            if git diff --name-only --diff-filter=U | grep -q .; then
+              echo "Unable to auto-resolve all conflicts"
+              git cherry-pick --abort
+              exit 1
+            fi
+            
+            # Continue cherry-pick
+            git cherry-pick --continue --no-edit
+          fi
 
           git push origin ${BACKPORT_BRANCH}
 
