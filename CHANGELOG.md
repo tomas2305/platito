@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.3] - 2024-12-11
+
+### Fixed
+- Backport workflow now handles merge conflicts automatically
+  - Auto-resolves conflicts in CHANGELOG.md, package.json, and backport.yml
+  - Accepts incoming changes from main during backport
+  - Gracefully handles missing 'backport' label
+  - Provides clear error messages for unresolvable conflicts
+
 ## [1.3.0] - 2024-12-11
 
 ### Added
@@ -19,11 +28,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transactions within same date group now sorted by creation order
   - Most recently created transactions appear first within each date
   - Uses transaction ID for consistent ordering
-
-### Fixed
-- Backport workflow now correctly creates PRs to develop branch
-  - Changed from `peter-evans/create-pull-request` to GitHub CLI
-  - Properly handles already-pushed branches
 
 ## [1.2.0] - 2024-12-11
 
@@ -109,7 +113,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - React Router for navigation
 - Recharts for data visualization
 
-[Unreleased]: https://github.com/tomas2305/platito/compare/1.2.0...HEAD
+[Unreleased]: https://github.com/tomas2305/platito/compare/1.3.3...HEAD
+[1.3.3]: https://github.com/tomas2305/platito/compare/1.3.0...1.3.3
+[1.3.0]: https://github.com/tomas2305/platito/compare/1.2.0...1.3.0
 [1.2.0]: https://github.com/tomas2305/platito/compare/1.1.1...1.2.0
 [1.1.1]: https://github.com/tomas2305/platito/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/tomas2305/platito/compare/1.0.0...1.1.0
