@@ -44,47 +44,66 @@ jobs:
           if ! git cherry-pick -m 1 -x ${MERGE_SHA}; then
             echo "Cherry-pick failed, attempting to auto-resolve conflicts"
             
-            # Check if CHANGELOG.md has conflicts
-            if git status | grep -q "CHANGELOG.md"; then
-              echo "CHANGELOG.md has conflicts, auto-resolving..."
-              
-              # Accept both changes for CHANGELOG (ours + theirs)
-              git show HEAD:CHANGELOG.md > /tmp/changelog_ours.md || true
-              git show ${MERGE_SHA}:CHANGELOG.md > /tmp/changelog_theirs.md || true
-              
-              # Merge CHANGELOG sections manually (keep unreleased from theirs, rest from ours)
-              # For now, accept theirs (incoming changes from main)
+            # Auto-resolve CHANGELOG.md conflicts (accept incoming from main)
+            if git status --porcelain | grep -q "^UU CHANGELOG.md"; then
+              echo "CHANGELOG.md has conflicts, accepting version from main..."
               git checkout --theirs CHANGELOG.md
               git add CHANGELOG.md
             fi
             
-            # Check if there are still conflicts
-            if git diff --name-only --diff-filter=U | grep -q .; then
-              echo "Unable to auto-resolve all conflicts"
+            # Auto-resolve package.json conflicts (accept incoming from main)
+            if git status --porcelain | grep -q "^UU package.json"; then
+              echo "package.json has conflicts, accepting version from main..."
+              git checkout --theirs package.json
+              git add package.json
+            fi
+            
+            # Check for remaining unresolved conflicts
+            CONFLICTS=$(git diff --name-only --diff-filter=U)
+            if [ -n "$CONFLICTS" ]; then
+              echo "Unable to auto-resolve conflicts in: $CONFLICTS"
+              echo "Please resolve manually on branch: ${BACKPORT_BRANCH}"
               git cherry-pick --abort
               exit 1
             fi
             
-            # Continue cherry-pick
-            git cherry-pick --continue --no-edit
+            # Continue cherry-pick with auto-resolved conflicts
+            git -c core.editor=true cherry-pick --continue
           fi
 
           git push origin ${BACKPORT_BRANCH}
 
       - name: Crear PR hacia develop
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          base: develop
-          branch: backport/pr-${{ github.event.pull_request.number }}-to-develop
-          title: "Backport #${{ github.event.pull_request.number }} to develop"
-          body: |
-            🔄 Backport automático de #${{ github.event.pull_request.number }} a `develop`.
-            
-            **PR original:** #${{ github.event.pull_request.number }}
-            **Commit:** ${{ github.event.pull_request.merge_commit_sha }}
-            
-            ---
-            _Este PR fue creado automáticamente por el workflow de backport._
-          labels: backport
-          delete-branch: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          BACKPORT_BRANCH=backport/pr-${PR_NUMBER}-to-develop
+          
+          PR_BODY="🔄 Backport automático de #${PR_NUMBER} a \`develop\`.
+
+          **PR original:** #${PR_NUMBER}
+          **Título:** ${PR_TITLE}
+          **Commit:** ${MERGE_SHA}
+          
+          ---
+          _Este PR fue creado automáticamente por el workflow de backport._"
+          
+          # Create PR, with or without label depending on if it exists
+          if gh label list | grep -q "^backport"; then
+            gh pr create \
+              --base develop \
+              --head ${BACKPORT_BRANCH} \
+              --title "Backport #${PR_NUMBER} to develop" \
+              --body "${PR_BODY}" \
+              --label backport
+          else
+            echo "Warning: 'backport' label not found, creating PR without label"
+            gh pr create \
+              --base develop \
+              --head ${BACKPORT_BRANCH} \
+              --title "Backport #${PR_NUMBER} to develop" \
+              --body "${PR_BODY}"
+          fi
