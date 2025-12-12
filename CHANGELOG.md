@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2024-12-11
+
+### Added
+- Date navigation buttons in transaction forms (create and edit)
+  - Previous day button (←) to go back one day
+  - Next day button (→) to advance one day
+  - Buttons automatically disabled when reaching today or when no date is selected
+- Last used date persistence in transaction creation form
+  - Date is saved to localStorage and restored on page load
+  - Date is maintained when creating multiple transactions
+- Recent category sorting in transaction forms
+  - Categories are now ordered by recent usage (last 10 transactions)
+  - Recently used categories appear first in the selector
+  - Unused categories are sorted alphabetically at the end
+- Visual icon preview in category creation form
+  - Icon selector now displays the actual icon alongside the name
+
+### Changed
+- Automatic backport workflow no longer requires manual label
+  - All merged PRs to main are automatically backported to develop
+
 ## [1.1.1] - 2024-12-11
 
 ### Fixed
@@ -70,7 +91,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - React Router for navigation
 - Recharts for data visualization
 
-[Unreleased]: https://github.com/tomas2305/platito/compare/1.1.1...HEAD
+[Unreleased]: https://github.com/tomas2305/platito/compare/1.2.0...HEAD
+[1.2.0]: https://github.com/tomas2305/platito/compare/1.1.1...1.2.0
 [1.1.1]: https://github.com/tomas2305/platito/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/tomas2305/platito/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/tomas2305/platito/releases/tag/1.0.0
