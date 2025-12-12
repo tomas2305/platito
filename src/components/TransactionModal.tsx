@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  ActionIcon,
   Button,
   Checkbox,
   Group,
@@ -12,6 +13,7 @@ import {
   TextInput,
 } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
+import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import styles from './TransactionModal.module.css';
 import { AccountIcon } from './AccountIcon';
@@ -256,25 +258,58 @@ export const TransactionModal = ({
                 ]}
               />
 
-              <DateInput
-                label="Date"
-                placeholder="Select date"
-                value={form.date}
-                onChange={(value) => {
-                  let dateObj: Date | null = null;
-                  if (value === null) {
-                    dateObj = null;
-                  } else if (typeof value === 'string') {
-                    dateObj = new Date(value + 'T00:00:00');
-                  } else {
-                    dateObj = value as Date;
-                  }
-                  setForm((prev) => ({ ...prev, date: dateObj }));
-                }}
-                maxDate={today()}
-                required
-                clearable
-              />
+              <Group gap="xs" align="flex-end">
+                <DateInput
+                  label="Date"
+                  placeholder="Select date"
+                  value={form.date}
+                  onChange={(value) => {
+                    let dateObj: Date | null = null;
+                    if (value === null) {
+                      dateObj = null;
+                    } else if (typeof value === 'string') {
+                      dateObj = new Date(value + 'T00:00:00');
+                    } else {
+                      dateObj = value as Date;
+                    }
+                    setForm((prev) => ({ ...prev, date: dateObj }));
+                  }}
+                  maxDate={today()}
+                  required
+                  clearable
+                />
+                <ActionIcon
+                  variant="default"
+                  size="lg"
+                  onClick={() => {
+                    if (form.date) {
+                      const newDate = new Date(form.date);
+                      newDate.setDate(newDate.getDate() - 1);
+                      setForm((prev) => ({ ...prev, date: newDate }));
+                    }
+                  }}
+                  disabled={!form.date}
+                >
+                  <IconChevronLeft size={18} />
+                </ActionIcon>
+                <ActionIcon
+                  variant="default"
+                  size="lg"
+                  onClick={() => {
+                    if (form.date) {
+                      const newDate = new Date(form.date);
+                      newDate.setDate(newDate.getDate() + 1);
+                      const maxDate = today();
+                      if (newDate <= maxDate) {
+                        setForm((prev) => ({ ...prev, date: newDate }));
+                      }
+                    }
+                  }}
+                  disabled={!form.date || (form.date && form.date >= today())}
+                >
+                  <IconChevronRight size={18} />
+                </ActionIcon>
+              </Group>
             </Group>
 
             <CircularSelector
