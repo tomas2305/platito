@@ -146,7 +146,15 @@ export const TransactionList = ({
   }, [filtered]);
 
   const grouped = useMemo(() => {
-    const sorted = [...filtered].sort((a, b) => b.date.localeCompare(a.date));
+    const sorted = [...filtered].sort((a, b) => {
+      // First sort by date (newest first)
+      const dateCompare = b.date.localeCompare(a.date);
+      if (dateCompare !== 0) return dateCompare;
+      
+      // Within same date, sort by ID (most recently created first)
+      return (b.id ?? 0) - (a.id ?? 0);
+    });
+    
     return sorted.reduce<Record<string, Transaction[]>>((acc, tx) => {
       const key = tx.date.slice(0, 10);
       acc[key] = acc[key] ? [...acc[key], tx] : [tx];
