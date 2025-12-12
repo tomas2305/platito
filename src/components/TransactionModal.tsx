@@ -177,11 +177,28 @@ export const TransactionModal = ({
     try {
       await onSubmit(payload);
       
+      const selectedAccount = accounts.find(acc => acc.id === Number(form.accountId));
+      const formattedAmount = formatMonetaryValue(String(amountValue));
+      const formattedDate = form.date?.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      }) || '';
+      
       // Always close modal and show success notification (only used for editing now)
       notifications.show({
-        title: 'Success',
-        message: 'Transaction updated successfully',
-        color: 'green',
+        title: '✓ Transaction updated',
+        message: (
+          <Text size="sm">
+            <Text component="span" fw={700}>{formattedAmount} {selectedAccount?.currency || ''}</Text>
+            {' · '}
+            <Text component="span" fw={700}>{selectedCategory.name}</Text>
+            {' · '}
+            {formattedDate}
+          </Text>
+        ),
+        color: 'blue',
+        autoClose: 4000,
       });
       handleClose();
     } catch (err) {
