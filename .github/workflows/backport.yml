@@ -9,10 +9,8 @@ on:
 jobs:
   backport:
     runs-on: ubuntu-latest
-    # Solo si el PR fue mergeado y tiene la etiqueta backport-to-develop
-    if: >
-      github.event.pull_request.merged == true &&
-      contains(github.event.pull_request.labels.*.name, 'backport-to-develop')
+    # Solo si el PR fue mergeado
+    if: github.event.pull_request.merged == true
 
     permissions:
       contents: write
