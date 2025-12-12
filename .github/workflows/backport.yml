@@ -58,6 +58,13 @@ jobs:
               git add package.json
             fi
             
+            # Auto-resolve backport.yml conflicts (accept incoming from main)
+            if git status --porcelain | grep -q "^UU .github/workflows/backport.yml"; then
+              echo "backport.yml has conflicts, accepting version from main..."
+              git checkout --theirs .github/workflows/backport.yml
+              git add .github/workflows/backport.yml
+            fi
+            
             # Check for remaining unresolved conflicts
             CONFLICTS=$(git diff --name-only --diff-filter=U)
             if [ -n "$CONFLICTS" ]; then
