@@ -46,19 +46,26 @@ jobs:
           git push origin ${BACKPORT_BRANCH}
 
       - name: Crear PR hacia develop
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          base: develop
-          branch: backport/pr-${{ github.event.pull_request.number }}-to-develop
-          title: "Backport #${{ github.event.pull_request.number }} to develop"
-          body: |
-            🔄 Backport automático de #${{ github.event.pull_request.number }} a `develop`.
-            
-            **PR original:** #${{ github.event.pull_request.number }}
-            **Commit:** ${{ github.event.pull_request.merge_commit_sha }}
-            
-            ---
-            _Este PR fue creado automáticamente por el workflow de backport._
-          labels: backport
-          delete-branch: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          BACKPORT_BRANCH=backport/pr-${PR_NUMBER}-to-develop
+          
+          PR_BODY="🔄 Backport automático de #${PR_NUMBER} a \`develop\`.
+
+          **PR original:** #${PR_NUMBER}
+          **Título:** ${PR_TITLE}
+          **Commit:** ${MERGE_SHA}
+          
+          ---
+          _Este PR fue creado automáticamente por el workflow de backport._"
+          
+          gh pr create \
+            --base develop \
+            --head ${BACKPORT_BRANCH} \
+            --title "Backport #${PR_NUMBER} to develop" \
+            --body "${PR_BODY}" \
+            --label backport
