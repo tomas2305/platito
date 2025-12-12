@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2024-12-11
+
+### Added
+- Enhanced transaction notifications with detailed information
+  - Shows amount, currency, category, and date in success notifications
+  - Bold formatting for amount and category for better visibility
+  - Notifications appear when creating or updating transactions
+
+### Changed
+- Transactions within same date group now sorted by creation order
+  - Most recently created transactions appear first within each date
+  - Uses transaction ID for consistent ordering
+
+### Fixed
+- Backport workflow now correctly creates PRs to develop branch
+  - Changed from `peter-evans/create-pull-request` to GitHub CLI
+  - Properly handles already-pushed branches
+
 ## [1.2.0] - 2024-12-11
 
 ### Added
