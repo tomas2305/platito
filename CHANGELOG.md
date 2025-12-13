@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.3.3] - 2024-12-11
+## [1.3.1] - 2024-12-11
 
 ### Fixed
 - Backport workflow now handles merge conflicts automatically
@@ -113,8 +113,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - React Router for navigation
 - Recharts for data visualization
 
-[Unreleased]: https://github.com/tomas2305/platito/compare/1.3.3...HEAD
-[1.3.3]: https://github.com/tomas2305/platito/compare/1.3.0...1.3.3
+[Unreleased]: https://github.com/tomas2305/platito/compare/1.3.1...HEAD
+[1.3.1]: https://github.com/tomas2305/platito/compare/1.3.0...1.3.1
 [1.3.0]: https://github.com/tomas2305/platito/compare/1.2.0...1.3.0
 [1.2.0]: https://github.com/tomas2305/platito/compare/1.1.1...1.2.0
 [1.1.1]: https://github.com/tomas2305/platito/compare/1.1.0...1.1.1
