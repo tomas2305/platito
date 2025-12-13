@@ -252,7 +252,7 @@ export const TransactionList = ({
           <Stack gap="md" style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '4px' }}>
             {groupKeys.map((dateKey) => (
               <Stack key={dateKey} gap="sm">
-                <Text fw={600} size="sm" c="dimmed">{formatDateHeader(dateKey)}</Text>
+                <Text fw={600} size="sm" c="dimmed" ta="left">{formatDateHeader(dateKey)}</Text>
                 {grouped[dateKey].map((tx) => {
                   const account = accountMap.get(tx.accountId);
                   const category = categoryMap.get(tx.categoryId);
