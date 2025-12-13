@@ -132,35 +132,39 @@ jobs:
           
           # Build PR body based on conflict status
           if [ "$HAS_CONFLICTS" = "true" ]; then
-            PR_BODY="🔄 Backport automático de #${PR_NUMBER} a \`develop\`.
-
-**⚠️  CONFLICTOS DETECTADOS**
-
-Los siguientes archivos tienen conflictos que necesitan resolución manual:
-\`\`\`
-${CONFLICT_FILES}
-\`\`\`
-
-Por favor, revisa y resuelve los conflictos antes de mergear este PR.
-
----
-
-**PR original:** #${PR_NUMBER}
-**Título:** ${PR_TITLE}
-**Commit:** ${MERGE_SHA}
-
-_Este PR fue creado automáticamente por el workflow de backport._"
+            {
+              echo "🔄 Backport automático de #${PR_NUMBER} a \`develop\`."
+              echo ""
+              echo "**⚠️ CONFLICTOS DETECTADOS**"
+              echo ""
+              echo "Los siguientes archivos tienen conflictos que necesitan resolución manual:"
+              echo '```'
+              echo "${CONFLICT_FILES}"
+              echo '```'
+              echo ""
+              echo "Por favor, revisa y resuelve los conflictos antes de mergear este PR."
+              echo ""
+              echo "---"
+              echo ""
+              echo "**PR original:** #${PR_NUMBER}"
+              echo "**Título:** ${PR_TITLE}"
+              echo "**Commit:** ${MERGE_SHA}"
+              echo ""
+              echo "_Este PR fue creado automáticamente por el workflow de backport._"
+            } > pr_body.txt
           else
-            PR_BODY="🔄 Backport automático de #${PR_NUMBER} a \`develop\`.
-
-✅ Todos los conflictos fueron resueltos automáticamente.
-
-**PR original:** #${PR_NUMBER}
-**Título:** ${PR_TITLE}
-**Commit:** ${MERGE_SHA}
-
----
-_Este PR fue creado automáticamente por el workflow de backport._"
+            {
+              echo "🔄 Backport automático de #${PR_NUMBER} a \`develop\`."
+              echo ""
+              echo "✅ Todos los conflictos fueron resueltos automáticamente."
+              echo ""
+              echo "**PR original:** #${PR_NUMBER}"
+              echo "**Título:** ${PR_TITLE}"
+              echo "**Commit:** ${MERGE_SHA}"
+              echo ""
+              echo "---"
+              echo "_Este PR fue creado automáticamente por el workflow de backport._"
+            } > pr_body.txt
           fi
           
           # Create PR, with or without label depending on if it exists
@@ -169,7 +173,7 @@ _Este PR fue creado automáticamente por el workflow de backport._"
               --base develop \
               --head ${BACKPORT_BRANCH} \
               --title "Backport #${PR_NUMBER} to develop" \
-              --body "${PR_BODY}" \
+              --body-file pr_body.txt \
               --label backport
           else
             echo "Warning: 'backport' label not found, creating PR without label"
@@ -177,5 +181,5 @@ _Este PR fue creado automáticamente por el workflow de backport._"
               --base develop \
               --head ${BACKPORT_BRANCH} \
               --title "Backport #${PR_NUMBER} to develop" \
-              --body "${PR_BODY}"
+              --body-file pr_body.txt
           fi
