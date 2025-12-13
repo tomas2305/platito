@@ -34,6 +34,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
         run: |
+          set -e  # Exit on error
           BACKPORT_BRANCH=backport/pr-${PR_NUMBER}-to-${TARGET_BRANCH}
 
           # Traer develop
@@ -41,48 +42,83 @@ jobs:
           git checkout -b ${BACKPORT_BRANCH} origin/${TARGET_BRANCH}
 
           # Cherry-pick del merge de main
+          HAS_CONFLICTS=false
+          CONFLICT_FILES=""
+          
           if ! git cherry-pick -m 1 -x ${MERGE_SHA}; then
             echo "Cherry-pick failed, attempting to auto-resolve conflicts"
             
-            # List all conflicted files
-            echo "Conflicted files:"
-            git status --porcelain | grep "^UU"
+            # List all conflicted files for debugging
+            echo "=== Conflicted files ==="
+            git status --porcelain | grep "^UU" || echo "No UU conflicts detected"
+            echo "========================"
             
-            # Auto-resolve CHANGELOG.md conflicts (accept incoming from main)
-            if git status --porcelain | grep -q "^UU CHANGELOG.md"; then
-              echo "CHANGELOG.md has conflicts, accepting version from main..."
-              git show :3:CHANGELOG.md > CHANGELOG.md
-              git add CHANGELOG.md
-            fi
+            # Function to auto-resolve a file
+            auto_resolve() {
+              local file="$1"
+              echo "Auto-resolving: $file"
+              
+              # Extract the version from main (being cherry-picked)
+              if git show :3:"$file" > "$file" 2>/dev/null; then
+                git add "$file"
+                echo "✓ Successfully resolved: $file"
+                return 0
+              else
+                echo "✗ Failed to extract :3 version for: $file"
+                return 1
+              fi
+            }
             
-            # Auto-resolve package.json conflicts (accept incoming from main)
-            if git status --porcelain | grep -q "^UU package.json"; then
-              echo "package.json has conflicts, accepting version from main..."
-              git show :3:package.json > package.json
-              git add package.json
-            fi
+            # Auto-resolve known conflict files
+            FILES_TO_RESOLVE=(
+              "CHANGELOG.md"
+              "package.json"
+              ".github/workflows/backport.yml"
+            )
             
-            # Auto-resolve backport.yml conflicts (accept incoming from main)
-            if git status --porcelain | grep -q "^UU .github/workflows/backport.yml"; then
-              echo "backport.yml has conflicts, accepting version from main..."
-              git show :3:.github/workflows/backport.yml > .github/workflows/backport.yml
-              git add .github/workflows/backport.yml
-            fi
+            for file in "${FILES_TO_RESOLVE[@]}"; do
+              if git status --porcelain | grep -q "^UU $file"; then
+                auto_resolve "$file" || true
+              fi
+            done
             
             # Check for remaining unresolved conflicts
-            CONFLICTS=$(git diff --name-only --diff-filter=U)
-            if [ -n "$CONFLICTS" ]; then
-              echo "Unable to auto-resolve conflicts in: $CONFLICTS"
-              echo "Please resolve manually on branch: ${BACKPORT_BRANCH}"
-              git cherry-pick --abort
-              exit 1
-            fi
+            echo "=== Checking for remaining conflicts ==="
+            REMAINING_CONFLICTS=$(git diff --name-only --diff-filter=U)
             
-            # Continue cherry-pick with auto-resolved conflicts
-            git -c core.editor=true cherry-pick --continue
+            if [ -n "$REMAINING_CONFLICTS" ]; then
+              echo "⚠️  Unresolved conflicts remain in:"
+              echo "$REMAINING_CONFLICTS"
+              HAS_CONFLICTS=true
+              CONFLICT_FILES="$REMAINING_CONFLICTS"
+              
+              # Add all files (including those with conflict markers) and commit
+              echo "Creating commit with conflict markers for manual resolution..."
+              git add -A
+              git -c core.editor=true cherry-pick --continue || {
+                # If continue fails, commit manually
+                git commit -m "Cherry-pick $MERGE_SHA with conflicts
+
+⚠️  This commit contains unresolved conflicts in:
+$REMAINING_CONFLICTS
+
+Please resolve these conflicts manually." --no-edit
+              }
+            else
+              echo "✓ All conflicts auto-resolved successfully"
+              # Continue cherry-pick with auto-resolved conflicts
+              git -c core.editor=true cherry-pick --continue
+            fi
           fi
 
+          echo "✓ Cherry-pick completed"
           git push origin ${BACKPORT_BRANCH}
+          
+          # Export conflict info for PR creation
+          echo "HAS_CONFLICTS=$HAS_CONFLICTS" >> $GITHUB_ENV
+          echo "CONFLICT_FILES<<EOF" >> $GITHUB_ENV
+          echo "$CONFLICT_FILES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Crear PR hacia develop
         env:
@@ -93,14 +129,38 @@ jobs:
         run: |
           BACKPORT_BRANCH=backport/pr-${PR_NUMBER}-to-develop
           
-          PR_BODY="🔄 Backport automático de #${PR_NUMBER} a \`develop\`.
+          # Build PR body based on conflict status
+          if [ "$HAS_CONFLICTS" = "true" ]; then
+            PR_BODY="🔄 Backport automático de #${PR_NUMBER} a \`develop\`.
 
-          **PR original:** #${PR_NUMBER}
-          **Título:** ${PR_TITLE}
-          **Commit:** ${MERGE_SHA}
-          
-          ---
-          _Este PR fue creado automáticamente por el workflow de backport._"
+**⚠️  CONFLICTOS DETECTADOS**
+
+Los siguientes archivos tienen conflictos que necesitan resolución manual:
+\`\`\`
+${CONFLICT_FILES}
+\`\`\`
+
+Por favor, revisa y resuelve los conflictos antes de mergear este PR.
+
+---
+
+**PR original:** #${PR_NUMBER}
+**Título:** ${PR_TITLE}
+**Commit:** ${MERGE_SHA}
+
+_Este PR fue creado automáticamente por el workflow de backport._"
+          else
+            PR_BODY="🔄 Backport automático de #${PR_NUMBER} a \`develop\`.
+
+✅ Todos los conflictos fueron resueltos automáticamente.
+
+**PR original:** #${PR_NUMBER}
+**Título:** ${PR_TITLE}
+**Commit:** ${MERGE_SHA}
+
+---
+_Este PR fue creado automáticamente por el workflow de backport._"
+          fi
           
           # Create PR, with or without label depending on if it exists
           if gh label list | grep -q "^backport"; then
