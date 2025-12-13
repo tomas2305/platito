@@ -97,12 +97,13 @@ jobs:
               git add -A
               git -c core.editor=true cherry-pick --continue || {
                 # If continue fails, commit manually
-                git commit -m "Cherry-pick $MERGE_SHA with conflicts
-
-⚠️  This commit contains unresolved conflicts in:
-$REMAINING_CONFLICTS
-
-Please resolve these conflicts manually." --no-edit
+                git commit -m "Cherry-pick $MERGE_SHA with conflicts" \
+                           -m "" \
+                           -m "⚠️  This commit contains unresolved conflicts in:" \
+                           -m "$REMAINING_CONFLICTS" \
+                           -m "" \
+                           -m "Please resolve these conflicts manually." \
+                           --no-edit
               }
             else
               echo "✓ All conflicts auto-resolved successfully"
