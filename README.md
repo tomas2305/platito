@@ -1,3 +1,6 @@
+This project is open source and intended primarily as a personal portfolio and learning project.
+
+
 # 💰 Platito
 
 **Platito** es una aplicación web progresiva (PWA) de gestión financiera personal que te permite controlar tus ingresos, gastos y múltiples cuentas en diferentes monedas, todo desde tu navegador.
@@ -203,3 +206,7 @@ Si encuentras problemas o tienes sugerencias:
 ---
 
 **¡Disfruta controlando tus finanzas con Platito!** 💰✨
+
+## 📄 License
+
+This project is licensed under the MIT License.
