@@ -1,5 +1,10 @@
 This project is open source and intended primarily as a personal portfolio and learning project.
 
+<img width="3839" height="2064" alt="platito1" src="https://github.com/user-attachments/assets/e70454a7-5a45-45f5-86b9-843a77c13427" />
+<img width="3803" height="2056" alt="platito2" src="https://github.com/user-attachments/assets/065bca65-33e3-4fdb-af7f-1ce9a2c1db03" />
+<img width="3837" height="2062" alt="platito3" src="https://github.com/user-attachments/assets/596f1563-7867-4b70-9a3b-cbd7d0c5ba82" />
+<img width="3839" height="2062" alt="platito4" src="https://github.com/user-attachments/assets/a026bb49-9569-4a19-ba52-6fdc8a671852" />
+
 
 # 💰 Platito
 
