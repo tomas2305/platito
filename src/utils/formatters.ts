@@ -3,11 +3,29 @@ const DECIMAL_SEPARATOR = '.';
 const MAX_DECIMAL_DIGITS = 2;
 
 const addThousandsSeparators = (value: string): string => {
-  return value.replaceAll(/\B(?=(\d{3})+(?!\d))/g, THOUSANDS_SEPARATOR);
+  // Avoid ReDoS by processing the string in reverse without nested quantifiers
+  if (value.length <= 3) return value;
+  
+  let result = '';
+  let count = 0;
+  
+  for (let i = value.length - 1; i >= 0; i--) {
+    if (count === 3) {
+      result = THOUSANDS_SEPARATOR + result;
+      count = 0;
+    }
+    result = value[i] + result;
+    count++;
+  }
+  
+  return result;
 };
 
 export const formatMonetaryValue = (value: string): string => {
-  // Remove all non-digit and non-dot characters
+  // Check if the value is negative
+  const isNegative = value.startsWith('-');
+  
+  // Remove all non-digit and non-dot characters (including the minus sign)
   const sanitized = value.replaceAll(/[^\d.]/g, '');
 
   if (!sanitized) return '';
@@ -16,7 +34,7 @@ export const formatMonetaryValue = (value: string): string => {
   const firstDotIndex = sanitized.indexOf(DECIMAL_SEPARATOR);
   let integerPart = sanitized;
   let decimalPart = '';
-  if (firstDotIndex !== -1) {
+  if (firstDotIndex >= 0) {
     integerPart = sanitized.slice(0, firstDotIndex);
     decimalPart = sanitized.slice(firstDotIndex + 1).replaceAll('.', ''); // remove any extra dots
   }
@@ -26,12 +44,16 @@ export const formatMonetaryValue = (value: string): string => {
 
   const formattedInteger = addThousandsSeparators(integerPart);
 
-  if (firstDotIndex !== -1) {
+  let result = '';
+  if (firstDotIndex >= 0) {
     const limitedDecimal = decimalPart.slice(0, MAX_DECIMAL_DIGITS);
-    return `${formattedInteger}${DECIMAL_SEPARATOR}${limitedDecimal}`;
+    result = `${formattedInteger}${DECIMAL_SEPARATOR}${limitedDecimal}`;
+  } else {
+    result = formattedInteger;
   }
 
-  return formattedInteger;
+  // Add the minus sign back if the value was negative
+  return isNegative ? `-${result}` : result;
 };
 
 export const parseMonetaryValue = (formattedValue: string): number => {
