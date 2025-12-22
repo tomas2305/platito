@@ -27,13 +27,37 @@ export const HomePage = () => {
   const [fetchingRates, setFetchingRates] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState<number>(0);
 
+  const isBalanceNegative = useMemo(() => {
+    return totalDisplay.startsWith('-');
+  }, [totalDisplay]);
+
   const computeTotal = (
     accountsList: Account[],
+    transactionsList: Transaction[],
     rates: ExchangeRates,
     displayCurrency: Currency
   ): number => {
-    const totalARS = accountsList.reduce((sum, acc) => {
-      return sum + convertToARS(acc.initialBalance, acc.currency, rates);
+    // Calculate balance for each account including transactions
+    const accountBalances = accountsList.map(acc => {
+      // Start with initial balance
+      let balance = acc.initialBalance;
+      
+      // Add/subtract transactions for this account
+      const accountTransactions = transactionsList.filter(tx => tx.accountId === acc.id);
+      for (const tx of accountTransactions) {
+        if (tx.type === 'income') {
+          balance += tx.amount;
+        } else {
+          balance -= tx.amount;
+        }
+      }
+      
+      return { currency: acc.currency, balance };
+    });
+
+    // Convert all balances to ARS
+    const totalARS = accountBalances.reduce((sum, acc) => {
+      return sum + convertToARS(acc.balance, acc.currency, rates);
     }, 0);
 
     if (displayCurrency === 'ARS') {
@@ -73,6 +97,7 @@ export const HomePage = () => {
 
       const total = computeTotal(
         allAccounts,
+        allTransactions,
         ratesToUse,
         loadedSettings.displayCurrency,
       );
@@ -299,7 +324,7 @@ export const HomePage = () => {
               <Group justify="space-between" align="center">
                 <div>
                   <Text size="sm" c="dimmed">Total Balance</Text>
-                  <Text size="xl" fw={700}>
+                  <Text size="xl" fw={700} c={isBalanceNegative ? 'red' : undefined}>
                     {totalDisplay} {settings?.displayCurrency ?? 'ARS'}
                   </Text>
                 </div>
