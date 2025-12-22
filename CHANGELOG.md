@@ -7,14 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.3.1] - 2024-12-13
+## [1.4.0] - 2025-12-21
+
+### Added
+- Negative balance display in red color for visual warning
+
+### Fixed
+- Fixed ReDoS vulnerability in number formatting regex by replacing with iterative approach
+- Fixed total balance calculation to include all transactions (income and expenses)
+- Fixed negative number formatting to properly display minus sign with thousands separators
+- GitHub Actions now use full commit SHA instead of version tags for third-party dependencies
+
+## [1.3.1] - 2025-12-13
 
 ### Fixed
 - Hotfix: Removed problematic backport workflow that was causing deployment failures
   - Backport action had recurring merge conflict issues
   - Workflow temporarily disabled until a more robust solution is implemented
 
-## [1.3.0] - 2024-12-11
+## [1.3.0] - 2025-12-11
 
 ### Added
 - Enhanced transaction notifications with detailed information
@@ -27,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Most recently created transactions appear first within each date
   - Uses transaction ID for consistent ordering
 
-## [1.2.0] - 2024-12-11
+## [1.2.0] - 2025-12-11
 
 ### Added
 - Date navigation buttons in transaction forms (create and edit)
@@ -48,7 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic backport workflow no longer requires manual label
   - All merged PRs to main are automatically backported to develop
 
-## [1.1.1] - 2024-12-11
+## [1.1.1] - 2025-12-11
 
 ### Fixed
 - Fixed date timezone issues causing transactions to appear in wrong month filters
@@ -60,7 +71,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic backport workflow for merging changes from main to develop
 - CHANGELOG.md file to track version history and changes
 
-## [1.1.0] - 2024-12-11
+## [1.1.0] - 2025-12-11
 
 ### Added
 - Auto-update functionality for exchange rates
@@ -72,7 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Exchange rates can now be automatically refreshed from external API
 - Settings page shows remaining cooldown time before next manual update
 
-## [1.0.0] - 2024-12-XX
+## [1.0.0] - 2025-12-XX
 
 ### Added
 - Progressive Web App (PWA) support with offline functionality
