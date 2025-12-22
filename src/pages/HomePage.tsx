@@ -8,7 +8,7 @@ import { getAllAccounts } from '../stores/accountsStore';
 import { getAllCategories } from '../stores/categoriesStore';
 import { getAllTransactions } from '../stores/transactionsStore';
 import { autoUpdateExchangeRates, fetchAndUpdateExchangeRates, getSettings, initializeSettings } from '../stores/settingsStore';
-import { convertToARS } from '../utils/currency';
+import { convertAmount, convertToARS } from '../utils/currency';
 import { formatMonetaryValue } from '../utils/formatters';
 import { formatPeriodLabel } from '../utils/dateFormatters';
 import type { Account, AppSettings, Category, Currency, ExchangeRates, Transaction, TransactionType, TimeWindow } from '../types';
@@ -45,10 +45,18 @@ export const HomePage = () => {
       // Add/subtract transactions for this account
       const accountTransactions = transactionsList.filter(tx => tx.accountId === acc.id);
       for (const tx of accountTransactions) {
+        // Convert transaction amount to account currency
+        const amountInAccountCurrency = convertAmount(
+          tx.amount,
+          tx.currency,
+          acc.currency,
+          rates
+        );
+        
         if (tx.type === 'income') {
-          balance += tx.amount;
+          balance += amountInAccountCurrency;
         } else {
-          balance -= tx.amount;
+          balance -= amountInAccountCurrency;
         }
       }
       
@@ -300,6 +308,7 @@ export const HomePage = () => {
       
       const total = computeTotal(
         accounts,
+        transactions,
         newRates,
         settings?.displayCurrency ?? 'ARS',
       );
