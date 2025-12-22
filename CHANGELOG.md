@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Negative balance display in red color for visual warning
+
+### Fixed
+- Fixed ReDoS vulnerability in number formatting regex by replacing with iterative approach
+- Fixed total balance calculation to include all transactions (income and expenses)
+- Fixed negative number formatting to properly display minus sign with thousands separators
+- GitHub Actions now use full commit SHA instead of version tags for third-party dependencies
+
 ## [1.3.1] - 2024-12-13
 
 ### Fixed
