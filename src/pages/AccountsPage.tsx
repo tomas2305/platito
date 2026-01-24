@@ -3,7 +3,7 @@ import { Button, Group, Paper, Stack, Text, Title } from '@mantine/core';
 import type { Account, Transaction } from '../types';
 import { AccountIcon } from '../components/AccountIcon';
 import { getColorHex } from '../utils/colors';
-import { formatMonetaryValue } from '../utils/formatters';
+import { formatNumberToMonetary } from '../utils/formatters';
 import { convertAmount } from '../utils/currency';
 import { getSettings } from '../stores/settingsStore';
 import {
@@ -147,10 +147,9 @@ export const AccountsPage = () => {
                   <AccountIcon name={acc.icon} size={20} />
                   <Text fw={600}>{acc.name}</Text>
                   <Text>
-                    {formatMonetaryValue(String(computeAccountBalance(acc)))} {acc.currency}
+                    {formatNumberToMonetary(computeAccountBalance(acc))} {acc.currency}
                   </Text>
-                  <Group gap="xs" ml="auto">
-                    <Button size="xs" variant="light" onClick={() => handleEdit(acc)}>Edit</Button>
+                  <Group gap="xs" ml="auto">\n                    <Button size="xs" variant="light" onClick={() => handleEdit(acc)}>Edit</Button>
                     <Button size="xs" variant="light" color="yellow" onClick={() => acc.id && handleArchive(acc.id)}>
                       Archive
                     </Button>

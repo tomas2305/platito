@@ -20,7 +20,7 @@ import { AccountIcon } from './AccountIcon';
 import { CategoryIcon } from './CategoryIcon';
 import { CircularSelector } from './CircularSelector';
 import type { Account, Category, Tag, Transaction, TransactionType } from '../types';
-import { formatMonetaryValue, parseMonetaryValue } from '../utils/formatters';
+import { formatMonetaryValue, formatNumberToMonetary, parseMonetaryValue } from '../utils/formatters';
 
 interface FormState {
   id?: number;
@@ -110,7 +110,7 @@ export const TransactionModal = ({
       const cat = categoryMap.get(transaction.categoryId);
       setForm({
         id: transaction.id,
-        amount: formatMonetaryValue(String(transaction.amount)),
+        amount: formatNumberToMonetary(transaction.amount),
         accountId: String(transaction.accountId),
         categoryId: String(transaction.categoryId),
         transactionType: cat?.type ?? 'expense',

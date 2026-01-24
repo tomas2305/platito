@@ -14,7 +14,7 @@ import {
 } from '@mantine/core';
 import { IconChevronDown, IconChevronUp } from '@tabler/icons-react';
 import type { Account, Category, Tag, Transaction, TransactionType } from '../types';
-import { formatMonetaryValue } from '../utils/formatters';
+import { formatNumberToMonetary } from '../utils/formatters';
 import { getColorHex } from '../utils/colors';
 import { formatPeriodLabel } from '../utils/dateFormatters';
 import { AccountIcon } from './AccountIcon';
@@ -301,7 +301,7 @@ export const TransactionList = ({
               {totalsByCurrency.size === 0
                 ? '0'
                 : Array.from(totalsByCurrency.entries())
-                    .map(([currency, total]) => `${formatMonetaryValue(String(total))} ${currency}`)
+                    .map(([currency, total]) => `${formatNumberToMonetary(total)} ${currency}`)
                     .join(' | ')}
             </Text>
           </Group>
@@ -343,7 +343,7 @@ export const TransactionList = ({
                           <Group gap="sm" align="center" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
                             {/* Precio */}
                             <Text fw={700} size="md" style={{ whiteSpace: 'nowrap', minWidth: '90px' }}>
-                              {formatMonetaryValue(String(tx.amount))} {tx.currency}
+                              {formatNumberToMonetary(tx.amount)} {tx.currency}
                             </Text>
                             
                             {/* Categoría */}
