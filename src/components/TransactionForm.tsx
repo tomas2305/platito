@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActionIcon,
   Button,
@@ -6,7 +6,6 @@ import {
   Checkbox,
   Group,
   Modal,
-  SegmentedControl,
   Stack,
   Text,
   Textarea,
@@ -16,7 +15,6 @@ import {
 import { DateInput } from '@mantine/dates';
 import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
-import { AccountIcon } from './AccountIcon';
 import { CategoryIcon } from './CategoryIcon';
 import { CircularSelector } from './CircularSelector';
 import type { Account, Category, Tag, Transaction, TransactionType } from '../types';
@@ -110,9 +108,13 @@ export const TransactionForm = ({
   }, [tags, transactions]);
 
   const firstExpenseCategory = categories.find(c => c.type === preselectedType);
+  
+  const fallbackAccountId = accounts[0] ? String(accounts[0].id) : '';
+  const defaultAccountId = preselectedAccountId ? String(preselectedAccountId) : fallbackAccountId;
+  
   const [form, setForm] = useState<FormState>({
     amount: '',
-    accountId: preselectedAccountId ? String(preselectedAccountId) : (accounts[0] ? String(accounts[0].id) : ''),
+    accountId: defaultAccountId,
     categoryId: firstExpenseCategory ? String(firstExpenseCategory.id) : '',
     transactionType: preselectedType,
     tagIds: [],
@@ -124,22 +126,35 @@ export const TransactionForm = ({
   const [newTagName, setNewTagName] = useState('');
   const [tagsModalOpened, setTagsModalOpened] = useState(false);
 
+  // Track previous preselected values to avoid unnecessary updates
+  const prevPreselectedRef = useRef({ accountId: preselectedAccountId, type: preselectedType });
+
   // Sync form with preselected values
   useEffect(() => {
-    setForm((prev) => {
+    const prev = prevPreselectedRef.current;
+    const hasChanged = 
+      prev.accountId !== preselectedAccountId || 
+      prev.type !== preselectedType;
+    
+    if (!hasChanged) return;
+    
+    prevPreselectedRef.current = { accountId: preselectedAccountId, type: preselectedType };
+    
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+    setForm((current) => {
       const needsUpdate = 
-        (preselectedAccountId && String(preselectedAccountId) !== prev.accountId) ||
-        (preselectedType !== prev.transactionType);
+        (preselectedAccountId && String(preselectedAccountId) !== current.accountId) ||
+        (preselectedType !== current.transactionType);
       
-      if (!needsUpdate) return prev;
+      if (!needsUpdate) return current;
       
-      const newAccountId = preselectedAccountId ? String(preselectedAccountId) : prev.accountId;
+      const newAccountId = preselectedAccountId ? String(preselectedAccountId) : current.accountId;
       const categoriesForNewType = categories.filter(c => c.type === preselectedType);
-      const keepCurrentCategory = categoriesForNewType.some(c => String(c.id) === prev.categoryId);
-      const newCategoryId = keepCurrentCategory ? prev.categoryId : String(categoriesForNewType[0]?.id ?? '');
+      const keepCurrentCategory = categoriesForNewType.some(c => String(c.id) === current.categoryId);
+      const newCategoryId = keepCurrentCategory ? current.categoryId : String(categoriesForNewType[0]?.id ?? '');
       
       return {
-        ...prev,
+        ...current,
         accountId: newAccountId,
         transactionType: preselectedType,
         categoryId: newCategoryId,
@@ -181,19 +196,6 @@ export const TransactionForm = ({
       return a.name.localeCompare(b.name);
     });
   }, [categories, form.transactionType, transactions]);
-
-  const handleTypeChange = (type: TransactionType) => {
-    const options = categories.filter((c) => c.type === type);
-    setForm((prev) => {
-      const keepCurrent = options.some((c) => String(c.id) === prev.categoryId);
-      const firstCategoryId = keepCurrent ? prev.categoryId : String(options[0]?.id ?? '');
-      return {
-        ...prev,
-        transactionType: type,
-        categoryId: firstCategoryId,
-      };
-    });
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
