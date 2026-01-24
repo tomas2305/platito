@@ -1,5 +1,5 @@
 import { Card, Group, Progress, Stack, Text } from '@mantine/core';
-import { formatMonetaryValue } from '../utils/formatters';
+import { formatNumberToMonetary } from '../utils/formatters';
 
 interface IncomeOutcomeComparisonProps {
   income: number;
@@ -27,7 +27,7 @@ export const IncomeOutcomeComparison = ({
         <Group gap="xs">
           <Text size="sm" c="dimmed">Balance:</Text>
           <Text size="lg" fw={700} c={isPositive ? 'green' : 'red'}>
-            {isPositive ? '+' : ''}{formatMonetaryValue(balance.toFixed(2))} {currency}
+            {isPositive ? '+' : ''}{formatNumberToMonetary(balance)} {currency}
           </Text>
         </Group>
       </Group>
@@ -46,7 +46,7 @@ export const IncomeOutcomeComparison = ({
           <Stack gap={4}>
             <Text size="xs" c="dimmed">Total Income</Text>
             <Text size="lg" fw={600} c="teal">
-              {formatMonetaryValue(income.toFixed(2))} {currency}
+              {formatNumberToMonetary(income)} {currency}
             </Text>
             <Text size="xs" c="dimmed">{incomePercentage.toFixed(1)}% of total</Text>
           </Stack>
@@ -56,7 +56,7 @@ export const IncomeOutcomeComparison = ({
           <Stack gap={4}>
             <Text size="xs" c="dimmed">Total Outcome</Text>
             <Text size="lg" fw={600} c="red">
-              {formatMonetaryValue(outcome.toFixed(2))} {currency}
+              {formatNumberToMonetary(outcome)} {currency}
             </Text>
             <Text size="xs" c="dimmed">{outcomePercentage.toFixed(1)}% of total</Text>
           </Stack>
