@@ -1,11 +1,17 @@
 import { useEffect, useState } from 'react';
 import {
+  Card,
+  Grid,
+  SegmentedControl,
   Stack,
+  Text,
 } from '@mantine/core';
 import { TransactionList } from '../components/TransactionList';
 import { TransactionModal } from '../components/TransactionModal';
 import { TransactionForm } from '../components/TransactionForm';
-import type { Account, Category, Tag, Transaction } from '../types';
+import { AccountIcon } from '../components/AccountIcon';
+import { CircularSelector } from '../components/CircularSelector';
+import type { Account, Category, Tag, Transaction, TransactionType } from '../types';
 import { getActiveAccounts } from '../stores/accountsStore';
 import { getAllCategories } from '../stores/categoriesStore';
 import { createTag, getAllTags } from '../stores/tagsStore';
@@ -24,6 +30,8 @@ export const TransactionsPage = () => {
   const [loading, setLoading] = useState(true);
   const [modalOpened, setModalOpened] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null);
+  const [transactionType, setTransactionType] = useState<TransactionType>('expense');
 
   const loadData = async () => {
     const [acct, cats, tgs, txs] = await Promise.all([
@@ -36,11 +44,27 @@ export const TransactionsPage = () => {
     setCategories(cats);
     setTags(tgs);
     setTransactions(txs);
-    setLoading(false);
   };
 
   useEffect(() => {
-    void loadData();
+    (async () => {
+      const [acct, cats, tgs, txs] = await Promise.all([
+        getActiveAccounts(),
+        getAllCategories(),
+        getAllTags(),
+        getAllTransactions(),
+      ]);
+      setAccounts(acct);
+      setCategories(cats);
+      setTags(tgs);
+      setTransactions(txs);
+      
+      if (acct.length > 0) {
+        setSelectedAccountId(acct[0].id!);
+      }
+      
+      setLoading(false);
+    })();
   }, []);
 
   const handleSubmit = async (data: Omit<Transaction, 'currency' | 'type'> & { id?: number }) => {
@@ -96,6 +120,40 @@ export const TransactionsPage = () => {
 
   return (
     <Stack gap="lg">
+      <Card shadow="sm" radius="md" padding="lg" withBorder>
+        <Grid gutter="md" align="flex-start">
+          <Grid.Col span={{ base: 12, sm: 3, md: 2 }}>
+            <div>
+              <Text size="sm" fw={500} mb={8}>Type</Text>
+              <SegmentedControl
+                value={transactionType}
+                onChange={(value) => setTransactionType(value as TransactionType)}
+                data={[
+                  { label: 'Expense', value: 'expense' },
+                  { label: 'Income', value: 'income' },
+                ]}
+                fullWidth
+                orientation="vertical"
+              />
+            </div>
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, sm: 9, md: 10 }}>
+            <CircularSelector
+              label="Account"
+              items={accounts.map((acc) => ({
+                id: acc.id!,
+                name: acc.name,
+                color: acc.color,
+                icon: <AccountIcon name={acc.icon} size={28} />,
+              }))}
+              selectedId={selectedAccountId}
+              onSelect={(id) => setSelectedAccountId(typeof id === 'number' ? id : Number.parseInt(id, 10))}
+            />
+          </Grid.Col>
+        </Grid>
+      </Card>
+
       <TransactionForm
         accounts={accounts}
         categories={categories}
@@ -103,6 +161,8 @@ export const TransactionsPage = () => {
         transactions={transactions}
         onSubmit={handleCreate}
         onCreateTag={handleCreateTag}
+        preselectedAccountId={selectedAccountId}
+        preselectedType={transactionType}
       />
 
       <TransactionModal
@@ -125,6 +185,8 @@ export const TransactionsPage = () => {
         onEdit={handleEdit}
         onDelete={handleDelete}
         showActions
+        externalTypeFilter={transactionType}
+        externalAccountFilter={selectedAccountId}
       />
     </Stack>
   );

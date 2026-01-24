@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActionIcon,
   Button,
@@ -39,6 +39,8 @@ interface Props {
   transactions: Transaction[];
   onSubmit: (data: Omit<Transaction, 'currency' | 'type' | 'id'>) => Promise<void>;
   onCreateTag: (name: string) => Promise<number>;
+  preselectedAccountId: number | null;
+  preselectedType: TransactionType;
 }
 
 const LAST_DATE_KEY = 'platito_last_transaction_date';
@@ -88,6 +90,8 @@ export const TransactionForm = ({
   transactions,
   onSubmit,
   onCreateTag,
+  preselectedAccountId,
+  preselectedType,
 }: Props) => {
   const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
 
@@ -105,12 +109,12 @@ export const TransactionForm = ({
       .map(({ tag }) => tag);
   }, [tags, transactions]);
 
-  const firstExpenseCategory = categories.find(c => c.type === 'expense');
+  const firstExpenseCategory = categories.find(c => c.type === preselectedType);
   const [form, setForm] = useState<FormState>({
     amount: '',
-    accountId: accounts[0] ? String(accounts[0].id) : '',
+    accountId: preselectedAccountId ? String(preselectedAccountId) : (accounts[0] ? String(accounts[0].id) : ''),
     categoryId: firstExpenseCategory ? String(firstExpenseCategory.id) : '',
-    transactionType: 'expense',
+    transactionType: preselectedType,
     tagIds: [],
     description: '',
     date: getLastUsedDate(),
@@ -119,6 +123,29 @@ export const TransactionForm = ({
   const [error, setError] = useState<string | null>(null);
   const [newTagName, setNewTagName] = useState('');
   const [tagsModalOpened, setTagsModalOpened] = useState(false);
+
+  // Sync form with preselected values
+  useEffect(() => {
+    setForm((prev) => {
+      const needsUpdate = 
+        (preselectedAccountId && String(preselectedAccountId) !== prev.accountId) ||
+        (preselectedType !== prev.transactionType);
+      
+      if (!needsUpdate) return prev;
+      
+      const newAccountId = preselectedAccountId ? String(preselectedAccountId) : prev.accountId;
+      const categoriesForNewType = categories.filter(c => c.type === preselectedType);
+      const keepCurrentCategory = categoriesForNewType.some(c => String(c.id) === prev.categoryId);
+      const newCategoryId = keepCurrentCategory ? prev.categoryId : String(categoriesForNewType[0]?.id ?? '');
+      
+      return {
+        ...prev,
+        accountId: newAccountId,
+        transactionType: preselectedType,
+        categoryId: newCategoryId,
+      };
+    });
+  }, [preselectedAccountId, preselectedType, categories]);
 
   const categoriesForType = useMemo(() => {
     const filtered = categories.filter((cat) => cat.type === form.transactionType);
@@ -287,15 +314,6 @@ export const TransactionForm = ({
                   style={{ minWidth: 160 }}
                 />
 
-                <SegmentedControl
-                  value={form.transactionType}
-                  onChange={(value) => handleTypeChange(value as TransactionType)}
-                  data={[
-                    { label: 'Expense', value: 'expense' },
-                    { label: 'Income', value: 'income' },
-                  ]}
-                />
-
                 <Group gap="xs" align="flex-end">
                   <DateInput
                     label="Date"
@@ -349,19 +367,6 @@ export const TransactionForm = ({
                   </ActionIcon>
                 </Group>
               </Group>
-
-              <CircularSelector
-                label="Account"
-                items={accounts.map((acc) => ({
-                  id: acc.id!,
-                  name: acc.name,
-                  color: acc.color,
-                  icon: <AccountIcon name={acc.icon} size={28} />,
-                }))}
-                selectedId={form.accountId ? Number(form.accountId) : null}
-                onSelect={(id) => setForm((prev) => ({ ...prev, accountId: String(id) }))}
-                style={{ marginTop: 12 }}
-              />
 
               <CircularSelector
                 label="Category"

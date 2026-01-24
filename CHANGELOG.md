@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Date and time timestamp in exported database filename (format: `platito_db_export_YYYY-MM-DD_HH-MM-SS.json`)
+- Category filter on all transactions list for better filtering capabilities
+- Global filters for transaction type (income/expense) and account on transactions view
+- Income vs Outcome comparison widget on dashboard
+- Account selector widget on dashboard
+
+### Changed
+- Updated number format to European/Latin American standard (dots for thousands, comma for decimals)
+- Accounts balance now properly affected by transactions in real-time
+
 ## [1.4.1] - 2025-12-22
 
 ### Fixed

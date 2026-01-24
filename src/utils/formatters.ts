@@ -1,5 +1,5 @@
-const THOUSANDS_SEPARATOR = ',';
-const DECIMAL_SEPARATOR = '.';
+const THOUSANDS_SEPARATOR = '.';
+const DECIMAL_SEPARATOR = ',';
 const MAX_DECIMAL_DIGITS = 2;
 
 const addThousandsSeparators = (value: string): string => {
@@ -25,18 +25,20 @@ export const formatMonetaryValue = (value: string): string => {
   // Check if the value is negative
   const isNegative = value.startsWith('-');
   
-  // Remove all non-digit and non-dot characters (including the minus sign)
-  const sanitized = value.replaceAll(/[^\d.]/g, '');
+  // Remove all non-digit and non-comma characters (including minus sign and dots)
+  // Only accept comma as decimal separator for user input
+  const sanitized = value.replaceAll(/[^\d,]/g, '');
 
   if (!sanitized) return '';
 
-  // Only keep the first dot as decimal separator
-  const firstDotIndex = sanitized.indexOf(DECIMAL_SEPARATOR);
+  // Only keep the first comma as decimal separator
+  const firstCommaIndex = sanitized.indexOf(',');
   let integerPart = sanitized;
   let decimalPart = '';
-  if (firstDotIndex >= 0) {
-    integerPart = sanitized.slice(0, firstDotIndex);
-    decimalPart = sanitized.slice(firstDotIndex + 1).replaceAll('.', ''); // remove any extra dots
+  
+  if (firstCommaIndex >= 0) {
+    integerPart = sanitized.slice(0, firstCommaIndex);
+    decimalPart = sanitized.slice(firstCommaIndex + 1).replaceAll(',', ''); // remove any extra commas
   }
 
   // Remove leading zeros from integer part (but allow single zero)
@@ -45,7 +47,7 @@ export const formatMonetaryValue = (value: string): string => {
   const formattedInteger = addThousandsSeparators(integerPart);
 
   let result = '';
-  if (firstDotIndex >= 0) {
+  if (firstCommaIndex >= 0) {
     const limitedDecimal = decimalPart.slice(0, MAX_DECIMAL_DIGITS);
     result = `${formattedInteger}${DECIMAL_SEPARATOR}${limitedDecimal}`;
   } else {
@@ -56,12 +58,33 @@ export const formatMonetaryValue = (value: string): string => {
   return isNegative ? `-${result}` : result;
 };
 
+// Helper function to format numbers from database (converts JS number format to European format)
+export const formatNumberToMonetary = (value: number): string => {
+  // Round to 2 decimal places to avoid floating point issues
+  const rounded = Math.round(value * 100) / 100;
+  
+  // Convert to string with 2 decimal places
+  const fixed = rounded.toFixed(2);
+  
+  // Split into integer and decimal parts
+  const [integerPart, decimalPart] = fixed.split('.');
+  
+  // Add thousands separators to integer part
+  const formattedInteger = addThousandsSeparators(integerPart);
+  
+  // Combine with comma as decimal separator
+  return `${formattedInteger}${DECIMAL_SEPARATOR}${decimalPart}`;
+};
+
 export const parseMonetaryValue = (formattedValue: string): number => {
   if (!formattedValue?.trim()) {
     return 0;
   }
 
-  const numericValue = formattedValue.replaceAll(THOUSANDS_SEPARATOR, '');
+  // Remove thousands separator and replace decimal separator with dot for parsing
+  const numericValue = formattedValue
+    .replaceAll(THOUSANDS_SEPARATOR, '')
+    .replaceAll(DECIMAL_SEPARATOR, '.');
   const parsedValue = Number.parseFloat(numericValue);
   
   return Number.isNaN(parsedValue) ? 0 : parsedValue;

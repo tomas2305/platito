@@ -3,7 +3,7 @@ import { Button, Group, Modal, Select, Stack, Text, TextInput, Title } from '@ma
 import type { Account, Currency } from '../types';
 import { SUPPORTED_CURRENCIES } from '../utils/currency';
 import { COLOR_PALETTE, type ColorName } from '../utils/colors';
-import { formatMonetaryValue, parseMonetaryValue } from '../utils/formatters';
+import { formatMonetaryValue, formatNumberToMonetary, parseMonetaryValue } from '../utils/formatters';
 import { AccountIcon } from './AccountIcon';
 
 interface AccountFormProps {
@@ -38,7 +38,7 @@ export const AccountForm = ({ account, opened, onClose, onSubmit }: AccountFormP
     if (account) {
       setName(account.name);
       setCurrency(account.currency);
-      setInitialBalance(formatMonetaryValue(String(account.initialBalance)));
+      setInitialBalance(formatNumberToMonetary(account.initialBalance));
       setColor(account.color);
       setIcon(account.icon);
     } else {

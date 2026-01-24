@@ -14,7 +14,7 @@ import {
 } from '@mantine/core';
 import { IconChevronDown, IconChevronUp } from '@tabler/icons-react';
 import type { Account, Category, Tag, Transaction, TransactionType } from '../types';
-import { formatMonetaryValue } from '../utils/formatters';
+import { formatNumberToMonetary } from '../utils/formatters';
 import { getColorHex } from '../utils/colors';
 import { formatPeriodLabel } from '../utils/dateFormatters';
 import { AccountIcon } from './AccountIcon';
@@ -32,6 +32,8 @@ type Props = {
   onEdit?: (tx: Transaction) => void;
   onDelete?: (id: number) => void;
   showActions?: boolean;
+  externalTypeFilter?: TransactionType | null;
+  externalAccountFilter?: number | null;
 };
 
 const RANGE_LABELS: Record<RangeOption, string> = {
@@ -96,11 +98,12 @@ export const TransactionList = ({
   onEdit,
   onDelete,
   showActions = false,
+  externalTypeFilter = null,
+  externalAccountFilter = null,
 }: Props) => {
   const [range, setRange] = useState<RangeOption>('month');
   const [rangeOffset, setRangeOffset] = useState(0);
-  const [typeFilter, setTypeFilter] = useState<TransactionType>('expense');
-  const [accountFilter, setAccountFilter] = useState<number | 'all'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<number | null>(null);
   const [expandedTxIds, setExpandedTxIds] = useState<Set<number>>(new Set());
 
   const toggleExpanded = (txId: number) => {
@@ -119,6 +122,11 @@ export const TransactionList = ({
   const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
   const tagMap = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags]);
 
+  const categoriesForFilter = useMemo(() => {
+    if (externalTypeFilter === null) return categories;
+    return categories.filter((cat) => cat.type === externalTypeFilter);
+  }, [categories, externalTypeFilter]);
+
   const periodStart = useMemo(() => startOfRange(range, rangeOffset), [range, rangeOffset]);
   const periodEnd = useMemo(() => endOfRange(periodStart, range), [periodStart, range]);
   const disableNext = rangeOffset === 0;
@@ -126,15 +134,19 @@ export const TransactionList = ({
   const filtered = useMemo(() => {
     const now = new Date();
     return transactions.filter((tx) => {
-      if (tx.type !== typeFilter) return false;
-      if (accountFilter !== 'all' && tx.accountId !== accountFilter) return false;
+      // Only apply type filter if not using external filter (or if provided externally)
+      if (externalTypeFilter !== null && tx.type !== externalTypeFilter) return false;
+      // Only apply account filter if not using external filter (or if provided externally)
+      if (externalAccountFilter !== null && tx.accountId !== externalAccountFilter) return false;
+      // Apply category filter if set
+      if (categoryFilter !== null && tx.categoryId !== categoryFilter) return false;
       // Parse date as local time (YYYY-MM-DD)
       const txDate = new Date(tx.date + 'T00:00:00');
       if (Number.isNaN(txDate.getTime())) return false;
       if (txDate > now) return false;
       return txDate >= periodStart && txDate <= periodEnd;
     });
-  }, [transactions, typeFilter, accountFilter, periodStart, periodEnd]);
+  }, [transactions, externalTypeFilter, externalAccountFilter, categoryFilter, periodStart, periodEnd]);
 
   const totalsByCurrency = useMemo(() => {
     const totals = new Map<string, number>();
@@ -167,59 +179,60 @@ export const TransactionList = ({
     [grouped],
   );
 
+  const totalColor = useMemo(() => {
+    if (externalTypeFilter === 'income') {
+      return 'teal';
+    }
+    if (externalTypeFilter === 'expense') {
+      return 'red';
+    }
+    return undefined;
+  }, [externalTypeFilter]);
+
   return (
     <section>
       <Stack gap="md">
-        {title && (
-          <Group justify="space-between" align="center">
-            <Title order={3}>{title}</Title>
-            <Text size="sm" fw={600}>
-              Total:{' '}
-              {totalsByCurrency.size === 0
-                ? '0'
-                : Array.from(totalsByCurrency.entries())
-                    .map(([currency, total]) => `${formatMonetaryValue(String(total))} ${currency}`)
-                    .join(' | ')}
-            </Text>
-          </Group>
-        )}
+        {title && <Title order={3}>{title}</Title>}
 
-        <Group gap="sm" wrap="wrap" align="flex-end">
-          <SegmentedControl
-            value={typeFilter}
-            onChange={(value) => setTypeFilter(value as TransactionType)}
-            data={[
-              { label: 'Expense', value: 'expense' },
-              { label: 'Income', value: 'income' },
-            ]}
-          />
+        <Group gap="sm" wrap="wrap" align="flex-end" justify="space-between">
+          <Group gap="sm" wrap="wrap" align="flex-end">
+            {externalTypeFilter === null && (
+              <SegmentedControl
+                value="expense"
+                onChange={() => {}}
+                data={[
+                  { label: 'Expense', value: 'expense' },
+                  { label: 'Income', value: 'income' },
+                ]}
+              />
+            )}
 
-          <Select
-            placeholder="All accounts"
-            searchable
-            clearable
-            value={accountFilter === 'all' ? 'all' : String(accountFilter)}
-            onChange={(value) => {
-              setAccountFilter(value === 'all' || !value ? 'all' : Number(value));
-            }}
-            data={[
-              { label: 'All accounts', value: 'all' },
-              ...accounts.map((acc) => ({ label: acc.name, value: String(acc.id) }))
-            ]}
-            renderOption={({ option }) => {
-              if (option.value === 'all') {
-                return <Text size="sm" fw={500}>All accounts</Text>;
-              }
-              const acc = accounts.find(a => String(a.id) === option.value);
-              return (
-                <Group gap="xs">
-                  {acc && <AccountIcon name={acc.icon} size={18} />}
-                  <Text size="sm">{option.label}</Text>
-                </Group>
-              );
-            }}
-            style={{ minWidth: 200 }}
-          />
+          {externalAccountFilter === null && (
+            <Select
+              placeholder="All accounts"
+              searchable
+              clearable
+              value="all"
+              onChange={() => {}}
+              data={[
+                { label: 'All accounts', value: 'all' },
+                ...accounts.map((acc) => ({ label: acc.name, value: String(acc.id) }))
+              ]}
+              renderOption={({ option }) => {
+                if (option.value === 'all') {
+                  return <Text size="sm" fw={500}>All accounts</Text>;
+                }
+                const acc = accounts.find(a => String(a.id) === option.value);
+                return (
+                  <Group gap="xs">
+                    {acc && <AccountIcon name={acc.icon} size={18} />}
+                    <Text size="sm">{option.label}</Text>
+                  </Group>
+                );
+              }}
+              style={{ minWidth: 200 }}
+            />
+          )}
 
           <Select
             placeholder="Range"
@@ -237,13 +250,61 @@ export const TransactionList = ({
               { value: 'year', label: RANGE_LABELS.year },
             ]}
           />
-
           <PeriodNavigator
             periodLabel={formatPeriodLabel(range, periodStart, periodEnd)}
             onPrev={() => setRangeOffset((prev) => prev + 1)}
             onNext={() => setRangeOffset((prev) => Math.max(0, prev - 1))}
             disableNext={disableNext}
           />
+          
+          <Select
+            placeholder="All categories"
+            searchable
+            clearable
+            value={categoryFilter ? String(categoryFilter) : null}
+            onChange={(value) => {
+              setCategoryFilter(value ? Number(value) : null);
+            }}
+            data={categoriesForFilter.map((cat) => ({
+              label: cat.name,
+              value: String(cat.id),
+            }))}
+            renderOption={({ option }) => {
+              const cat = categoriesForFilter.find(c => String(c.id) === option.value);
+              if (!cat) return null;
+              return (
+                <Group gap="xs">
+                  <div
+                    style={{
+                      width: '4px',
+                      height: '18px',
+                      backgroundColor: getColorHex(cat.color),
+                      borderRadius: '2px',
+                    }}
+                  />
+                  <CategoryIcon name={cat.icon} size={18} />
+                  <Text size="sm">{option.label}</Text>
+                </Group>
+              );
+            }}
+            style={{ minWidth: 200 }}
+          />
+          </Group>
+
+          <Group gap="xs" align="center">
+            <Text size="sm" c="dimmed">Total:</Text>
+            <Text 
+              size="lg" 
+              fw={700}
+              c={totalColor}
+            >
+              {totalsByCurrency.size === 0
+                ? '0'
+                : Array.from(totalsByCurrency.entries())
+                    .map(([currency, total]) => `${formatNumberToMonetary(total)} ${currency}`)
+                    .join(' | ')}
+            </Text>
+          </Group>
         </Group>
 
         {groupKeys.length === 0 ? (
@@ -282,7 +343,7 @@ export const TransactionList = ({
                           <Group gap="sm" align="center" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
                             {/* Precio */}
                             <Text fw={700} size="md" style={{ whiteSpace: 'nowrap', minWidth: '90px' }}>
-                              {formatMonetaryValue(String(tx.amount))} {tx.currency}
+                              {formatNumberToMonetary(tx.amount)} {tx.currency}
                             </Text>
                             
                             {/* Categoría */}
