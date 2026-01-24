@@ -32,6 +32,8 @@ type Props = {
   onEdit?: (tx: Transaction) => void;
   onDelete?: (id: number) => void;
   showActions?: boolean;
+  externalTypeFilter?: TransactionType | null;
+  externalAccountFilter?: number | null;
 };
 
 const RANGE_LABELS: Record<RangeOption, string> = {
@@ -96,11 +98,11 @@ export const TransactionList = ({
   onEdit,
   onDelete,
   showActions = false,
+  externalTypeFilter = null,
+  externalAccountFilter = null,
 }: Props) => {
   const [range, setRange] = useState<RangeOption>('month');
   const [rangeOffset, setRangeOffset] = useState(0);
-  const [typeFilter, setTypeFilter] = useState<TransactionType>('expense');
-  const [accountFilter, setAccountFilter] = useState<number | 'all'>('all');
   const [expandedTxIds, setExpandedTxIds] = useState<Set<number>>(new Set());
 
   const toggleExpanded = (txId: number) => {
@@ -126,15 +128,17 @@ export const TransactionList = ({
   const filtered = useMemo(() => {
     const now = new Date();
     return transactions.filter((tx) => {
-      if (tx.type !== typeFilter) return false;
-      if (accountFilter !== 'all' && tx.accountId !== accountFilter) return false;
+      // Only apply type filter if not using external filter (or if provided externally)
+      if (externalTypeFilter !== null && tx.type !== externalTypeFilter) return false;
+      // Only apply account filter if not using external filter (or if provided externally)
+      if (externalAccountFilter !== null && tx.accountId !== externalAccountFilter) return false;
       // Parse date as local time (YYYY-MM-DD)
       const txDate = new Date(tx.date + 'T00:00:00');
       if (Number.isNaN(txDate.getTime())) return false;
       if (txDate > now) return false;
       return txDate >= periodStart && txDate <= periodEnd;
     });
-  }, [transactions, typeFilter, accountFilter, periodStart, periodEnd]);
+  }, [transactions, externalTypeFilter, externalAccountFilter, periodStart, periodEnd]);
 
   const totalsByCurrency = useMemo(() => {
     const totals = new Map<string, number>();
@@ -185,41 +189,43 @@ export const TransactionList = ({
         )}
 
         <Group gap="sm" wrap="wrap" align="flex-end">
-          <SegmentedControl
-            value={typeFilter}
-            onChange={(value) => setTypeFilter(value as TransactionType)}
-            data={[
-              { label: 'Expense', value: 'expense' },
-              { label: 'Income', value: 'income' },
-            ]}
-          />
+          {externalTypeFilter === null && (
+            <SegmentedControl
+              value="expense"
+              onChange={() => {}}
+              data={[
+                { label: 'Expense', value: 'expense' },
+                { label: 'Income', value: 'income' },
+              ]}
+            />
+          )}
 
-          <Select
-            placeholder="All accounts"
-            searchable
-            clearable
-            value={accountFilter === 'all' ? 'all' : String(accountFilter)}
-            onChange={(value) => {
-              setAccountFilter(value === 'all' || !value ? 'all' : Number(value));
-            }}
-            data={[
-              { label: 'All accounts', value: 'all' },
-              ...accounts.map((acc) => ({ label: acc.name, value: String(acc.id) }))
-            ]}
-            renderOption={({ option }) => {
-              if (option.value === 'all') {
-                return <Text size="sm" fw={500}>All accounts</Text>;
-              }
-              const acc = accounts.find(a => String(a.id) === option.value);
-              return (
-                <Group gap="xs">
-                  {acc && <AccountIcon name={acc.icon} size={18} />}
-                  <Text size="sm">{option.label}</Text>
-                </Group>
-              );
-            }}
-            style={{ minWidth: 200 }}
-          />
+          {externalAccountFilter === null && (
+            <Select
+              placeholder="All accounts"
+              searchable
+              clearable
+              value="all"
+              onChange={() => {}}
+              data={[
+                { label: 'All accounts', value: 'all' },
+                ...accounts.map((acc) => ({ label: acc.name, value: String(acc.id) }))
+              ]}
+              renderOption={({ option }) => {
+                if (option.value === 'all') {
+                  return <Text size="sm" fw={500}>All accounts</Text>;
+                }
+                const acc = accounts.find(a => String(a.id) === option.value);
+                return (
+                  <Group gap="xs">
+                    {acc && <AccountIcon name={acc.icon} size={18} />}
+                    <Text size="sm">{option.label}</Text>
+                  </Group>
+                );
+              }}
+              style={{ minWidth: 200 }}
+            />
+          )}
 
           <Select
             placeholder="Range"
