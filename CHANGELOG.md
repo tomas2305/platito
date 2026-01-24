@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-01-24
+
 ### Added
 - Date and time timestamp in exported database filename (format: `platito_db_export_YYYY-MM-DD_HH-MM-SS.json`)
 - Category filter on all transactions list for better filtering capabilities
