@@ -40,7 +40,9 @@ export const TransactionsPage = () => {
   };
 
   useEffect(() => {
-    void loadData();
+    (async () => {
+      await loadData();
+    })();
   }, []);
 
   const handleSubmit = async (data: Omit<Transaction, 'currency' | 'type'> & { id?: number }) => {
