@@ -16,7 +16,7 @@ import { fetchAndUpdateExchangeRates, getSettings, initializeSettings, resetData
 import { ensureDefaultCategories } from '../stores/categoriesStore';
 import type { AppSettings, Account, AutoUpdateInterval, TimeWindow, Currency, ExchangeRates } from '../types';
 import { SUPPORTED_CURRENCIES } from '../utils/currency';
-import { formatMonetaryValue, formatNumberToMonetary, parseMonetaryValue } from '../utils/formatters';
+import { formatNumberToMonetary, parseMonetaryValue } from '../utils/formatters';
 import { DatabaseImportExport } from '../components/DatabaseImportExport';
 
 export const SettingsPage = () => {
