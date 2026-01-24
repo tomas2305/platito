@@ -11,7 +11,7 @@ import { getAllTransactions } from '../stores/transactionsStore';
 import { AccountIcon } from '../components/AccountIcon';
 import { autoUpdateExchangeRates, fetchAndUpdateExchangeRates, getSettings, initializeSettings } from '../stores/settingsStore';
 import { convertAmount, convertToARS } from '../utils/currency';
-import { formatMonetaryValue } from '../utils/formatters';
+import { formatNumberToMonetary } from '../utils/formatters';
 import { formatPeriodLabel } from '../utils/dateFormatters';
 import type { Account, AppSettings, Category, Currency, ExchangeRates, Transaction, TransactionType, TimeWindow } from '../types';
 
@@ -146,7 +146,7 @@ export const HomePage = () => {
         ratesToUse,
         loadedSettings.displayCurrency,
       );
-      setTotalDisplay(formatMonetaryValue(total.toFixed(2)));
+      setTotalDisplay(formatNumberToMonetary(total));
 
       if (loadedSettings.defaultAccountId && allAccounts.some(acc => acc.id === loadedSettings.defaultAccountId)) {
         const selectedAccount = allAccounts.find(acc => acc.id === loadedSettings.defaultAccountId);
@@ -157,7 +157,7 @@ export const HomePage = () => {
             ratesToUse,
             loadedSettings.displayCurrency
           );
-          setAccountBalanceDisplay(formatMonetaryValue(accountBalance.toFixed(2)));
+          setAccountBalanceDisplay(formatNumberToMonetary(accountBalance));
         }
       }
 
@@ -405,7 +405,7 @@ export const HomePage = () => {
         newRates,
         settings?.displayCurrency ?? 'ARS',
       );
-      setTotalDisplay(formatMonetaryValue(total.toFixed(2)));
+      setTotalDisplay(formatNumberToMonetary(total));
 
       if (accountFilter !== null) {
         const selectedAccount = accounts.find(acc => acc.id === accountFilter);
@@ -416,7 +416,7 @@ export const HomePage = () => {
             newRates,
             settings?.displayCurrency ?? 'ARS'
           );
-          setAccountBalanceDisplay(formatMonetaryValue(accountBalance.toFixed(2)));
+          setAccountBalanceDisplay(formatNumberToMonetary(accountBalance));
         }
       }
     } catch (error) {
@@ -462,7 +462,7 @@ export const HomePage = () => {
                             settings.exchangeRates,
                             settings.displayCurrency
                           );
-                          setAccountBalanceDisplay(formatMonetaryValue(accountBalance.toFixed(2)));
+                          setAccountBalanceDisplay(formatNumberToMonetary(accountBalance));
                         }
                       }
                     }}
