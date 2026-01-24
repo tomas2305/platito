@@ -1,14 +1,10 @@
-import { Group, SegmentedControl, Select, Text } from '@mantine/core';
-import type { Account, TransactionType, TimeWindow } from '../types';
-import { AccountIcon } from './AccountIcon';
+import { Group, SegmentedControl, Text } from '@mantine/core';
+import type { TransactionType, TimeWindow } from '../types';
 import { PeriodNavigator } from './PeriodNavigator';
 
 interface DashboardFiltersProps {
-  accounts: Account[];
   typeFilter: TransactionType;
   setTypeFilter: (type: TransactionType) => void;
-  accountFilter: number | null;
-  setAccountFilter: (id: number | null) => void;
   timeWindow: TimeWindow;
   setTimeWindow: (window: TimeWindow) => void;
   periodLabel: string;
@@ -18,11 +14,8 @@ interface DashboardFiltersProps {
 }
 
 export const DashboardFilters = ({
-  accounts,
   typeFilter,
   setTypeFilter,
-  accountFilter,
-  setAccountFilter,
   timeWindow,
   setTimeWindow,
   periodLabel,
@@ -43,25 +36,6 @@ export const DashboardFilters = ({
           ]}
         />
       </div>
-
-      <Select
-        label="Account"
-        placeholder="All accounts"
-        data={accounts.map((acc) => ({ value: String(acc.id), label: acc.name, icon: acc.icon }))}
-        value={accountFilter ? String(accountFilter) : null}
-        onChange={(value) => setAccountFilter(value ? Number(value) : null)}
-        clearable
-        searchable
-        renderOption={({ option }) => {
-          const account = accounts.find(acc => String(acc.id) === option.value);
-          return (
-            <Group gap="sm">
-              {account && <AccountIcon name={account.icon} size={20} />}
-              <span>{option.label}</span>
-            </Group>
-          );
-        }}
-      />
 
       <div>
         <Text size="sm" fw={500} mb={4}>Time window</Text>

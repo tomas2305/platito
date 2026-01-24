@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Button, Card, Grid, Group, Stack, Text, Title } from '@mantine/core';
+import { Button, Card, Grid, Group, Select, Stack, Text, Title } from '@mantine/core';
 import { DashboardFilters } from '../components/DashboardFilters';
 import { DashboardCharts } from '../components/DashboardCharts';
 import { CategoryBreakdown } from '../components/CategoryBreakdown';
@@ -7,6 +7,7 @@ import { ActionToggle } from '../components/ActionToggle';
 import { getAllAccounts } from '../stores/accountsStore';
 import { getAllCategories } from '../stores/categoriesStore';
 import { getAllTransactions } from '../stores/transactionsStore';
+import { AccountIcon } from '../components/AccountIcon';
 import { autoUpdateExchangeRates, fetchAndUpdateExchangeRates, getSettings, initializeSettings } from '../stores/settingsStore';
 import { convertAmount, convertToARS } from '../utils/currency';
 import { formatMonetaryValue } from '../utils/formatters';
@@ -19,6 +20,7 @@ export const HomePage = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [totalDisplay, setTotalDisplay] = useState<string>('0');
+  const [accountBalanceDisplay, setAccountBalanceDisplay] = useState<string>('0');
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState<TransactionType>('expense');
   const [timeWindow, setTimeWindow] = useState<TimeWindow>('month');
@@ -76,6 +78,40 @@ export const HomePage = () => {
     return divisor === 0 ? totalARS : totalARS / divisor;
   };
 
+  const computeAccountBalance = (
+    account: Account,
+    transactionsList: Transaction[],
+    rates: ExchangeRates,
+    displayCurrency: Currency
+  ): number => {
+    let balance = account.initialBalance;
+    
+    const accountTransactions = transactionsList.filter(tx => tx.accountId === account.id);
+    for (const tx of accountTransactions) {
+      const amountInAccountCurrency = convertAmount(
+        tx.amount,
+        tx.currency,
+        account.currency,
+        rates
+      );
+      
+      if (tx.type === 'income') {
+        balance += amountInAccountCurrency;
+      } else {
+        balance -= amountInAccountCurrency;
+      }
+    }
+    
+    const balanceInARS = convertToARS(balance, account.currency, rates);
+    
+    if (displayCurrency === 'ARS') {
+      return balanceInARS;
+    }
+    
+    const divisor = rates[displayCurrency]?.toARS ?? 1;
+    return divisor === 0 ? balanceInARS : balanceInARS / divisor;
+  };
+
   useEffect(() => {
     const load = async () => {
       const [allAccounts, loadedSettings, allCategories, allTransactions] = await Promise.all([
@@ -110,6 +146,20 @@ export const HomePage = () => {
         loadedSettings.displayCurrency,
       );
       setTotalDisplay(formatMonetaryValue(total.toFixed(2)));
+
+      if (loadedSettings.defaultAccountId && allAccounts.some(acc => acc.id === loadedSettings.defaultAccountId)) {
+        const selectedAccount = allAccounts.find(acc => acc.id === loadedSettings.defaultAccountId);
+        if (selectedAccount) {
+          const accountBalance = computeAccountBalance(
+            selectedAccount,
+            allTransactions,
+            ratesToUse,
+            loadedSettings.displayCurrency
+          );
+          setAccountBalanceDisplay(formatMonetaryValue(accountBalance.toFixed(2)));
+        }
+      }
+
       setLoading(false);
     };
 
@@ -313,6 +363,19 @@ export const HomePage = () => {
         settings?.displayCurrency ?? 'ARS',
       );
       setTotalDisplay(formatMonetaryValue(total.toFixed(2)));
+
+      if (accountFilter !== null) {
+        const selectedAccount = accounts.find(acc => acc.id === accountFilter);
+        if (selectedAccount) {
+          const accountBalance = computeAccountBalance(
+            selectedAccount,
+            transactions,
+            newRates,
+            settings?.displayCurrency ?? 'ARS'
+          );
+          setAccountBalanceDisplay(formatMonetaryValue(accountBalance.toFixed(2)));
+        }
+      }
     } catch (error) {
       console.error('Failed to fetch exchange rates:', error);
     } finally {
@@ -330,13 +393,66 @@ export const HomePage = () => {
         <Grid gutter="md">
           <Grid.Col span={12}>
             <Card shadow="sm" padding="md" radius="md" withBorder>
-              <Group justify="space-between" align="center">
-                <div>
-                  <Text size="sm" c="dimmed">Total Balance</Text>
-                  <Text size="xl" fw={700} c={isBalanceNegative ? 'red' : undefined}>
-                    {totalDisplay} {settings?.displayCurrency ?? 'ARS'}
-                  </Text>
-                </div>
+              <Group justify="space-between" align="center" wrap="wrap">
+                <Group gap="xl">
+                  <div>
+                    <Text size="sm" c="dimmed">Total Balance</Text>
+                    <Text size="xl" fw={700} c={isBalanceNegative ? 'red' : undefined}>
+                      {totalDisplay} {settings?.displayCurrency ?? 'ARS'}
+                    </Text>
+                  </div>
+                  
+                  <Select
+                    placeholder="Select account"
+                    data={accounts.map((acc) => ({ value: String(acc.id), label: acc.name, icon: acc.icon }))}
+                    value={accountFilter ? String(accountFilter) : null}
+                    onChange={(value) => {
+                      const newAccountId = value ? Number(value) : null;
+                      setAccountFilter(newAccountId);
+                      
+                      if (newAccountId !== null && settings) {
+                        const selectedAccount = accounts.find(acc => acc.id === newAccountId);
+                        if (selectedAccount) {
+                          const accountBalance = computeAccountBalance(
+                            selectedAccount,
+                            transactions,
+                            settings.exchangeRates,
+                            settings.displayCurrency
+                          );
+                          setAccountBalanceDisplay(formatMonetaryValue(accountBalance.toFixed(2)));
+                        }
+                      }
+                    }}
+                    clearable
+                    searchable
+                    renderOption={({ option }) => {
+                      const account = accounts.find(acc => String(acc.id) === option.value);
+                      return (
+                        <Group gap="sm">
+                          {account && <AccountIcon name={account.icon} size={20} />}
+                          <span>{option.label}</span>
+                        </Group>
+                      );
+                    }}
+                    styles={{ root: { minWidth: 200 } }}
+                  />
+                  
+                  {accountFilter !== null && (() => {
+                    const selectedAccount = accounts.find(acc => acc.id === accountFilter);
+                    return selectedAccount ? (
+                      <Group gap="xs">
+                        <AccountIcon name={selectedAccount.icon} size={24} />
+                        <div>
+                          <Text size="xs" c="dimmed">{selectedAccount.name}</Text>
+                          <Text size="md" fw={600}>
+                            {accountBalanceDisplay} {settings?.displayCurrency ?? 'ARS'}
+                          </Text>
+                        </div>
+                      </Group>
+                    ) : null;
+                  })()}
+                </Group>
+                
                 <Group gap="sm">
                   <Button 
                     variant="light" 
@@ -358,11 +474,8 @@ export const HomePage = () => {
               <Stack gap="md">
                 <Title order={4} size="h5">Dashboard</Title>
                   <DashboardFilters
-                    accounts={accounts}
                     typeFilter={typeFilter}
                     setTypeFilter={setTypeFilter}
-                    accountFilter={accountFilter}
-                    setAccountFilter={setAccountFilter}
                     timeWindow={timeWindow}
                     setTimeWindow={setTimeWindow}
                     periodLabel={periodLabel}
