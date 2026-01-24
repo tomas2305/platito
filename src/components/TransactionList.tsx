@@ -103,6 +103,7 @@ export const TransactionList = ({
 }: Props) => {
   const [range, setRange] = useState<RangeOption>('month');
   const [rangeOffset, setRangeOffset] = useState(0);
+  const [categoryFilter, setCategoryFilter] = useState<number | null>(null);
   const [expandedTxIds, setExpandedTxIds] = useState<Set<number>>(new Set());
 
   const toggleExpanded = (txId: number) => {
@@ -121,6 +122,11 @@ export const TransactionList = ({
   const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
   const tagMap = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags]);
 
+  const categoriesForFilter = useMemo(() => {
+    if (externalTypeFilter === null) return categories;
+    return categories.filter((cat) => cat.type === externalTypeFilter);
+  }, [categories, externalTypeFilter]);
+
   const periodStart = useMemo(() => startOfRange(range, rangeOffset), [range, rangeOffset]);
   const periodEnd = useMemo(() => endOfRange(periodStart, range), [periodStart, range]);
   const disableNext = rangeOffset === 0;
@@ -132,13 +138,15 @@ export const TransactionList = ({
       if (externalTypeFilter !== null && tx.type !== externalTypeFilter) return false;
       // Only apply account filter if not using external filter (or if provided externally)
       if (externalAccountFilter !== null && tx.accountId !== externalAccountFilter) return false;
+      // Apply category filter if set
+      if (categoryFilter !== null && tx.categoryId !== categoryFilter) return false;
       // Parse date as local time (YYYY-MM-DD)
       const txDate = new Date(tx.date + 'T00:00:00');
       if (Number.isNaN(txDate.getTime())) return false;
       if (txDate > now) return false;
       return txDate >= periodStart && txDate <= periodEnd;
     });
-  }, [transactions, externalTypeFilter, externalAccountFilter, periodStart, periodEnd]);
+  }, [transactions, externalTypeFilter, externalAccountFilter, categoryFilter, periodStart, periodEnd]);
 
   const totalsByCurrency = useMemo(() => {
     const totals = new Map<string, number>();
@@ -171,34 +179,33 @@ export const TransactionList = ({
     [grouped],
   );
 
+  const totalColor = useMemo(() => {
+    if (externalTypeFilter === 'income') {
+      return 'teal';
+    }
+    if (externalTypeFilter === 'expense') {
+      return 'red';
+    }
+    return undefined;
+  }, [externalTypeFilter]);
+
   return (
     <section>
       <Stack gap="md">
-        {title && (
-          <Group justify="space-between" align="center">
-            <Title order={3}>{title}</Title>
-            <Text size="sm" fw={600}>
-              Total:{' '}
-              {totalsByCurrency.size === 0
-                ? '0'
-                : Array.from(totalsByCurrency.entries())
-                    .map(([currency, total]) => `${formatMonetaryValue(String(total))} ${currency}`)
-                    .join(' | ')}
-            </Text>
-          </Group>
-        )}
+        {title && <Title order={3}>{title}</Title>}
 
-        <Group gap="sm" wrap="wrap" align="flex-end">
-          {externalTypeFilter === null && (
-            <SegmentedControl
-              value="expense"
-              onChange={() => {}}
-              data={[
-                { label: 'Expense', value: 'expense' },
-                { label: 'Income', value: 'income' },
-              ]}
-            />
-          )}
+        <Group gap="sm" wrap="wrap" align="flex-end" justify="space-between">
+          <Group gap="sm" wrap="wrap" align="flex-end">
+            {externalTypeFilter === null && (
+              <SegmentedControl
+                value="expense"
+                onChange={() => {}}
+                data={[
+                  { label: 'Expense', value: 'expense' },
+                  { label: 'Income', value: 'income' },
+                ]}
+              />
+            )}
 
           {externalAccountFilter === null && (
             <Select
@@ -243,13 +250,61 @@ export const TransactionList = ({
               { value: 'year', label: RANGE_LABELS.year },
             ]}
           />
-
           <PeriodNavigator
             periodLabel={formatPeriodLabel(range, periodStart, periodEnd)}
             onPrev={() => setRangeOffset((prev) => prev + 1)}
             onNext={() => setRangeOffset((prev) => Math.max(0, prev - 1))}
             disableNext={disableNext}
           />
+          
+          <Select
+            placeholder="All categories"
+            searchable
+            clearable
+            value={categoryFilter ? String(categoryFilter) : null}
+            onChange={(value) => {
+              setCategoryFilter(value ? Number(value) : null);
+            }}
+            data={categoriesForFilter.map((cat) => ({
+              label: cat.name,
+              value: String(cat.id),
+            }))}
+            renderOption={({ option }) => {
+              const cat = categoriesForFilter.find(c => String(c.id) === option.value);
+              if (!cat) return null;
+              return (
+                <Group gap="xs">
+                  <div
+                    style={{
+                      width: '4px',
+                      height: '18px',
+                      backgroundColor: getColorHex(cat.color),
+                      borderRadius: '2px',
+                    }}
+                  />
+                  <CategoryIcon name={cat.icon} size={18} />
+                  <Text size="sm">{option.label}</Text>
+                </Group>
+              );
+            }}
+            style={{ minWidth: 200 }}
+          />
+          </Group>
+
+          <Group gap="xs" align="center">
+            <Text size="sm" c="dimmed">Total:</Text>
+            <Text 
+              size="lg" 
+              fw={700}
+              c={totalColor}
+            >
+              {totalsByCurrency.size === 0
+                ? '0'
+                : Array.from(totalsByCurrency.entries())
+                    .map(([currency, total]) => `${formatMonetaryValue(String(total))} ${currency}`)
+                    .join(' | ')}
+            </Text>
+          </Group>
         </Group>
 
         {groupKeys.length === 0 ? (
