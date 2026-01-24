@@ -16,7 +16,7 @@ import { fetchAndUpdateExchangeRates, getSettings, initializeSettings, resetData
 import { ensureDefaultCategories } from '../stores/categoriesStore';
 import type { AppSettings, Account, AutoUpdateInterval, TimeWindow, Currency, ExchangeRates } from '../types';
 import { SUPPORTED_CURRENCIES } from '../utils/currency';
-import { formatMonetaryValue, parseMonetaryValue } from '../utils/formatters';
+import { formatMonetaryValue, formatNumberToMonetary, parseMonetaryValue } from '../utils/formatters';
 import { DatabaseImportExport } from '../components/DatabaseImportExport';
 
 export const SettingsPage = () => {
@@ -191,7 +191,7 @@ export const SettingsPage = () => {
     };
     for (const c of SUPPORTED_CURRENCIES) {
       const value = exchangeRates?.[c]?.toARS;
-      rates[c] = c === 'ARS' ? '1' : formatMonetaryValue(String(value ?? ''));
+      rates[c] = c === 'ARS' ? '1' : formatNumberToMonetary(value ?? 0);
     }
     return rates;
   }, [exchangeRates]);
