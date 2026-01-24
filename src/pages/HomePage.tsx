@@ -4,6 +4,7 @@ import { DashboardFilters } from '../components/DashboardFilters';
 import { DashboardCharts } from '../components/DashboardCharts';
 import { CategoryBreakdown } from '../components/CategoryBreakdown';
 import { ActionToggle } from '../components/ActionToggle';
+import { IncomeOutcomeComparison } from '../components/IncomeOutcomeComparison';
 import { getAllAccounts } from '../stores/accountsStore';
 import { getAllCategories } from '../stores/categoriesStore';
 import { getAllTransactions } from '../stores/transactionsStore';
@@ -273,6 +274,48 @@ export const HomePage = () => {
 
   const totalAmount = useMemo(() => byCategory.reduce((sum, x) => sum + x.amount, 0), [byCategory]);
 
+  const periodIncomeTotal = useMemo(() => {
+    if (!settings) return 0;
+    return transactions
+      .filter((tx) => {
+        if (tx.type !== 'income') return false;
+        if (accountFilter !== null && tx.accountId !== accountFilter) return false;
+        const txDate = new Date(tx.date + 'T00:00:00');
+        if (Number.isNaN(txDate.getTime())) return false;
+        const now = new Date();
+        if (txDate > now) return false;
+        return txDate >= startOfPeriod && txDate < endOfPeriod;
+      })
+      .reduce((sum, tx) => {
+        const amountInARS = convertToARS(tx.amount, tx.currency, settings.exchangeRates);
+        const amountInDisplayCurrency = settings.displayCurrency === 'ARS' 
+          ? amountInARS 
+          : amountInARS / (settings.exchangeRates[settings.displayCurrency]?.toARS ?? 1);
+        return sum + amountInDisplayCurrency;
+      }, 0);
+  }, [transactions, accountFilter, startOfPeriod, endOfPeriod, settings]);
+
+  const periodOutcomeTotal = useMemo(() => {
+    if (!settings) return 0;
+    return transactions
+      .filter((tx) => {
+        if (tx.type !== 'expense') return false;
+        if (accountFilter !== null && tx.accountId !== accountFilter) return false;
+        const txDate = new Date(tx.date + 'T00:00:00');
+        if (Number.isNaN(txDate.getTime())) return false;
+        const now = new Date();
+        if (txDate > now) return false;
+        return txDate >= startOfPeriod && txDate < endOfPeriod;
+      })
+      .reduce((sum, tx) => {
+        const amountInARS = convertToARS(tx.amount, tx.currency, settings.exchangeRates);
+        const amountInDisplayCurrency = settings.displayCurrency === 'ARS' 
+          ? amountInARS 
+          : amountInARS / (settings.exchangeRates[settings.displayCurrency]?.toARS ?? 1);
+        return sum + amountInDisplayCurrency;
+      }, 0);
+  }, [transactions, accountFilter, startOfPeriod, endOfPeriod, settings]);
+
   const pieChartData = useMemo(() => {
     return byCategory.map((x) => {
       return {
@@ -469,8 +512,8 @@ export const HomePage = () => {
             </Card>
           </Grid.Col>
 
-          <Grid.Col span={{ base: 12, lg: 8 }}>
-            <Card shadow="sm" padding="md" radius="md" withBorder>
+          <Grid.Col span={{ base: 12, lg: 7 }} style={{ display: 'flex' }}>
+            <Card shadow="sm" padding="md" radius="md" withBorder style={{ flex: 1 }}>
               <Stack gap="md">
                 <Title order={4} size="h5">Dashboard</Title>
                   <DashboardFilters
@@ -492,11 +535,25 @@ export const HomePage = () => {
               </Card>
           </Grid.Col>
 
-          <Grid.Col span={{ base: 12, lg: 4 }}>
-            <Card shadow="sm" padding="md" radius="md" withBorder>
+          <Grid.Col span={{ base: 12, lg: 5 }} style={{ display: 'flex' }}>
+            <Card shadow="sm" padding="md" radius="md" withBorder style={{ flex: 1 }}>
               <Stack gap="md">
                 <Title order={4} size="h5">Category Breakdown</Title>
                 <CategoryBreakdown data={byCategory} total={totalAmount} />
+              </Stack>
+            </Card>
+          </Grid.Col>
+
+          <Grid.Col span={12}>
+            <Card shadow="sm" padding="md" radius="md" withBorder>
+              <Stack gap="md">
+                <Title order={4} size="h5">Income vs Outcome</Title>
+                <IncomeOutcomeComparison
+                  income={periodIncomeTotal}
+                  outcome={periodOutcomeTotal}
+                  currency={settings?.displayCurrency ?? 'ARS'}
+                  periodLabel={periodLabel}
+                />
               </Stack>
             </Card>
           </Grid.Col>

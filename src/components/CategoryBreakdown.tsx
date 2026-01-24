@@ -14,7 +14,7 @@ export const CategoryBreakdown = ({ data, total }: CategoryListProps) => {
   }
 
   return (
-    <Stack gap="sm" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+    <Stack gap="sm" style={{ maxHeight: '600px', overflowY: 'auto', paddingRight: '8px' }}>
       <Paper p="md" radius="md" withBorder>
         <Group justify="space-between">
           <Text fw={700}>Total</Text>
