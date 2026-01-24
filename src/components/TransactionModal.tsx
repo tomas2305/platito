@@ -20,7 +20,7 @@ import { AccountIcon } from './AccountIcon';
 import { CategoryIcon } from './CategoryIcon';
 import { CircularSelector } from './CircularSelector';
 import type { Account, Category, Tag, Transaction, TransactionType } from '../types';
-import { formatMonetaryValue, formatNumberToMonetary, parseMonetaryValue } from '../utils/formatters';
+import { formatMonetaryValue, parseMonetaryValue } from '../utils/formatters';
 
 interface FormState {
   id?: number;
@@ -108,9 +108,10 @@ export const TransactionModal = ({
   useEffect(() => {
     if (opened && transaction) {
       const cat = categoryMap.get(transaction.categoryId);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({
         id: transaction.id,
-        amount: formatNumberToMonetary(transaction.amount),
+        amount: formatMonetaryValue(String(transaction.amount)),
         accountId: String(transaction.accountId),
         categoryId: String(transaction.categoryId),
         transactionType: cat?.type ?? 'expense',
