@@ -2,11 +2,9 @@ import { useEffect, useState } from 'react';
 import {
   Card,
   Grid,
-  Group,
   SegmentedControl,
   Stack,
   Text,
-  Title,
 } from '@mantine/core';
 import { TransactionList } from '../components/TransactionList';
 import { TransactionModal } from '../components/TransactionModal';
@@ -46,17 +44,26 @@ export const TransactionsPage = () => {
     setCategories(cats);
     setTags(tgs);
     setTransactions(txs);
-    
-    if (acct.length > 0 && selectedAccountId === null) {
-      setSelectedAccountId(acct[0].id!);
-    }
-    
-    setLoading(false);
   };
 
   useEffect(() => {
     (async () => {
-      await loadData();
+      const [acct, cats, tgs, txs] = await Promise.all([
+        getActiveAccounts(),
+        getAllCategories(),
+        getAllTags(),
+        getAllTransactions(),
+      ]);
+      setAccounts(acct);
+      setCategories(cats);
+      setTags(tgs);
+      setTransactions(txs);
+      
+      if (acct.length > 0) {
+        setSelectedAccountId(acct[0].id!);
+      }
+      
+      setLoading(false);
     })();
   }, []);
 
@@ -141,7 +148,7 @@ export const TransactionsPage = () => {
                 icon: <AccountIcon name={acc.icon} size={28} />,
               }))}
               selectedId={selectedAccountId}
-              onSelect={(id) => setSelectedAccountId(id)}
+              onSelect={(id) => setSelectedAccountId(typeof id === 'number' ? id : Number.parseInt(id, 10))}
             />
           </Grid.Col>
         </Grid>

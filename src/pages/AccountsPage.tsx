@@ -4,8 +4,6 @@ import type { Account, Transaction } from '../types';
 import { AccountIcon } from '../components/AccountIcon';
 import { getColorHex } from '../utils/colors';
 import { formatNumberToMonetary } from '../utils/formatters';
-import { convertAmount } from '../utils/currency';
-import { getSettings } from '../stores/settingsStore';
 import {
   getActiveAccounts,
   getArchivedAccounts,
@@ -184,7 +182,7 @@ export const AccountsPage = () => {
                   <AccountIcon name={acc.icon} size={20} />
                   <Text fw={600}>{acc.name}</Text>
                   <Text>
-                    {formatMonetaryValue(String(computeAccountBalance(acc)))} {acc.currency}
+                    {formatNumberToMonetary(computeAccountBalance(acc))} {acc.currency}
                   </Text>
                   <Group gap="xs" ml="auto">
                     <Button size="xs" variant="light" color="green" onClick={() => acc.id && handleUnarchive(acc.id)}>
