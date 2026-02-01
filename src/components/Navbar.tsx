@@ -77,7 +77,7 @@ export function Navbar() {
       <div className={classes.navbarFooter}>
         <UnstyledButton
           className={classes.link}
-          onClick={() => window.open('https://github.com/tomas2305/platito', '_blank')}
+          onClick={() => window.open('https://github.com/tomas2305/platito', '_blank', 'noopener')}
           title="GitHub Repository"
         >
           <IconBrandGithub size={28} stroke={1.5} />
