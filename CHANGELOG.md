@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-02-01
+
+### Added
+- Transfer feature: Create, edit, and delete transfers between accounts
+- Support for multi-currency transfers with automatic exchange rate conversion
+- Transfer list with expandable details showing exchange rates and descriptions
+- Visual indicators for transfer amounts and converted amounts
+- Swap button for quickly reversing transfer direction
+
+### Fixed
+- Fixed TypeScript type annotation for DateInput onChange handler in TransferForm
+
 ## [1.5.1] - 2026-01-24
 
 ### Fixed
