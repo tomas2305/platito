@@ -4,6 +4,7 @@ import type {
   Category,
   Tag,
   Transaction,
+  Transfer,
   AppSettings,
 } from '../types';
 import { getColorName } from '../utils/colors';
@@ -13,6 +14,7 @@ export class PlatitoDB extends Dexie {
   categories!: Table<Category, number>;
   tags!: Table<Tag, number>;
   transactions!: Table<Transaction, number>;
+  transfers!: Table<Transfer, number>;
   settings!: Table<AppSettings, number>;
 
   constructor(name = 'platito_db') {
@@ -40,6 +42,7 @@ export class PlatitoDB extends Dexie {
       categories: '++id, name, type, icon, isDefault',
       tags: '++id, name',
       transactions: '++id, accountId, categoryId, type, date, *tagIds',
+      transfers: '++id, fromAccountId, toAccountId, date',
       settings: '++id',
     }).upgrade((tx) => {
       // Convert account colors from hex to color names

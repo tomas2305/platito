@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Group, Paper, Stack, Text, Title } from '@mantine/core';
-import type { Account, Transaction } from '../types';
+import type { Account, Transaction, Transfer } from '../types';
 import { AccountIcon } from '../components/AccountIcon';
 import { getColorHex } from '../utils/colors';
 import { formatNumberToMonetary } from '../utils/formatters';
@@ -14,12 +14,14 @@ import {
   deleteAccount,
 } from '../stores/accountsStore';
 import { getAllTransactions } from '../stores/transactionsStore';
+import { getAllTransfers } from '../stores/transfersStore';
 import { AccountForm } from '../components/AccountForm';
 
 export const AccountsPage = () => {
   const [activeAccounts, setActiveAccounts] = useState<Account[]>([]);
   const [archivedAccounts, setArchivedAccounts] = useState<Account[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [modalOpened, setModalOpened] = useState(false);
 
@@ -35,18 +37,32 @@ export const AccountsPage = () => {
       }
     }
     
+    const accountTransfers = transfers.filter(
+      t => t.fromAccountId === account.id || t.toAccountId === account.id
+    );
+    for (const transfer of accountTransfers) {
+      if (transfer.fromAccountId === account.id) {
+        balance -= transfer.amount;
+      }
+      if (transfer.toAccountId === account.id) {
+        balance += transfer.convertedAmount;
+      }
+    }
+    
     return balance;
   };
 
   const loadAccounts = async () => {
-    const [active, archived, txs] = await Promise.all([
+    const [active, archived, txs, tfrs] = await Promise.all([
       getActiveAccounts(),
       getArchivedAccounts(),
       getAllTransactions(),
+      getAllTransfers(),
     ]);
     setActiveAccounts(active);
     setArchivedAccounts(archived);
     setTransactions(txs);
+    setTransfers(tfrs);
   };
 
   useEffect(() => {
@@ -55,11 +71,13 @@ export const AccountsPage = () => {
       getActiveAccounts(),
       getArchivedAccounts(),
       getAllTransactions(),
-    ]).then(([active, archived, txs]) => {
+      getAllTransfers(),
+    ]).then(([active, archived, txs, tfrs]) => {
       if (mounted) {
         setActiveAccounts(active);
         setArchivedAccounts(archived);
         setTransactions(txs);
+        setTransfers(tfrs);
       }
     });
     return () => {

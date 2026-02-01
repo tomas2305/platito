@@ -2,6 +2,7 @@ import { Group, Paper, Stack, Text } from '@mantine/core';
 import type { Category } from '../types';
 import { getColorHex } from '../utils/colors';
 import { CategoryIcon } from './CategoryIcon';
+import { formatNumberToMonetary } from '../utils/formatters';
 
 interface CategoryListProps {
   data: Array<{ category: Category; amount: number }>;
@@ -18,7 +19,7 @@ export const CategoryBreakdown = ({ data, total }: CategoryListProps) => {
       <Paper p="md" radius="md" withBorder>
         <Group justify="space-between">
           <Text fw={700}>Total</Text>
-          <Text fw={700}>{total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+          <Text fw={700}>{formatNumberToMonetary(total)}</Text>
         </Group>
       </Paper>
       {data.map((item) => {
@@ -43,7 +44,7 @@ export const CategoryBreakdown = ({ data, total }: CategoryListProps) => {
                   <Text size="sm" c="dimmed">{pct}% of total</Text>
                 </Stack>
               </Group>
-              <Text fw={600}>{item.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+              <Text fw={600}>{formatNumberToMonetary(item.amount)}</Text>
             </Group>
           </Paper>
         );
