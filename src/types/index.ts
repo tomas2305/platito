@@ -46,6 +46,19 @@ export interface Transaction {
   tagIds: number[];
 }
 
+export interface Transfer {
+  id?: number;
+  fromAccountId: number;
+  toAccountId: number;
+  amount: number;
+  convertedAmount: number;
+  exchangeRate: number;
+  date: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AppSettings {
   id?: number;
   defaultAccountId?: number;

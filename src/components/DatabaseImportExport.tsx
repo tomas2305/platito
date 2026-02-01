@@ -8,14 +8,15 @@ export const DatabaseImportExport: React.FC<{ activeDb?: string }> = ({ activeDb
 
   const handleExport = async () => {
     const db = getDB();
-    const [accounts, categories, tags, transactions, settings] = await Promise.all([
+    const [accounts, categories, tags, transactions, transfers, settings] = await Promise.all([
       db.accounts.toArray(),
       db.categories.toArray(),
       db.tags.toArray(),
       db.transactions.toArray(),
+      db.transfers.toArray(),
       db.settings.toArray(),
     ]);
-    const data = { accounts, categories, tags, transactions, settings };
+    const data = { accounts, categories, tags, transactions, transfers, settings };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -49,23 +50,25 @@ export const DatabaseImportExport: React.FC<{ activeDb?: string }> = ({ activeDb
       return;
     }
     const db = getDB();
-    const tables = [db.accounts, db.categories, db.tags, db.transactions, db.settings];
+    const tables = [db.accounts, db.categories, db.tags, db.transactions, db.transfers, db.settings];
     const missingTables = tables.filter(table => !table);
     if (missingTables.length > 0) {
       alert('Database is not ready or missing tables. Please reload the page and try again.');
       return;
     }
-    await db.transaction('rw', db.accounts, db.categories, db.tags, db.transactions, async () => {
+    await db.transaction('rw', db.accounts, db.categories, db.tags, db.transactions, db.transfers, async () => {
       await Promise.all([
         db.accounts.clear(),
         db.categories.clear(),
         db.tags.clear(),
         db.transactions.clear(),
+        db.transfers.clear(),
       ]);
       if (data.accounts) await db.accounts.bulkAdd(data.accounts);
       if (data.categories) await db.categories.bulkAdd(data.categories);
       if (data.tags) await db.tags.bulkAdd(data.tags);
       if (data.transactions) await db.transactions.bulkAdd(data.transactions);
+      if (data.transfers) await db.transfers.bulkAdd(data.transfers);
     });
     // settings: clear and import outside transaction (for both main and testing DB)
     await db.settings.clear();

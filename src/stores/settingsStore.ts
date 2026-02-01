@@ -193,8 +193,9 @@ export const autoUpdateExchangeRates = async (): Promise<ExchangeRates | null> =
 
 export const resetDatabase = async (): Promise<void> => {
   const db = getDB();
-  await db.transaction('rw', [db.accounts, db.categories, db.tags, db.transactions, db.settings], async () => {
+  await db.transaction('rw', [db.accounts, db.categories, db.tags, db.transactions, db.transfers, db.settings], async () => {
     await db.transactions.clear();
+    await db.transfers.clear();
     await db.accounts.clear();
     await db.categories.clear();
     await db.tags.clear();

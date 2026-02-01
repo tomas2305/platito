@@ -1,7 +1,8 @@
 import { getDB } from './index';
 import { ensureDefaultCategories } from '../stores/categoriesStore';
 import { createTransaction } from '../stores/transactionsStore';
-import { initializeSettings } from '../stores/settingsStore';
+import { createTransfer } from '../stores/transfersStore';
+import { initializeSettings, getSettings } from '../stores/settingsStore';
 import type { Category, TransactionType } from '../types';
 import testingDataJSON from './testingData.json';
 
@@ -114,5 +115,49 @@ export const seedTestingData = async (): Promise<void> => {
       date: isoDaysAgo(txData.daysAgo),
       tagIds,
     });
+  }
+
+  // Create sample transfers
+  const settings = await getSettings();
+  if (settings && accountIds.length >= 2) {
+    const exchangeRates = settings.exchangeRates;
+    
+    // Transfer 1: ARS account to USD account (30 days ago)
+    await createTransfer(
+      {
+        fromAccountId: accountIds[0],
+        toAccountId: accountIds[1],
+        amount: 100000,
+        date: isoDaysAgo(30),
+        description: 'Compra de dólares',
+      },
+      exchangeRates
+    );
+
+    // Transfer 2: USD account to USDT account (15 days ago)
+    await createTransfer(
+      {
+        fromAccountId: accountIds[1],
+        toAccountId: accountIds[2],
+        amount: 50,
+        date: isoDaysAgo(15),
+        description: 'Inversión en USDT',
+      },
+      exchangeRates
+    );
+
+    // Transfer 3: ARS account to USD_MEP account (5 days ago)
+    if (accountIds[3]) {
+      await createTransfer(
+        {
+          fromAccountId: accountIds[0],
+          toAccountId: accountIds[3],
+          amount: 50000,
+          date: isoDaysAgo(5),
+          description: 'Compra de dólares MEP',
+        },
+        exchangeRates
+      );
+    }
   }
 };

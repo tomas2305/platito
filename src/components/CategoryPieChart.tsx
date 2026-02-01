@@ -1,14 +1,11 @@
 import React from 'react';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 import { getColorHex } from '../utils/colors';
+import { formatNumberToMonetary } from '../utils/formatters';
 
 export interface CategoryPieChartProps {
   data: Array<{ name: string; value: number; fill: string }>;
 }
-
-const formatCurrency = (value: number) => {
-  return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-};
 
 export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({ data }) => {
   if (data.length === 0) {
@@ -23,7 +20,7 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({ data }) => {
             <Cell key={`cell-${entry.name}`} fill={getColorHex(entry.fill)} />
           ))}
         </Pie>
-        <Tooltip formatter={(value: number) => formatCurrency(value)} />
+        <Tooltip formatter={(value: number) => formatNumberToMonetary(value)} />
       </PieChart>
     </ResponsiveContainer>
   );

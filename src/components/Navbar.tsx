@@ -7,9 +7,12 @@ import {
   IconTag,
   IconFolder,
   IconSettings,
+  IconArrowsExchange,
+  IconBrandGithub,
 } from '@tabler/icons-react';
 import { Stack, UnstyledButton } from '@mantine/core';
 import classes from './Navbar.module.css';
+import logoWhite from '../assets/icon-white.png';
 
 interface NavbarLinkProps {
   readonly icon: typeof IconHome2;
@@ -22,9 +25,9 @@ function NavbarLink({ icon: Icon, label, active, onClick }: NavbarLinkProps) {
   const [showTooltip, setShowTooltip] = useState(false);
 
   return (
-    <div className={classes.linkWrapper} onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
+    <div className={classes.linkWrapper} onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)} role="tooltip">
       {showTooltip && <div className={classes.tooltip}>{label}</div>}
-      <UnstyledButton onClick={onClick} className={classes.link} data-active={active || undefined}>
+      <UnstyledButton onClick={onClick} className={classes.link} data-active={active || undefined} aria-label={label}>
         <Icon size={28} stroke={1.5} />
       </UnstyledButton>
     </div>
@@ -34,6 +37,7 @@ function NavbarLink({ icon: Icon, label, active, onClick }: NavbarLinkProps) {
 const navigationLinks = [
   { icon: IconHome2, label: 'Home', path: '/' },
   { icon: IconLayoutList, label: 'Transactions', path: '/transactions' },
+  { icon: IconArrowsExchange, label: 'Transfers', path: '/transfers' },
   { icon: IconWallet, label: 'Accounts', path: '/accounts' },
   { icon: IconFolder, label: 'Categories', path: '/categories' },
   { icon: IconTag, label: 'Tags', path: '/tags' },
@@ -60,10 +64,24 @@ export function Navbar() {
 
   return (
     <nav className={classes.navbar}>
+      <div className={classes.navbarLogo}>
+        <img src={logoWhite} alt="Platito" className={classes.logo} />
+      </div>
+      
       <div className={classes.navbarMain}>
         <Stack justify="center" gap={0}>
           {links}
         </Stack>
+      </div>
+
+      <div className={classes.navbarFooter}>
+        <UnstyledButton
+          className={classes.link}
+          onClick={() => window.open('https://github.com/tomas2305/platito', '_blank', 'noopener')}
+          title="GitHub Repository"
+        >
+          <IconBrandGithub size={28} stroke={1.5} />
+        </UnstyledButton>
       </div>
     </nav>
   );
