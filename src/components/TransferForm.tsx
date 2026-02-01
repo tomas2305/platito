@@ -25,11 +25,13 @@ interface Props {
   onCancel?: () => void;
 }
 
-const formatDateToISO = (date: Date | null) => {
-  const d = date ?? new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
+const formatDateToISO = (date: Date) => {
+  if (!(date instanceof Date) || isNaN(date.getTime())) {
+    throw new Error('Invalid date');
+  }
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
 
@@ -142,8 +144,8 @@ export const TransferForm = ({ accounts, exchangeRates, transactions, transfers,
       return;
     }
 
-    if (!form.date) {
-      setError('Please select a date');
+    if (!form.date || !(form.date instanceof Date) || isNaN(form.date.getTime())) {
+      setError('Please select a valid date');
       return;
     }
 
@@ -170,7 +172,7 @@ export const TransferForm = ({ accounts, exchangeRates, transactions, transfers,
           toAccountId: form.toAccountId,
           amount: '',
           description: '',
-          date: new Date(),
+          date: form.date,
         });
       }
 
@@ -280,7 +282,18 @@ export const TransferForm = ({ accounts, exchangeRates, transactions, transfers,
             <DateInput
               label="Date"
               value={form.date}
-              onChange={(date) => setForm({ ...form, date: date as Date | null })}
+              onChange={(date) => {
+                // DateInput can return a string in YYYY-MM-DD format, convert to Date
+                let dateValue: Date | null = null;
+                if (date) {
+                  if (typeof date === 'string') {
+                    dateValue = new Date(date + 'T00:00:00');
+                  } else if (date instanceof Date) {
+                    dateValue = date;
+                  }
+                }
+                setForm({ ...form, date: dateValue });
+              }}
               required
               maxDate={new Date()}
               valueFormat="DD/MM/YYYY"
