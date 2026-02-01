@@ -56,7 +56,7 @@ export const DatabaseImportExport: React.FC<{ activeDb?: string }> = ({ activeDb
       alert('Database is not ready or missing tables. Please reload the page and try again.');
       return;
     }
-    await db.transaction('rw', db.accounts, db.categories, db.tags, db.transactions, db.transfers, async () => {
+    await db.transaction('rw', [db.accounts, db.categories, db.tags, db.transactions, db.transfers], async () => {
       await Promise.all([
         db.accounts.clear(),
         db.categories.clear(),
