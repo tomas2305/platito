@@ -139,7 +139,8 @@ export const TransferForm = ({ accounts, exchangeRates, transactions, transfers,
       return;
     }
 
-    if (amount > fromAccountBalance) {
+    // Only validate balance when creating a new transfer, not when editing
+    if (!transfer && amount > fromAccountBalance) {
       setError(`Insufficient balance. Available: ${formatNumberToMonetary(fromAccountBalance)} ${fromAccount?.currency || ''}`);
       return;
     }
