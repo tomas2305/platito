@@ -8,18 +8,20 @@ import { IncomeOutcomeComparison } from '../components/IncomeOutcomeComparison';
 import { getAllAccounts } from '../stores/accountsStore';
 import { getAllCategories } from '../stores/categoriesStore';
 import { getAllTransactions } from '../stores/transactionsStore';
+import { getAllTransfers } from '../stores/transfersStore';
 import { AccountIcon } from '../components/AccountIcon';
 import { autoUpdateExchangeRates, fetchAndUpdateExchangeRates, getSettings, initializeSettings } from '../stores/settingsStore';
 import { convertAmount, convertToARS } from '../utils/currency';
 import { formatNumberToMonetary } from '../utils/formatters';
 import { formatPeriodLabel } from '../utils/dateFormatters';
-import type { Account, AppSettings, Category, Currency, ExchangeRates, Transaction, TransactionType, TimeWindow } from '../types';
+import type { Account, AppSettings, Category, Currency, ExchangeRates, Transaction, Transfer, TransactionType, TimeWindow } from '../types';
 
 export const HomePage = () => {
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [totalDisplay, setTotalDisplay] = useState<string>('0');
   const [accountBalanceDisplay, setAccountBalanceDisplay] = useState<string>('0');
   const [loading, setLoading] = useState(true);
@@ -37,6 +39,7 @@ export const HomePage = () => {
   const computeTotal = (
     accountsList: Account[],
     transactionsList: Transaction[],
+    transfersList: Transfer[],
     rates: ExchangeRates,
     displayCurrency: Currency
   ): number => {
@@ -63,6 +66,19 @@ export const HomePage = () => {
         }
       }
       
+      // Add/subtract transfers for this account
+      const accountTransfers = transfersList.filter(
+        t => t.fromAccountId === acc.id || t.toAccountId === acc.id
+      );
+      for (const transfer of accountTransfers) {
+        if (transfer.fromAccountId === acc.id) {
+          balance -= transfer.amount;
+        }
+        if (transfer.toAccountId === acc.id) {
+          balance += transfer.convertedAmount;
+        }
+      }
+      
       return { currency: acc.currency, balance };
     });
 
@@ -82,6 +98,7 @@ export const HomePage = () => {
   const computeAccountBalance = (
     account: Account,
     transactionsList: Transaction[],
+    transfersList: Transfer[],
     rates: ExchangeRates,
     displayCurrency: Currency
   ): number => {
@@ -103,6 +120,18 @@ export const HomePage = () => {
       }
     }
     
+    const accountTransfers = transfersList.filter(
+      t => t.fromAccountId === account.id || t.toAccountId === account.id
+    );
+    for (const transfer of accountTransfers) {
+      if (transfer.fromAccountId === account.id) {
+        balance -= transfer.amount;
+      }
+      if (transfer.toAccountId === account.id) {
+        balance += transfer.convertedAmount;
+      }
+    }
+    
     const balanceInARS = convertToARS(balance, account.currency, rates);
     
     if (displayCurrency === 'ARS') {
@@ -115,16 +144,18 @@ export const HomePage = () => {
 
   useEffect(() => {
     const load = async () => {
-      const [allAccounts, loadedSettings, allCategories, allTransactions] = await Promise.all([
+      const [allAccounts, loadedSettings, allCategories, allTransactions, allTransfers] = await Promise.all([
         getAllAccounts(),
         getSettings().then((s) => s ?? initializeSettings()),
         getAllCategories(),
         getAllTransactions(),
+        getAllTransfers(),
       ]);
 
       setAccounts(allAccounts);
       setCategories(allCategories);
       setTransactions(allTransactions);
+      setTransfers(allTransfers);
       setSettings(loadedSettings);
 
       if (loadedSettings.defaultAccountId && allAccounts.some(acc => acc.id === loadedSettings.defaultAccountId)) {
@@ -143,6 +174,7 @@ export const HomePage = () => {
       const total = computeTotal(
         allAccounts,
         allTransactions,
+        allTransfers,
         ratesToUse,
         loadedSettings.displayCurrency,
       );
@@ -154,6 +186,7 @@ export const HomePage = () => {
           const accountBalance = computeAccountBalance(
             selectedAccount,
             allTransactions,
+            allTransfers,
             ratesToUse,
             loadedSettings.displayCurrency
           );
@@ -402,6 +435,7 @@ export const HomePage = () => {
       const total = computeTotal(
         accounts,
         transactions,
+        transfers,
         newRates,
         settings?.displayCurrency ?? 'ARS',
       );
@@ -413,6 +447,7 @@ export const HomePage = () => {
           const accountBalance = computeAccountBalance(
             selectedAccount,
             transactions,
+            transfers,
             newRates,
             settings?.displayCurrency ?? 'ARS'
           );
@@ -459,6 +494,7 @@ export const HomePage = () => {
                           const accountBalance = computeAccountBalance(
                             selectedAccount,
                             transactions,
+                            transfers,
                             settings.exchangeRates,
                             settings.displayCurrency
                           );
