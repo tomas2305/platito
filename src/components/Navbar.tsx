@@ -8,9 +8,11 @@ import {
   IconFolder,
   IconSettings,
   IconArrowsExchange,
+  IconBrandGithub,
 } from '@tabler/icons-react';
 import { Stack, UnstyledButton } from '@mantine/core';
 import classes from './Navbar.module.css';
+import logoWhite from '../assets/icon-white.png';
 
 interface NavbarLinkProps {
   readonly icon: typeof IconHome2;
@@ -62,10 +64,24 @@ export function Navbar() {
 
   return (
     <nav className={classes.navbar}>
+      <div className={classes.navbarLogo}>
+        <img src={logoWhite} alt="Platito" className={classes.logo} />
+      </div>
+      
       <div className={classes.navbarMain}>
         <Stack justify="center" gap={0}>
           {links}
         </Stack>
+      </div>
+
+      <div className={classes.navbarFooter}>
+        <UnstyledButton
+          className={classes.link}
+          onClick={() => window.open('https://github.com/tomas2305/platito', '_blank')}
+          title="GitHub Repository"
+        >
+          <IconBrandGithub size={28} stroke={1.5} />
+        </UnstyledButton>
       </div>
     </nav>
   );
