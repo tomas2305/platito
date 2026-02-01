@@ -65,7 +65,6 @@ export const TransferList = ({ transfers, accounts, onEdit, onDelete, showAction
             const fromAccount = accountMap.get(transfer.fromAccountId);
             const toAccount = accountMap.get(transfer.toAccountId);
             const isExpanded = transfer.id ? expandedIds.has(transfer.id) : false;
-            const hasDetails = true; // Siempre hay exchange rate para mostrar
 
             return (
               <Paper

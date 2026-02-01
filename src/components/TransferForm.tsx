@@ -26,8 +26,8 @@ interface Props {
 }
 
 const formatDateToISO = (date: Date) => {
-  if (!(date instanceof Date) || isNaN(date.getTime())) {
-    throw new Error('Invalid date');
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+    throw new TypeError('Invalid date');
   }
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -134,7 +134,7 @@ export const TransferForm = ({ accounts, exchangeRates, transactions, transfers,
       return;
     }
 
-    if (!form.amount || form.amount.trim() === '' || isNaN(amount) || amount <= 0) {
+    if (!form.amount || form.amount.trim() === '' || Number.isNaN(amount) || amount <= 0) {
       setError('Amount must be greater than 0');
       return;
     }
@@ -145,7 +145,7 @@ export const TransferForm = ({ accounts, exchangeRates, transactions, transfers,
       return;
     }
 
-    if (!form.date || !(form.date instanceof Date) || isNaN(form.date.getTime())) {
+    if (!form.date || !(form.date instanceof Date) || Number.isNaN(form.date.getTime())) {
       setError('Please select a valid date');
       return;
     }
@@ -283,7 +283,7 @@ export const TransferForm = ({ accounts, exchangeRates, transactions, transfers,
             <DateInput
               label="Date"
               value={form.date}
-              onChange={(date) => {
+              onChange={(date: Date | string | null) => {
                 // DateInput can return a string in YYYY-MM-DD format, convert to Date
                 let dateValue: Date | null = null;
                 if (date) {

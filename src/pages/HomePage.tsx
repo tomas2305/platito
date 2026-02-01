@@ -14,6 +14,7 @@ import { autoUpdateExchangeRates, fetchAndUpdateExchangeRates, getSettings, init
 import { convertAmount, convertToARS } from '../utils/currency';
 import { formatNumberToMonetary } from '../utils/formatters';
 import { formatPeriodLabel } from '../utils/dateFormatters';
+import { getStartOfPeriod, getEndOfPeriod } from '../utils/periodHelpers';
 import type { Account, AppSettings, Category, Currency, ExchangeRates, Transaction, Transfer, TransactionType, TimeWindow } from '../types';
 
 export const HomePage = () => {
@@ -225,55 +226,8 @@ export const HomePage = () => {
     return () => clearInterval(interval);
   }, [settings?.lastFxUpdate]);
 
-  const startOfPeriod = useMemo(() => {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-
-    if (timeWindow === 'day') {
-      const start = new Date(now);
-      start.setDate(now.getDate() - rangeOffset);
-      return start;
-    }
-
-    if (timeWindow === 'week') {
-      const start = new Date(now);
-      const day = (now.getDay() + 6) % 7;
-      start.setDate(now.getDate() - day - rangeOffset * 7);
-      return start;
-    }
-
-    if (timeWindow === 'month') {
-      return new Date(now.getFullYear(), now.getMonth() - rangeOffset, 1);
-    }
-
-    return new Date(now.getFullYear() - rangeOffset, 0, 1);
-  }, [timeWindow, rangeOffset]);
-
-  const endOfPeriod = useMemo(() => {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-
-    if (timeWindow === 'day') {
-      const end = new Date(now);
-      end.setDate(now.getDate() - rangeOffset + 1);
-      return end;
-    }
-
-    if (timeWindow === 'week') {
-      const start = new Date(now);
-      const day = (now.getDay() + 6) % 7;
-      start.setDate(now.getDate() - day - rangeOffset * 7);
-      const end = new Date(start);
-      end.setDate(start.getDate() + 7);
-      return end;
-    }
-
-    if (timeWindow === 'month') {
-      return new Date(now.getFullYear(), now.getMonth() - rangeOffset + 1, 1);
-    }
-
-    return new Date(now.getFullYear() - rangeOffset + 1, 0, 1);
-  }, [timeWindow, rangeOffset]);
+  const startOfPeriod = useMemo(() => getStartOfPeriod(timeWindow, rangeOffset), [timeWindow, rangeOffset]);
+  const endOfPeriod = useMemo(() => getEndOfPeriod(timeWindow, rangeOffset), [timeWindow, rangeOffset]);
 
   const filtered = useMemo(() => {
     const now = new Date();

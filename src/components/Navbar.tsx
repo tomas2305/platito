@@ -25,9 +25,9 @@ function NavbarLink({ icon: Icon, label, active, onClick }: NavbarLinkProps) {
   const [showTooltip, setShowTooltip] = useState(false);
 
   return (
-    <div className={classes.linkWrapper} onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
+    <div className={classes.linkWrapper} onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)} role="tooltip">
       {showTooltip && <div className={classes.tooltip}>{label}</div>}
-      <UnstyledButton onClick={onClick} className={classes.link} data-active={active || undefined}>
+      <UnstyledButton onClick={onClick} className={classes.link} data-active={active || undefined} aria-label={label}>
         <Icon size={28} stroke={1.5} />
       </UnstyledButton>
     </div>
