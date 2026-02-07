@@ -231,6 +231,9 @@ export const HomePage = () => {
 
   const startOfPeriod = useMemo(() => getStartOfPeriod(timeWindow, rangeOffset), [timeWindow, rangeOffset]);
   const endOfPeriod = useMemo(() => getEndOfPeriod(timeWindow, rangeOffset), [timeWindow, rangeOffset]);
+  
+  const startOfPreviousPeriod = useMemo(() => getStartOfPeriod(timeWindow, rangeOffset + 1), [timeWindow, rangeOffset]);
+  const endOfPreviousPeriod = useMemo(() => getEndOfPeriod(timeWindow, rangeOffset + 1), [timeWindow, rangeOffset]);
 
   const filtered = useMemo(() => {
     const now = new Date();
@@ -305,6 +308,44 @@ export const HomePage = () => {
         return sum + amountInDisplayCurrency;
       }, 0);
   }, [transactions, accountFilter, startOfPeriod, endOfPeriod, settings]);
+
+  const previousPeriodIncomeTotal = useMemo(() => {
+    if (!settings) return 0;
+    return transactions
+      .filter((tx) => {
+        if (tx.type !== 'income') return false;
+        if (accountFilter !== null && tx.accountId !== accountFilter) return false;
+        const txDate = new Date(tx.date + 'T00:00:00');
+        if (Number.isNaN(txDate.getTime())) return false;
+        return txDate >= startOfPreviousPeriod && txDate < endOfPreviousPeriod;
+      })
+      .reduce((sum, tx) => {
+        const amountInARS = convertToARS(tx.amount, tx.currency, settings.exchangeRates);
+        const amountInDisplayCurrency = settings.displayCurrency === 'ARS' 
+          ? amountInARS 
+          : amountInARS / (settings.exchangeRates[settings.displayCurrency]?.toARS ?? 1);
+        return sum + amountInDisplayCurrency;
+      }, 0);
+  }, [transactions, accountFilter, startOfPreviousPeriod, endOfPreviousPeriod, settings]);
+
+  const previousPeriodOutcomeTotal = useMemo(() => {
+    if (!settings) return 0;
+    return transactions
+      .filter((tx) => {
+        if (tx.type !== 'expense') return false;
+        if (accountFilter !== null && tx.accountId !== accountFilter) return false;
+        const txDate = new Date(tx.date + 'T00:00:00');
+        if (Number.isNaN(txDate.getTime())) return false;
+        return txDate >= startOfPreviousPeriod && txDate < endOfPreviousPeriod;
+      })
+      .reduce((sum, tx) => {
+        const amountInARS = convertToARS(tx.amount, tx.currency, settings.exchangeRates);
+        const amountInDisplayCurrency = settings.displayCurrency === 'ARS' 
+          ? amountInARS 
+          : amountInARS / (settings.exchangeRates[settings.displayCurrency]?.toARS ?? 1);
+        return sum + amountInDisplayCurrency;
+      }, 0);
+  }, [transactions, accountFilter, startOfPreviousPeriod, endOfPreviousPeriod, settings]);
 
   const pieChartData = useMemo(() => {
     return byCategory.map((x) => {
@@ -636,6 +677,8 @@ export const HomePage = () => {
                   <IncomeOutcomeComparison
                     income={periodIncomeTotal}
                     outcome={periodOutcomeTotal}
+                    previousIncome={previousPeriodIncomeTotal}
+                    previousOutcome={previousPeriodOutcomeTotal}
                     currency={settings?.displayCurrency ?? 'ARS'}
                     periodLabel={periodLabel}
                   />
