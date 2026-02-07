@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Button, Card, Grid, Group, Select, Stack, Text, Title } from '@mantine/core';
+import { Button, Card, Grid, Group, Select, Stack, Text, Title, ActionIcon } from '@mantine/core';
+import { IconEye, IconEyeOff } from '@tabler/icons-react';
 import { DashboardFilters } from '../components/DashboardFilters';
 import { DashboardCharts } from '../components/DashboardCharts';
 import { CategoryBreakdown } from '../components/CategoryBreakdown';
+import { CurrencySelector } from '../components/CurrencySelector';
 import { ActionToggle } from '../components/ActionToggle';
 import { IncomeOutcomeComparison } from '../components/IncomeOutcomeComparison';
 import { getAllAccounts } from '../stores/accountsStore';
@@ -32,6 +34,7 @@ export const HomePage = () => {
   const [accountFilter, setAccountFilter] = useState<number | null>(null);
   const [fetchingRates, setFetchingRates] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState<number>(0);
+  const [isBalanceHidden, setIsBalanceHidden] = useState(true);
 
   const isBalanceNegative = useMemo(() => {
     return totalDisplay.startsWith('-');
@@ -372,11 +375,74 @@ export const HomePage = () => {
     return formatPeriodLabel(timeWindow, startOfPeriod, endOfPeriod);
   }, [timeWindow, startOfPeriod, endOfPeriod]);
 
+  const timelineData = useMemo(() => {
+    if (timeWindow !== 'month') return [];
+    
+    const daysInMonth = new Date(
+      startOfPeriod.getFullYear(),
+      startOfPeriod.getMonth() + 1,
+      0
+    ).getDate();
+    
+    const dailyCounts = new Array(daysInMonth).fill(0);
+    
+    transactions.forEach((tx) => {
+      if (accountFilter !== null && tx.accountId !== accountFilter) return;
+      
+      const txDate = new Date(tx.date + 'T00:00:00');
+      if (Number.isNaN(txDate.getTime())) return;
+      
+      if (txDate >= startOfPeriod && txDate < endOfPeriod) {
+        const day = txDate.getDate();
+        if (day >= 1 && day <= daysInMonth) {
+          dailyCounts[day - 1]++;
+        }
+      }
+    });
+    
+    return dailyCounts.map((count, index) => ({
+      day: String(index + 1),
+      count
+    }));
+  }, [transactions, accountFilter, startOfPeriod, endOfPeriod, timeWindow]);
+
   const disableNext = rangeOffset === 0;
 
   const handlePrevPeriod = () => setRangeOffset((prev) => prev + 1);
   const handleNextPeriod = () => {
     if (!disableNext) setRangeOffset((prev) => prev - 1);
+  };
+
+  const handleCurrencyChange = async (currency: Currency) => {
+    if (!settings) return;
+    
+    const { updateSettings } = await import('../stores/settingsStore');
+    await updateSettings({ displayCurrency: currency });
+    const updatedSettings = await getSettings();
+    setSettings(updatedSettings || null);
+    
+    const total = computeTotal(
+      accounts,
+      transactions,
+      transfers,
+      updatedSettings?.exchangeRates || settings.exchangeRates,
+      currency,
+    );
+    setTotalDisplay(formatNumberToMonetary(total));
+
+    if (accountFilter !== null) {
+      const selectedAccount = accounts.find(acc => acc.id === accountFilter);
+      if (selectedAccount && updatedSettings) {
+        const accountBalance = computeAccountBalance(
+          selectedAccount,
+          transactions,
+          transfers,
+          updatedSettings.exchangeRates,
+          currency
+        );
+        setAccountBalanceDisplay(formatNumberToMonetary(accountBalance));
+      }
+    }
   };
 
   const handleFetchRates = async () => {
@@ -428,9 +494,18 @@ export const HomePage = () => {
               <Group justify="space-between" align="center" wrap="wrap">
                 <Group gap="xl">
                   <div>
-                    <Text size="sm" c="dimmed">Total Balance</Text>
+                    <Group gap="xs" align="center">
+                      <Text size="sm" c="dimmed">Total Balance</Text>
+                      <ActionIcon
+                        variant="subtle"
+                        size="sm"
+                        onClick={() => setIsBalanceHidden(!isBalanceHidden)}
+                      >
+                        {isBalanceHidden ? <IconEyeOff size={16} /> : <IconEye size={16} />}
+                      </ActionIcon>
+                    </Group>
                     <Text size="xl" fw={700} c={isBalanceNegative ? 'red' : undefined}>
-                      {totalDisplay} {settings?.displayCurrency ?? 'ARS'}
+                      {isBalanceHidden ? '••••••' : `${totalDisplay} ${settings?.displayCurrency ?? 'ARS'}`}
                     </Text>
                   </div>
                   
@@ -478,7 +553,7 @@ export const HomePage = () => {
                         <div>
                           <Text size="xs" c="dimmed">{selectedAccount.name}</Text>
                           <Text size="md" fw={600}>
-                            {accountBalanceDisplay} {settings?.displayCurrency ?? 'ARS'}
+                            {isBalanceHidden ? '••••••' : `${accountBalanceDisplay} ${settings?.displayCurrency ?? 'ARS'}`}
                           </Text>
                         </div>
                       </Group>
@@ -487,6 +562,12 @@ export const HomePage = () => {
                 </Group>
                 
                 <Group gap="sm">
+                  {settings && (
+                    <CurrencySelector 
+                      value={settings.displayCurrency} 
+                      onChange={handleCurrencyChange}
+                    />
+                  )}
                   <Button 
                     variant="light" 
                     size="xs"
@@ -520,6 +601,9 @@ export const HomePage = () => {
                     timeWindow={timeWindow}
                     timeSeriesData={timeSeriesData}
                     pieChartData={pieChartData}
+                    timelineData={timelineData}
+                    isBalanceHidden={isBalanceHidden}
+                    periodLabel={periodLabel}
                   />
                 </Stack>
               </Card>
@@ -529,7 +613,13 @@ export const HomePage = () => {
             <Card shadow="sm" padding="md" radius="md" withBorder style={{ flex: 1 }}>
               <Stack gap="md">
                 <Title order={4} size="h5">Category Breakdown</Title>
-                <CategoryBreakdown data={byCategory} total={totalAmount} />
+                {isBalanceHidden ? (
+                  <div style={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+                    <Title order={3} c="dimmed">••••••</Title>
+                  </div>
+                ) : (
+                  <CategoryBreakdown data={byCategory} total={totalAmount} />
+                )}
               </Stack>
             </Card>
           </Grid.Col>
@@ -538,12 +628,18 @@ export const HomePage = () => {
             <Card shadow="sm" padding="md" radius="md" withBorder>
               <Stack gap="md">
                 <Title order={4} size="h5">Income vs Outcome</Title>
-                <IncomeOutcomeComparison
-                  income={periodIncomeTotal}
-                  outcome={periodOutcomeTotal}
-                  currency={settings?.displayCurrency ?? 'ARS'}
-                  periodLabel={periodLabel}
-                />
+                {isBalanceHidden ? (
+                  <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+                    <Title order={3} c="dimmed">••••••</Title>
+                  </div>
+                ) : (
+                  <IncomeOutcomeComparison
+                    income={periodIncomeTotal}
+                    outcome={periodOutcomeTotal}
+                    currency={settings?.displayCurrency ?? 'ARS'}
+                    periodLabel={periodLabel}
+                  />
+                )}
               </Stack>
             </Card>
           </Grid.Col>
