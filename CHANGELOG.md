@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Currency selector widget in dashboard for quick switching between ARS and MEP display currencies
+- Transaction timeline chart showing daily transaction count for the current month
+- Balance hiding feature with eye icon toggle for visual privacy (resets on app reload)
+- Abbreviated number format (k/M) in Time Series and Category Pie charts for better readability
+- Period comparison in Income vs Outcome widget with percentage change indicators
+- Visual trend indicators (↑↓) showing if spending increased or decreased vs previous period
+- Centered layout for dashboard filters component
+
+### Changed
+- Dashboard charts now hide content when balance hiding is active, showing placeholder instead
+- Category Breakdown widget now takes full available vertical space before scrolling
+- Time Series and Category Pie chart heights optimized to prevent number clipping
+- Income vs Outcome widget shows "vs previous" comparison instead of confusing percentage of total
+- Transaction timeline chart only displays when viewing monthly data
+
+### Fixed
+- Fixed TypeScript issues by replacing `any` types with proper interfaces in chart tooltip components
+- Removed unused Group import in DashboardFilters component
+
 ## [1.6.0] - 2026-02-01
 
 ### Added
