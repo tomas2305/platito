@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-02-07
+
 ### Added
 - Currency selector widget in dashboard for quick switching between ARS and MEP display currencies
 - Transaction timeline chart showing daily transaction count for the current month
