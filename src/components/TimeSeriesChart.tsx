@@ -6,7 +6,12 @@ export interface TimeSeriesChartProps {
   data: Array<{ date: string; amount: number }>;
 }
 
-const CustomTimeSeriesTooltip = ({ active, payload }: any) => {
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: { date: string; amount: number } }>;
+}
+
+const CustomTimeSeriesTooltip = ({ active, payload }: TooltipProps) => {
   if (active && payload?.length) {
     const data = payload[0].payload;
     return (
@@ -32,12 +37,24 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
     return <p>No data</p>;
   }
 
+  const formatYAxis = (value: number) => {
+    if (value >= 1000000) {
+      const num = value / 1000000;
+      return `${num % 1 === 0 ? num.toFixed(0) : num.toFixed(1)}M`;
+    }
+    if (value >= 1000) {
+      const num = value / 1000;
+      return `${num % 1 === 0 ? num.toFixed(0) : num.toFixed(1)}K`;
+    }
+    return value.toString();
+  };
+
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" />
-        <YAxis />
+        <YAxis tickFormatter={formatYAxis} />
         <Tooltip content={<CustomTimeSeriesTooltip />} />
         <Legend />
         <Bar dataKey="amount" fill="#8884d8" />

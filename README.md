@@ -49,17 +49,27 @@ Una **Progressive Web App (PWA)** es una aplicación web que combina lo mejor de
 
 ### 1. 🏠 Dashboard (Inicio)
 
-El dashboard es tu centro de control financiero:
+El dashboard es tu centro de control financiero: 
 
-- **Resumen General**: Visualiza tus ingresos, gastos y balance total
+- **Resumen General**: 
+  - Visualiza balance total con opción de ocultarlo (protección visual)
+  - Selector rápido de moneda de visualización (ARS/MEP)
+  - Selección de cuenta específica para análisis focalizado
 - **Gráficos Interactivos**:
-  - **Gráfico de Pastel**: Distribución de gastos por categoría
-  - **Serie Temporal**: Evolución de tus finanzas a lo largo del tiempo
+  - **Gráfico de Barras (Time Series)**: Evolución de tus finanzas en los últimos períodos con valores abreviados (k/M)
+  - **Gráfico de Pastel**: Distribución de gastos por categoría con valores simplificados
+  - **Timeline de Transacciones**: Cantidad de transacciones registradas por día del mes
   - **Desglose por Categorías**: Detalle de gastos e ingresos por categoría
+  - **Income vs Outcome**: Comparación visual con indicadores de cambio vs período anterior
 - **Filtros Personalizables**:
-  - Filtra por ventana de tiempo (día, semana, mes, año)
-  - Navega entre diferentes períodos
+  - Filtra por tipo (ingresos/gastos)
+  - Ventana de tiempo (día, semana, mes, año) con navegación intuitiva
+  - Navega entre diferentes períodos con botones Prev/Next
   - Selecciona cuentas específicas o visualiza todas
+- **Análisis Comparativo**:
+  - Porcentaje de cambio vs período anterior
+  - Indicadores visuales de tendencia (↑↓)
+  - Balance neto del período
 
 ### 2. 💳 Cuentas
 
@@ -106,7 +116,16 @@ Añade contexto adicional a tus transacciones:
 - **Gestión Simple**: Crea, edita o elimina etiquetas según necesites
 - **Filtrado Mejorado**: Encuentra transacciones con etiquetas específicas
 
-### 6. ⚙️ Configuración
+### 6. 🔄 Transferencias
+
+Mueve dinero entre tus cuentas manteniendo el registro:
+
+- **Transferencias Entre Cuentas**: Registra movimientos de dinero entre tus cuentas
+- **Conversión de Moneda**: Maneja automáticamente transferencias entre diferentes monedas
+- **Historial Completo**: Visualiza todas las transferencias realizadas
+- **Balance Actualizado**: Las transferencias actualizan automáticamente el balance de ambas cuentas
+
+### 7. ⚙️ Configuración
 
 Personaliza la aplicación según tus necesidades:
 
@@ -181,11 +200,16 @@ Personaliza la aplicación según tus necesidades:
 
 ## 💡 Consejos y Trucos
 
+- **Ocultar Balance**: Usa el botón de ojo en el dashboard para proteger tu privacidad visual
+- **Selector Rápido de Moneda**: Cambia entre ARS y MEP sin ir a configuración
+- **Timeline de Transacciones**: Identifica patrones de gasto mirando qué días registras más movimientos
+- **Análisis Comparativo**: Observa los indicadores de tendencia (↑↓) para ver si gastas más o menos que antes
 - **Usa Etiquetas**: Perfectas para rastrear gastos de vacaciones, proyectos o eventos
 - **Múltiples Monedas**: Si manejas criptomonedas o moneda extranjera, crea cuentas separadas
 - **Categorías Específicas**: Mientras más detalladas, mejor análisis obtendrás
 - **Revisión Regular**: Dedica 5 minutos semanales a revisar tus finanzas
 - **Colores Consistentes**: Usa colores similares para categorías relacionadas
+- **Transferencias**: Usa la sección de transferencias en lugar de crear transacciones manuales cuando muevas dinero entre cuentas
 
 ---
 

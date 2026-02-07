@@ -24,7 +24,7 @@ export const DashboardFilters = ({
   disableNext,
 }: DashboardFiltersProps) => {
   return (
-    <Group gap="md" wrap="wrap" align="center">
+    <Group gap="md" wrap="wrap" align="center" justify="center">
       <div>
         <Text size="sm" fw={500} mb={4}>Type</Text>
         <SegmentedControl

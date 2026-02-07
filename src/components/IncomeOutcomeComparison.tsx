@@ -1,16 +1,29 @@
 import { Card, Group, Progress, Stack, Text } from '@mantine/core';
+import { IconTrendingUp, IconTrendingDown } from '@tabler/icons-react';
 import { formatNumberToMonetary } from '../utils/formatters';
 
 interface IncomeOutcomeComparisonProps {
   income: number;
   outcome: number;
+  previousIncome: number;
+  previousOutcome: number;
   currency: string;
   periodLabel: string;
 }
 
+const calculateChange = (current: number, previous: number): { percentage: number; isIncrease: boolean; isNoChange: boolean } => {
+  if (previous === 0) {
+    return { percentage: current > 0 ? 100 : 0, isIncrease: current > 0, isNoChange: current === 0 };
+  }
+  const change = ((current - previous) / previous) * 100;
+  return { percentage: Math.abs(change), isIncrease: change > 0, isNoChange: change === 0 };
+};
+
 export const IncomeOutcomeComparison = ({
   income,
   outcome,
+  previousIncome,
+  previousOutcome,
   currency,
   periodLabel,
 }: IncomeOutcomeComparisonProps) => {
@@ -19,6 +32,9 @@ export const IncomeOutcomeComparison = ({
   const outcomePercentage = total > 0 ? (outcome / total) * 100 : 50;
   const balance = income - outcome;
   const isPositive = balance >= 0;
+  
+  const incomeChange = calculateChange(income, previousIncome);
+  const outcomeChange = calculateChange(outcome, previousOutcome);
 
   return (
     <Stack gap="md">
@@ -48,7 +64,14 @@ export const IncomeOutcomeComparison = ({
             <Text size="lg" fw={600} c="teal">
               {formatNumberToMonetary(income)} {currency}
             </Text>
-            <Text size="xs" c="dimmed">{incomePercentage.toFixed(1)}% of total</Text>
+            {!incomeChange.isNoChange && (
+              <Group gap={2} style={{ color: incomeChange.isIncrease ? 'green' : 'red' }}>
+                {incomeChange.isIncrease ? <IconTrendingUp size={14} /> : <IconTrendingDown size={14} />}
+                <Text size="xs" fw={500}>
+                  {incomeChange.isIncrease ? '+' : '-'}{incomeChange.percentage.toFixed(1)}% vs previous
+                </Text>
+              </Group>
+            )}
           </Stack>
         </Card>
 
@@ -58,7 +81,14 @@ export const IncomeOutcomeComparison = ({
             <Text size="lg" fw={600} c="red">
               {formatNumberToMonetary(outcome)} {currency}
             </Text>
-            <Text size="xs" c="dimmed">{outcomePercentage.toFixed(1)}% of total</Text>
+            {!outcomeChange.isNoChange && (
+              <Group gap={2} style={{ color: outcomeChange.isIncrease ? 'red' : 'green' }}>
+                {outcomeChange.isIncrease ? <IconTrendingUp size={14} /> : <IconTrendingDown size={14} />}
+                <Text size="xs" fw={500}>
+                  {outcomeChange.isIncrease ? '+' : '-'}{outcomeChange.percentage.toFixed(1)}% vs previous
+                </Text>
+              </Group>
+            )}
           </Stack>
         </Card>
       </Group>
