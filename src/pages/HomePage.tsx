@@ -19,6 +19,38 @@ import { formatPeriodLabel } from '../utils/dateFormatters';
 import { getStartOfPeriod, getEndOfPeriod } from '../utils/periodHelpers';
 import type { Account, AppSettings, Category, Currency, ExchangeRates, Transaction, Transfer, TransactionType, TimeWindow } from '../types';
 
+// Helper function to calculate total for a specific type and period
+const calculatePeriodTotal = (
+  transactions: Transaction[],
+  type: TransactionType,
+  accountFilter: number | null,
+  startDate: Date,
+  endDate: Date,
+  settings: AppSettings | null,
+  includeNowCheck: boolean = false
+): number => {
+  if (!settings) return 0;
+  return transactions
+    .filter((tx) => {
+      if (tx.type !== type) return false;
+      if (accountFilter !== null && tx.accountId !== accountFilter) return false;
+      const txDate = new Date(tx.date + 'T00:00:00');
+      if (Number.isNaN(txDate.getTime())) return false;
+      if (includeNowCheck) {
+        const now = new Date();
+        if (txDate > now) return false;
+      }
+      return txDate >= startDate && txDate < endDate;
+    })
+    .reduce((sum, tx) => {
+      const amountInARS = convertToARS(tx.amount, tx.currency, settings.exchangeRates);
+      const amountInDisplayCurrency = settings.displayCurrency === 'ARS' 
+        ? amountInARS 
+        : amountInARS / (settings.exchangeRates[settings.displayCurrency]?.toARS ?? 1);
+      return sum + amountInDisplayCurrency;
+    }, 0);
+};
+
 export const HomePage = () => {
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -267,85 +299,25 @@ export const HomePage = () => {
 
   const totalAmount = useMemo(() => byCategory.reduce((sum, x) => sum + x.amount, 0), [byCategory]);
 
-  const periodIncomeTotal = useMemo(() => {
-    if (!settings) return 0;
-    return transactions
-      .filter((tx) => {
-        if (tx.type !== 'income') return false;
-        if (accountFilter !== null && tx.accountId !== accountFilter) return false;
-        const txDate = new Date(tx.date + 'T00:00:00');
-        if (Number.isNaN(txDate.getTime())) return false;
-        const now = new Date();
-        if (txDate > now) return false;
-        return txDate >= startOfPeriod && txDate < endOfPeriod;
-      })
-      .reduce((sum, tx) => {
-        const amountInARS = convertToARS(tx.amount, tx.currency, settings.exchangeRates);
-        const amountInDisplayCurrency = settings.displayCurrency === 'ARS' 
-          ? amountInARS 
-          : amountInARS / (settings.exchangeRates[settings.displayCurrency]?.toARS ?? 1);
-        return sum + amountInDisplayCurrency;
-      }, 0);
-  }, [transactions, accountFilter, startOfPeriod, endOfPeriod, settings]);
+  const periodIncomeTotal = useMemo(() => 
+    calculatePeriodTotal(transactions, 'income', accountFilter, startOfPeriod, endOfPeriod, settings, true),
+    [transactions, accountFilter, startOfPeriod, endOfPeriod, settings]
+  );
 
-  const periodOutcomeTotal = useMemo(() => {
-    if (!settings) return 0;
-    return transactions
-      .filter((tx) => {
-        if (tx.type !== 'expense') return false;
-        if (accountFilter !== null && tx.accountId !== accountFilter) return false;
-        const txDate = new Date(tx.date + 'T00:00:00');
-        if (Number.isNaN(txDate.getTime())) return false;
-        const now = new Date();
-        if (txDate > now) return false;
-        return txDate >= startOfPeriod && txDate < endOfPeriod;
-      })
-      .reduce((sum, tx) => {
-        const amountInARS = convertToARS(tx.amount, tx.currency, settings.exchangeRates);
-        const amountInDisplayCurrency = settings.displayCurrency === 'ARS' 
-          ? amountInARS 
-          : amountInARS / (settings.exchangeRates[settings.displayCurrency]?.toARS ?? 1);
-        return sum + amountInDisplayCurrency;
-      }, 0);
-  }, [transactions, accountFilter, startOfPeriod, endOfPeriod, settings]);
+  const periodOutcomeTotal = useMemo(() => 
+    calculatePeriodTotal(transactions, 'expense', accountFilter, startOfPeriod, endOfPeriod, settings, true),
+    [transactions, accountFilter, startOfPeriod, endOfPeriod, settings]
+  );
 
-  const previousPeriodIncomeTotal = useMemo(() => {
-    if (!settings) return 0;
-    return transactions
-      .filter((tx) => {
-        if (tx.type !== 'income') return false;
-        if (accountFilter !== null && tx.accountId !== accountFilter) return false;
-        const txDate = new Date(tx.date + 'T00:00:00');
-        if (Number.isNaN(txDate.getTime())) return false;
-        return txDate >= startOfPreviousPeriod && txDate < endOfPreviousPeriod;
-      })
-      .reduce((sum, tx) => {
-        const amountInARS = convertToARS(tx.amount, tx.currency, settings.exchangeRates);
-        const amountInDisplayCurrency = settings.displayCurrency === 'ARS' 
-          ? amountInARS 
-          : amountInARS / (settings.exchangeRates[settings.displayCurrency]?.toARS ?? 1);
-        return sum + amountInDisplayCurrency;
-      }, 0);
-  }, [transactions, accountFilter, startOfPreviousPeriod, endOfPreviousPeriod, settings]);
+  const previousPeriodIncomeTotal = useMemo(() => 
+    calculatePeriodTotal(transactions, 'income', accountFilter, startOfPreviousPeriod, endOfPreviousPeriod, settings, false),
+    [transactions, accountFilter, startOfPreviousPeriod, endOfPreviousPeriod, settings]
+  );
 
-  const previousPeriodOutcomeTotal = useMemo(() => {
-    if (!settings) return 0;
-    return transactions
-      .filter((tx) => {
-        if (tx.type !== 'expense') return false;
-        if (accountFilter !== null && tx.accountId !== accountFilter) return false;
-        const txDate = new Date(tx.date + 'T00:00:00');
-        if (Number.isNaN(txDate.getTime())) return false;
-        return txDate >= startOfPreviousPeriod && txDate < endOfPreviousPeriod;
-      })
-      .reduce((sum, tx) => {
-        const amountInARS = convertToARS(tx.amount, tx.currency, settings.exchangeRates);
-        const amountInDisplayCurrency = settings.displayCurrency === 'ARS' 
-          ? amountInARS 
-          : amountInARS / (settings.exchangeRates[settings.displayCurrency]?.toARS ?? 1);
-        return sum + amountInDisplayCurrency;
-      }, 0);
-  }, [transactions, accountFilter, startOfPreviousPeriod, endOfPreviousPeriod, settings]);
+  const previousPeriodOutcomeTotal = useMemo(() => 
+    calculatePeriodTotal(transactions, 'expense', accountFilter, startOfPreviousPeriod, endOfPreviousPeriod, settings, false),
+    [transactions, accountFilter, startOfPreviousPeriod, endOfPreviousPeriod, settings]
+  );
 
   const pieChartData = useMemo(() => {
     return byCategory.map((x) => {
