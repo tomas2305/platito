@@ -17,7 +17,11 @@ const formatAbbreviated = (value: number): string => {
   return value.toString();
 };
 
-const renderLabel = (entry: any) => {
+interface LabelEntry {
+  value: number;
+}
+
+const renderLabel = (entry: LabelEntry) => {
   return formatAbbreviated(entry.value);
 };
 

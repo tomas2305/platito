@@ -6,17 +6,12 @@ export interface TimeSeriesChartProps {
   data: Array<{ date: string; amount: number }>;
 }
 
-const formatAbbreviated = (value: number): string => {
-  if (value >= 1000000) {
-    return `${(value / 1000000).toFixed(1)}M`.replace('.0M', 'M');
-  }
-  if (value >= 1000) {
-    return `${(value / 1000).toFixed(1)}k`.replace('.0k', 'k');
-  }
-  return value.toString();
-};
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: { date: string; amount: number } }>;
+}
 
-const CustomTimeSeriesTooltip = ({ active, payload }: any) => {
+const CustomTimeSeriesTooltip = ({ active, payload }: TooltipProps) => {
   if (active && payload?.length) {
     const data = payload[0].payload;
     return (
@@ -47,7 +42,7 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
       <BarChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" />
-        <YAxis tickFormatter={formatAbbreviated} />
+        <YAxis />
         <Tooltip content={<CustomTimeSeriesTooltip />} />
         <Legend />
         <Bar dataKey="amount" fill="#8884d8" />
