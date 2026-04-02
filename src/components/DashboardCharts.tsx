@@ -45,7 +45,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
       </div>
     </div>
     <div>
-      <Title order={5} mb="md">Transaction Timeline (Daily){periodLabel ? ` - ${periodLabel}` : ''}</Title>
+      <Title order={5} mb="md">Transaction Timeline{periodLabel ? ` - ${periodLabel}` : ''}</Title>
       {isBalanceHidden ? (
         <div style={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
           <Title order={3} c="dimmed">••••••</Title>

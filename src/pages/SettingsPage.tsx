@@ -25,6 +25,7 @@ export const SettingsPage = () => {
   const [loading, setLoading] = useState(true);
   const [exchangeRates, setExchangeRates] = useState<ExchangeRates | null>(null);
   const [displayCurrency, setDisplayCurrency] = useState<Currency>('ARS');
+  const [targetSavingsRate, setTargetSavingsRate] = useState<string>('');
   const [errors, setErrors] = useState<string | null>(null);
   const [activeDb, setActiveDb] = useState<string>(getActiveDatabaseName());
   const [fetchingRates, setFetchingRates] = useState(false);
@@ -40,6 +41,7 @@ export const SettingsPage = () => {
       setSettings(settingsData || null);
       setExchangeRates(settingsData?.exchangeRates ?? null);
       setDisplayCurrency(settingsData?.displayCurrency ?? 'ARS');
+      setTargetSavingsRate(settingsData?.targetSavingsRate === undefined ? '' : String(settingsData.targetSavingsRate));
       setAccounts(accountsData);
       setLoading(false);
     };
@@ -91,6 +93,29 @@ export const SettingsPage = () => {
   const handleAutoUpdateIntervalChange = async (interval: AutoUpdateInterval) => {
     await updateSettings({ autoUpdateInterval: interval });
     setSettings(prev => prev ? { ...prev, autoUpdateInterval: interval } : null);
+  };
+
+  const handleTargetSavingsRateChange = (value: string) => {
+    setTargetSavingsRate(value);
+    setErrors(null);
+  };
+
+  const handleSaveTargetSavingsRate = async () => {
+    if (targetSavingsRate === '') {
+      await updateSettings({ targetSavingsRate: undefined });
+      setSettings(prev => prev ? { ...prev, targetSavingsRate: undefined } : null);
+      return;
+    }
+
+    const parsed = Number.parseFloat(targetSavingsRate);
+    if (Number.isNaN(parsed) || parsed < 0 || parsed > 100) {
+      setErrors('Target savings rate must be between 0 and 100');
+      return;
+    }
+
+    await updateSettings({ targetSavingsRate: parsed });
+    setSettings(prev => prev ? { ...prev, targetSavingsRate: parsed } : null);
+    setErrors(null);
   };
 
   const validateRates = (rates: ExchangeRates): string | null => {
@@ -155,6 +180,7 @@ export const SettingsPage = () => {
     setAccounts(accountsData);
     setExchangeRates(settingsData?.exchangeRates ?? null);
     setDisplayCurrency(settingsData?.displayCurrency ?? 'ARS');
+    setTargetSavingsRate(settingsData?.targetSavingsRate === undefined ? '' : String(settingsData.targetSavingsRate));
     setLoading(false);
   };
 
@@ -179,6 +205,7 @@ export const SettingsPage = () => {
     setAccounts(accountsData);
     setExchangeRates(settingsData?.exchangeRates ?? null);
     setDisplayCurrency(settingsData?.displayCurrency ?? 'ARS');
+    setTargetSavingsRate(settingsData?.targetSavingsRate === undefined ? '' : String(settingsData.targetSavingsRate));
     setLoading(false);
   };
 
@@ -276,6 +303,44 @@ export const SettingsPage = () => {
                 { value: '24h', label: 'Every 24 hours' },
               ]}
             />
+          </Stack>
+        </Stack>
+      </Card>
+
+      <Card shadow="xs" radius="md" padding="lg" withBorder>
+        <Stack gap="md">
+          <Title order={3}>Savings Goals</Title>
+          <Text size="sm" c="dimmed">
+            Set a target savings rate to track your savings progress. Leave empty to disable.
+          </Text>
+          <Stack gap="sm">
+            <TextInput
+              label="Target Savings Rate (%)"
+              placeholder="e.g., 20"
+              type="text"
+              inputMode="decimal"
+              value={targetSavingsRate}
+              onChange={(e) => handleTargetSavingsRateChange(e.target.value)}
+              description="Enter a percentage between 0 and 100"
+            />
+            <Group gap="xs">
+              <Button type="button" size="xs" variant="light" onClick={() => setTargetSavingsRate('10')}>
+                10%
+              </Button>
+              <Button type="button" size="xs" variant="light" onClick={() => setTargetSavingsRate('20')}>
+                20%
+              </Button>
+              <Button type="button" size="xs" variant="light" onClick={() => setTargetSavingsRate('30')}>
+                30%
+              </Button>
+              <Button type="button" size="xs" variant="light" onClick={() => setTargetSavingsRate('50')}>
+                50%
+              </Button>
+              <Button type="button" size="xs" variant="light" color="gray" onClick={() => setTargetSavingsRate('')}>
+                Clear
+              </Button>
+            </Group>
+            <Button type="button" onClick={handleSaveTargetSavingsRate}>Save Target</Button>
           </Stack>
         </Stack>
       </Card>

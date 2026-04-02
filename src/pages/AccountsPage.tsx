@@ -165,7 +165,8 @@ export const AccountsPage = () => {
                   <Text>
                     {formatNumberToMonetary(computeAccountBalance(acc))} {acc.currency}
                   </Text>
-                  <Group gap="xs" ml="auto">\n                    <Button size="xs" variant="light" onClick={() => handleEdit(acc)}>Edit</Button>
+                  <Group gap="xs" ml="auto">
+                    <Button size="xs" variant="light" onClick={() => handleEdit(acc)}>Edit</Button>
                     <Button size="xs" variant="light" color="yellow" onClick={() => acc.id && handleArchive(acc.id)}>
                       Archive
                     </Button>

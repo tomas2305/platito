@@ -36,6 +36,7 @@ const withDefaults = (settings: Partial<AppSettings>): AppSettings => ({
   autoUpdateInterval: settings.autoUpdateInterval ?? 'none',
   lastFxUpdate: settings.lastFxUpdate,
   fxUpdateCount: settings.fxUpdateCount ?? 0,
+  targetSavingsRate: settings.targetSavingsRate ?? 25,
 });
 
 const normalizeExchangeRates = (
@@ -77,6 +78,17 @@ const validateSettings = (settings: Partial<AppSettings>): void => {
       } else if (!isValidRate(rate, currency)) {
         throw new Error(`Invalid rate for ${currency}`);
       }
+    }
+  }
+
+  if (settings.targetSavingsRate !== undefined) {
+    if (
+      typeof settings.targetSavingsRate !== 'number' ||
+      !Number.isFinite(settings.targetSavingsRate) ||
+      settings.targetSavingsRate < 0 ||
+      settings.targetSavingsRate > 100
+    ) {
+      throw new Error('Target savings rate must be between 0 and 100');
     }
   }
 };
@@ -213,4 +225,23 @@ export const resetDatabase = async (): Promise<void> => {
     const { seedTestingData } = await import('../db/testingData');
     await seedTestingData();
   }
+};
+
+export const setTargetSavingsRate = async (rate: number | undefined): Promise<void> => {
+  if (rate !== undefined) {
+    if (
+      typeof rate !== 'number' ||
+      !Number.isFinite(rate) ||
+      rate < 0 ||
+      rate > 100
+    ) {
+      throw new Error('Target savings rate must be between 0 and 100');
+    }
+  }
+  await updateSettings({ targetSavingsRate: rate });
+};
+
+export const getTargetSavingsRate = async (): Promise<number | undefined> => {
+  const settings = await getSettings();
+  return settings?.targetSavingsRate;
 };

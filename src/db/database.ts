@@ -24,6 +24,7 @@ export class PlatitoDB extends Dexie {
     // v2: settings includes displayCurrency and exchangeRates
     // v3: categories include icon and isDefault
     // v4: color fields converted from hex to ColorName
+    // v5: accounts include isSavingsAccount field, settings include targetSavingsRate
     this.version(3).stores({
       accounts: '++id, name, currency, isArchived',
       categories: '++id, name, type, icon, isDefault',
@@ -58,6 +59,21 @@ export class PlatitoDB extends Dexie {
           }
         }),
       ]);
+    });
+
+    this.version(5).stores({
+      accounts: '++id, name, currency, isArchived, isSavingsAccount',
+      categories: '++id, name, type, icon, isDefault',
+      tags: '++id, name',
+      transactions: '++id, accountId, categoryId, type, date, *tagIds',
+      transfers: '++id, fromAccountId, toAccountId, date',
+      settings: '++id',
+    }).upgrade((tx) => {
+      return tx.table('accounts').toCollection().modify((account) => {
+        if (!('isSavingsAccount' in account)) {
+          account.isSavingsAccount = false;
+        }
+      });
     });
   }
 }

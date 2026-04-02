@@ -5,32 +5,45 @@
       "currency": "ARS",
       "initialBalance": 250000,
       "color": "red",
-      "icon": "wallet",
-      "isArchived": false
+      "icon": "IconWallet",
+      "isArchived": false,
+      "isSavingsAccount": false
     },
     {
       "name": "Credit Card",
       "currency": "ARS",
       "initialBalance": -5000,
       "color": "blue",
-      "icon": "credit-card",
-      "isArchived": false
+      "icon": "IconCreditCard",
+      "isArchived": false,
+      "isSavingsAccount": false
     },
     {
       "name": "USD Savings",
       "currency": "USD_BLUE",
-      "initialBalance": 2500,
+      "initialBalance": 500,
       "color": "green",
-      "icon": "pig-money",
-      "isArchived": false
+      "icon": "IconPig",
+      "isArchived": false,
+      "isSavingsAccount": true
     },
     {
       "name": "MEP Account",
       "currency": "USD_MEP",
       "initialBalance": 1800,
       "color": "cyan",
-      "icon": "coin",
-      "isArchived": false
+      "icon": "IconCoins",
+      "isArchived": false,
+      "isSavingsAccount": false
+    },
+    {
+      "name": "Emergency Fund",
+      "currency": "USDT",
+      "initialBalance": 0,
+      "color": "teal",
+      "icon": "IconTrendingUp",
+      "isArchived": false,
+      "isSavingsAccount": true
     }
   ],
   "tags": [
@@ -222,36 +235,423 @@
       "type": "income",
       "accountIndex": 0,
       "amount": 120000,
-      "description": "Monthly salary",
-      "daysAgo": 15,
+      "description": "February salary",
+      "daysAgo": 5,
       "tagNames": ["Income"]
+    },
+    {
+      "categoryName": "Rent",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 45000,
+      "description": "February rent",
+      "daysAgo": 3,
+      "tagNames": ["Rent", "Essentials"]
+    },
+    {
+      "categoryName": "Utilities",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 8500,
+      "description": "February electricity",
+      "daysAgo": 4,
+      "tagNames": ["Utilities", "Essentials"]
     },
     {
       "categoryName": "Salary",
       "type": "income",
-      "accountIndex": 2,
-      "amount": 850,
-      "description": "Salary bonus (USD)",
-      "daysAgo": 14,
+      "accountIndex": 0,
+      "amount": 115000,
+      "description": "January salary",
+      "daysAgo": 35,
       "tagNames": ["Income"]
     },
     {
       "categoryName": "Freelance",
       "type": "income",
       "accountIndex": 0,
-      "amount": 18500,
-      "description": "Web design project",
-      "daysAgo": 10,
+      "amount": 22000,
+      "description": "January freelance",
+      "daysAgo": 40,
       "tagNames": ["Work", "Income"]
+    },
+    {
+      "categoryName": "Rent",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 45000,
+      "description": "January rent",
+      "daysAgo": 33,
+      "tagNames": ["Rent", "Essentials"]
+    },
+    {
+      "categoryName": "Utilities",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 7800,
+      "description": "January utilities",
+      "daysAgo": 34,
+      "tagNames": ["Utilities", "Essentials"]
+    },
+    {
+      "categoryName": "Salary",
+      "type": "income",
+      "accountIndex": 0,
+      "amount": 118000,
+      "description": "December salary",
+      "daysAgo": 65,
+      "tagNames": ["Income"]
     },
     {
       "categoryName": "Freelance",
       "type": "income",
-      "accountIndex": 2,
-      "amount": 650,
-      "description": "Freelance writing",
-      "daysAgo": 22,
+      "accountIndex": 0,
+      "amount": 15000,
+      "description": "December freelance",
+      "daysAgo": 70,
       "tagNames": ["Work", "Income"]
+    },
+    {
+      "categoryName": "Rent",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 43000,
+      "description": "December rent",
+      "daysAgo": 63,
+      "tagNames": ["Rent", "Essentials"]
+    },
+    {
+      "categoryName": "Utilities",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 9200,
+      "description": "December utilities",
+      "daysAgo": 64,
+      "tagNames": ["Utilities", "Essentials"]
+    },
+    {
+      "categoryName": "Salary",
+      "type": "income",
+      "accountIndex": 0,
+      "amount": 112000,
+      "description": "November salary",
+      "daysAgo": 95,
+      "tagNames": ["Income"]
+    },
+    {
+      "categoryName": "Freelance",
+      "type": "income",
+      "accountIndex": 0,
+      "amount": 18000,
+      "description": "November freelance",
+      "daysAgo": 100,
+      "tagNames": ["Work", "Income"]
+    },
+    {
+      "categoryName": "Rent",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 42000,
+      "description": "November rent",
+      "daysAgo": 93,
+      "tagNames": ["Rent", "Essentials"]
+    },
+    {
+      "categoryName": "Utilities",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 7500,
+      "description": "November utilities",
+      "daysAgo": 94,
+      "tagNames": ["Utilities", "Essentials"]
+    },
+    {
+      "categoryName": "Salary",
+      "type": "income",
+      "accountIndex": 0,
+      "amount": 110000,
+      "description": "October salary",
+      "daysAgo": 125,
+      "tagNames": ["Income"]
+    },
+    {
+      "categoryName": "Freelance",
+      "type": "income",
+      "accountIndex": 0,
+      "amount": 16000,
+      "description": "October freelance",
+      "daysAgo": 130,
+      "tagNames": ["Work", "Income"]
+    },
+    {
+      "categoryName": "Rent",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 42000,
+      "description": "October rent",
+      "daysAgo": 123,
+      "tagNames": ["Rent", "Essentials"]
+    },
+    {
+      "categoryName": "Utilities",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 7200,
+      "description": "October utilities",
+      "daysAgo": 124,
+      "tagNames": ["Utilities", "Essentials"]
+    },
+    {
+      "categoryName": "Salary",
+      "type": "income",
+      "accountIndex": 0,
+      "amount": 108000,
+      "description": "September salary",
+      "daysAgo": 155,
+      "tagNames": ["Income"]
+    },
+    {
+      "categoryName": "Rent",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 40000,
+      "description": "September rent",
+      "daysAgo": 153,
+      "tagNames": ["Rent", "Essentials"]
+    },
+    {
+      "categoryName": "Utilities",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 7000,
+      "description": "September utilities",
+      "daysAgo": 154,
+      "tagNames": ["Utilities", "Essentials"]
+    },
+    {
+      "categoryName": "Home",
+      "type": "expense",
+      "accountIndex": 0,
+      "amount": 48000,
+      "description": "Home repairs",
+      "daysAgo": 156,
+      "tagNames": []
+    },
+    {
+      "categoryName": "Salary",
+      "type": "income",
+      "accountIndex": 0,
+      "amount": 105000,
+      "description": "August salary",
+      "daysAgo": 185,
+      "tagNames": ["Income"]
+    },
+    {
+      "categoryName": "Freelance",
+      "type": "income",
+      "accountIndex": 0,
+      "amount": 12000,
+      "description": "August freelance",
+      "daysAgo": 190,
+      "tagNames": ["Work", "Income"]
+    },
+    {
+      "categoryName": "Rent",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 40000,
+      "description": "August rent",
+      "daysAgo": 183,
+      "tagNames": ["Rent", "Essentials"]
+    },
+    {
+      "categoryName": "Utilities",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 6800,
+      "description": "August utilities",
+      "daysAgo": 184,
+      "tagNames": ["Utilities", "Essentials"]
+    },
+    {
+      "categoryName": "Salary",
+      "type": "income",
+      "accountIndex": 0,
+      "amount": 102000,
+      "description": "July salary",
+      "daysAgo": 215,
+      "tagNames": ["Income"]
+    },
+    {
+      "categoryName": "Rent",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 38000,
+      "description": "July rent",
+      "daysAgo": 213,
+      "tagNames": ["Rent", "Essentials"]
+    },
+    {
+      "categoryName": "Utilities",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 6500,
+      "description": "July utilities",
+      "daysAgo": 214,
+      "tagNames": ["Utilities", "Essentials"]
+    },
+    {
+      "categoryName": "Shopping",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 35000,
+      "description": "July vacation expenses",
+      "daysAgo": 216,
+      "tagNames": []
+    },
+    {
+      "categoryName": "Salary",
+      "type": "income",
+      "accountIndex": 0,
+      "amount": 100000,
+      "description": "June salary",
+      "daysAgo": 245,
+      "tagNames": ["Income"]
+    },
+    {
+      "categoryName": "Freelance",
+      "type": "income",
+      "accountIndex": 0,
+      "amount": 14000,
+      "description": "June freelance",
+      "daysAgo": 250,
+      "tagNames": ["Work", "Income"]
+    },
+    {
+      "categoryName": "Rent",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 38000,
+      "description": "June rent",
+      "daysAgo": 243,
+      "tagNames": ["Rent", "Essentials"]
+    },
+    {
+      "categoryName": "Utilities",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 6200,
+      "description": "June utilities",
+      "daysAgo": 244,
+      "tagNames": ["Utilities", "Essentials"]
+    },
+    {
+      "categoryName": "Salary",
+      "type": "income",
+      "accountIndex": 0,
+      "amount": 98000,
+      "description": "May salary",
+      "daysAgo": 275,
+      "tagNames": ["Income"]
+    },
+    {
+      "categoryName": "Rent",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 36000,
+      "description": "May rent",
+      "daysAgo": 273,
+      "tagNames": ["Rent", "Essentials"]
+    },
+    {
+      "categoryName": "Utilities",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 6000,
+      "description": "May utilities",
+      "daysAgo": 274,
+      "tagNames": ["Utilities", "Essentials"]
+    },
+    {
+      "categoryName": "Health",
+      "type": "expense",
+      "accountIndex": 0,
+      "amount": 42000,
+      "description": "Medical procedure",
+      "daysAgo": 276,
+      "tagNames": ["Health"]
+    },
+    {
+      "categoryName": "Salary",
+      "type": "income",
+      "accountIndex": 0,
+      "amount": 95000,
+      "description": "April salary",
+      "daysAgo": 305,
+      "tagNames": ["Income"]
+    },
+    {
+      "categoryName": "Freelance",
+      "type": "income",
+      "accountIndex": 0,
+      "amount": 10000,
+      "description": "April freelance",
+      "daysAgo": 310,
+      "tagNames": ["Work", "Income"]
+    },
+    {
+      "categoryName": "Rent",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 36000,
+      "description": "April rent",
+      "daysAgo": 303,
+      "tagNames": ["Rent", "Essentials"]
+    },
+    {
+      "categoryName": "Utilities",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 5800,
+      "description": "April utilities",
+      "daysAgo": 304,
+      "tagNames": ["Utilities", "Essentials"]
+    },
+    {
+      "categoryName": "Salary",
+      "type": "income",
+      "accountIndex": 0,
+      "amount": 92000,
+      "description": "March salary",
+      "daysAgo": 335,
+      "tagNames": ["Income"]
+    },
+    {
+      "categoryName": "Rent",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 35000,
+      "description": "March rent",
+      "daysAgo": 333,
+      "tagNames": ["Rent", "Essentials"]
+    },
+    {
+      "categoryName": "Utilities",
+      "type": "expense",
+      "accountIndex": 1,
+      "amount": 5500,
+      "description": "March utilities",
+      "daysAgo": 334,
+      "tagNames": ["Utilities", "Essentials"]
+    },
+    {
+      "categoryName": "Car",
+      "type": "expense",
+      "accountIndex": 0,
+      "amount": 38000,
+      "description": "Car maintenance",
+      "daysAgo": 336,
+      "tagNames": []
     },
     {
       "categoryName": "Investments",
