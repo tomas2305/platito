@@ -22,6 +22,7 @@ import { formatNumberToMonetary } from '../utils/formatters';
 import { formatPeriodLabel } from '../utils/dateFormatters';
 import { getStartOfPeriod, getEndOfPeriod } from '../utils/periodHelpers';
 import type { Account, AppSettings, Category, Currency, ExchangeRates, SavingsMetrics, Transaction, Transfer, TransactionType, TimeWindow } from '../types';
+import styles from './HomePage.module.css';
 
 // Helper function to calculate total for a specific type and period
 const calculatePeriodTotal = (
@@ -74,6 +75,7 @@ export const HomePage = () => {
   const [currentSavingsMetrics, setCurrentSavingsMetrics] = useState<SavingsMetrics | null>(null);
   const [previousSavingsMetrics, setPreviousSavingsMetrics] = useState<SavingsMetrics | null>(null);
   const [savingsTimelineData, setSavingsTimelineData] = useState<SavingsMetrics[]>([]);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const isBalanceNegative = useMemo(() => {
     return totalDisplay.startsWith('-');
@@ -281,6 +283,15 @@ const timelineData = await calculateLast12MonthsSavingsMetrics();
   }, [settings?.lastFxUpdate]);
 
   useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
     const recalculateSavingsMetrics = async () => {
       if (!settings) return;
       
@@ -385,7 +396,7 @@ const timelineData = await calculateLast12MonthsSavingsMetrics();
   }, [byCategory]);
 
   const timeSeriesData = useMemo(() => {
-    const NUM_PERIODS = 6;
+    const NUM_PERIODS = timeWindow === 'month' ? 12 : 6;
     const periods: { date: string; amount: number }[] = [];
     const now = new Date();
     now.setHours(0, 0, 0, 0);
@@ -650,31 +661,38 @@ const timelineData = await calculateLast12MonthsSavingsMetrics();
               </Group>
             </Card>
           </Grid.Col>
+        </Grid>
+      </div>
 
+      <div className={`${styles.stickyFiltersContainer} ${isScrolled ? styles.scrolled : ''}`}>
+        <DashboardFilters
+          typeFilter={typeFilter}
+          setTypeFilter={setTypeFilter}
+          timeWindow={timeWindow}
+          setTimeWindow={setTimeWindow}
+          periodLabel={periodLabel}
+          handlePrevPeriod={handlePrevPeriod}
+          handleNextPeriod={handleNextPeriod}
+          disableNext={disableNext}
+        />
+      </div>
+
+      <div style={{ padding: '12px' }}>
+        <Grid gutter="md">
           <Grid.Col span={{ base: 12, lg: 7 }} style={{ display: 'flex' }}>
             <Card shadow="sm" padding="md" radius="md" withBorder style={{ flex: 1 }}>
               <Stack gap="md">
                 <Title order={4} size="h5">Dashboard</Title>
-                  <DashboardFilters
-                    typeFilter={typeFilter}
-                    setTypeFilter={setTypeFilter}
-                    timeWindow={timeWindow}
-                    setTimeWindow={setTimeWindow}
-                    periodLabel={periodLabel}
-                    handlePrevPeriod={handlePrevPeriod}
-                    handleNextPeriod={handleNextPeriod}
-                    disableNext={disableNext}
-                  />
-                  <DashboardCharts
-                    timeWindow={timeWindow}
-                    timeSeriesData={timeSeriesData}
-                    pieChartData={pieChartData}
-                    timelineData={timelineData}
-                    isBalanceHidden={isBalanceHidden}
-                    periodLabel={periodLabel}
-                  />
-                </Stack>
-              </Card>
+                <DashboardCharts
+                  timeWindow={timeWindow}
+                  timeSeriesData={timeSeriesData}
+                  pieChartData={pieChartData}
+                  timelineData={timelineData}
+                  isBalanceHidden={isBalanceHidden}
+                  periodLabel={periodLabel}
+                />
+              </Stack>
+            </Card>
           </Grid.Col>
 
           <Grid.Col span={{ base: 12, lg: 5 }} style={{ display: 'flex' }}>

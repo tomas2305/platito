@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Global sticky header for dashboard filters that remains visible when scrolling through the entire page
+- Dashboard filters now positioned outside individual cards for page-wide accessibility
+- Smooth shadow transition effect when filters become sticky on scroll
+- Backdrop blur effect for sticky filters bar
+
+### Changed
+- Moved dashboard filters from inside Dashboard card to standalone sticky section
+- Filters now affect all dashboard sections (charts, category breakdown, income vs outcome)
+- Improved spacing and visual design of filter controls with larger padding
+- Enhanced label styling with dimmed color for better visual hierarchy
+
 ## [1.7.0] - 2026-02-07
 
 ### Added
