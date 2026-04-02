@@ -13,12 +13,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dashboard filters now positioned outside individual cards for page-wide accessibility
 - Smooth shadow transition effect when filters become sticky on scroll
 - Backdrop blur effect for sticky filters bar
+- Savings accounts support with dedicated account flag (`isSavingsAccount`)
+- Savings settings with configurable target savings rate in Settings page
+- Savings rate widget for selected period with target tracking and period-over-period trend
+- Budget usage widget with segmented bar for saved, spent, and available amounts
+- Savings timeline chart with 12-month history and target reference line
+- Savings metrics store for calculating income, expenses, transfers to savings, and budget usage
+- Testing dataset with savings-focused scenarios, including compliant and non-compliant target months
 
 ### Changed
 - Moved dashboard filters from inside Dashboard card to standalone sticky section
 - Filters now affect all dashboard sections (charts, category breakdown, income vs outcome)
 - Improved spacing and visual design of filter controls with larger padding
 - Enhanced label styling with dimmed color for better visual hierarchy
+- Home dashboard now recalculates savings widgets when period filters or navigation offset change
+- Savings timeline tooltip and points now use target-based visual states (green when met, yellow when not met)
+- Savings and budget widgets now show the referenced month explicitly
+
+### Fixed
+- Savings and budget widgets now stay synchronized with selected date filters instead of being locked to current month
+- Savings timeline tooltip now formats monetary amounts consistently
 
 ## [1.7.0] - 2026-02-07
 
