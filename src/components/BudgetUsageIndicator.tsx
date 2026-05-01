@@ -28,10 +28,15 @@ export const BudgetUsageIndicator = ({ metrics, currency }: BudgetUsageIndicator
   const [year, month] = period.split('-');
   const monthName = new Date(Number(year), Number(month) - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   
-  // Calculate percentages for each segment
-  const savedPercentage = income > 0 ? (totalSaved / income) * 100 : 0;
-  const expensesPercentage = income > 0 ? (expenses / income) * 100 : 0;
-  const availablePercentage = income > 0 ? Math.max(0, (availableBudget / income) * 100) : 0;
+  // Calculate percentages for each segment, capped so they never sum past 100
+  const rawSaved = income > 0 ? (totalSaved / income) * 100 : 0;
+  const rawExpenses = income > 0 ? (expenses / income) * 100 : 0;
+  const rawAvailable = income > 0 ? Math.max(0, (availableBudget / income) * 100) : 0;
+  const totalRaw = rawSaved + rawExpenses + rawAvailable;
+  const scale = totalRaw > 100 ? 100 / totalRaw : 1;
+  const savedPercentage = rawSaved * scale;
+  const expensesPercentage = rawExpenses * scale;
+  const availablePercentage = rawAvailable * scale;
 
   return (
     <Card padding="lg" radius="md" withBorder>

@@ -36,7 +36,7 @@ const withDefaults = (settings: Partial<AppSettings>): AppSettings => ({
   autoUpdateInterval: settings.autoUpdateInterval ?? 'none',
   lastFxUpdate: settings.lastFxUpdate,
   fxUpdateCount: settings.fxUpdateCount ?? 0,
-  targetSavingsRate: settings.targetSavingsRate ?? 25,
+  targetSavingsRate: settings.targetSavingsRate,
 });
 
 const normalizeExchangeRates = (

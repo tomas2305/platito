@@ -16,7 +16,7 @@ import { getAllTransactions } from '../stores/transactionsStore';
 import { getAllTransfers } from '../stores/transfersStore';
 import { AccountIcon } from '../components/AccountIcon';
 import { autoUpdateExchangeRates, fetchAndUpdateExchangeRates, getSettings, initializeSettings } from '../stores/settingsStore';
-import { calculateCurrentMonthSavingsMetrics, calculateSavingsMetrics, calculateLast12MonthsSavingsMetrics } from '../stores/savingsStore';
+import { calculateSavingsMetrics, calculateLast12MonthsSavingsMetrics } from '../stores/savingsStore';
 import { convertAmount, convertToARS } from '../utils/currency';
 import { formatNumberToMonetary } from '../utils/formatters';
 import { formatPeriodLabel } from '../utils/dateFormatters';
@@ -239,18 +239,6 @@ export const HomePage = () => {
         }
       }
 
-      const currentMetrics = await calculateCurrentMonthSavingsMetrics();
-      setCurrentSavingsMetrics(currentMetrics);
-      
-      const now = new Date();
-      const previousMonth = now.getMonth() === 0 ? 12 : now.getMonth();
-      const previousYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
-      const previousMetrics = await calculateSavingsMetrics(previousYear, previousMonth);
-      setPreviousSavingsMetrics(previousMetrics);
-const timelineData = await calculateLast12MonthsSavingsMetrics();
-      setSavingsTimelineData(timelineData);
-
-      
       setLoading(false);
     };
 

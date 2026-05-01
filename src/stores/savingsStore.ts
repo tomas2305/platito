@@ -1,33 +1,23 @@
 import { getDB } from '../db';
-import type { SavingsMetrics, Transfer, Transaction, ExchangeRates, Currency } from '../types';
+import type { SavingsMetrics, Transfer, Transaction, ExchangeRates, Currency, AppSettings } from '../types';
 import { getSavingsAccounts } from './accountsStore';
 import { getSettings } from './settingsStore';
 import { convertToARS } from '../utils/currency';
 
-export const getTransfersToSavingsAccounts = async (
+const filterTransfersToSavings = (
+  allTransfers: Transfer[],
+  savingsAccountIds: Set<number>,
   startDate: Date,
   endDate: Date
-): Promise<Transfer[]> => {
-  const db = getDB();
-  const savingsAccounts = await getSavingsAccounts();
-  const savingsAccountIds = new Set(savingsAccounts.map(acc => acc.id).filter((id): id is number => id !== undefined));
-  
-  if (savingsAccountIds.size === 0) {
-    return [];
-  }
-
-  const allTransfers = await db.transfers.toArray();
+): Transfer[] => {
+  if (savingsAccountIds.size === 0) return [];
   const startDateStr = startDate.toISOString().split('T')[0];
   const endDateStr = endDate.toISOString().split('T')[0];
-
-  return allTransfers.filter(transfer => {
-    const transferDate = transfer.date;
-    return (
-      transferDate >= startDateStr &&
-      transferDate < endDateStr &&
-      savingsAccountIds.has(transfer.toAccountId)
-    );
-  });
+  return allTransfers.filter(transfer =>
+    transfer.date >= startDateStr &&
+    transfer.date < endDateStr &&
+    savingsAccountIds.has(transfer.toAccountId)
+  );
 };
 
 const calculatePeriodTransactions = (
@@ -52,65 +42,53 @@ const calculatePeriodTransactions = (
     })
     .reduce((sum, tx) => {
       const amountInARS = convertToARS(tx.amount, tx.currency, exchangeRates);
-      const amountInDisplayCurrency = displayCurrency === 'ARS' 
-        ? amountInARS 
+      const amountInDisplayCurrency = displayCurrency === 'ARS'
+        ? amountInARS
         : amountInARS / (exchangeRates[displayCurrency]?.toARS ?? 1);
       return sum + amountInDisplayCurrency;
     }, 0);
 };
 
-export const calculateSavingsMetrics = async (
+const computeMetricsFromData = (
   year: number,
-  month: number
-): Promise<SavingsMetrics> => {
-  const settings = await getSettings();
-  if (!settings) {
-    throw new Error('Settings not initialized');
-  }
-
-  const db = getDB();
-  const transactions = await db.transactions.toArray();
-  
+  month: number,
+  transactions: Transaction[],
+  allTransfers: Transfer[],
+  savingsAccountIds: Set<number>,
+  settings: AppSettings
+): SavingsMetrics => {
   const startDate = new Date(year, month - 1, 1);
   const endDate = new Date(year, month, 1);
-  
-  const income = calculatePeriodTransactions(
-    transactions,
-    'income',
-    startDate,
-    endDate,
-    settings.exchangeRates,
-    settings.displayCurrency
-  );
 
+  const income = calculatePeriodTransactions(
+    transactions, 'income', startDate, endDate,
+    settings.exchangeRates, settings.displayCurrency
+  );
   const expenses = calculatePeriodTransactions(
-    transactions,
-    'expense',
-    startDate,
-    endDate,
-    settings.exchangeRates,
-    settings.displayCurrency
+    transactions, 'expense', startDate, endDate,
+    settings.exchangeRates, settings.displayCurrency
   );
 
   const netBalance = income - expenses;
-  
-  const transfersToSavings = await getTransfersToSavingsAccounts(startDate, endDate);
-  const transfersToSavingsAmount = transfersToSavings.reduce((sum, transfer) => {
+
+  const transfersInPeriod = filterTransfersToSavings(allTransfers, savingsAccountIds, startDate, endDate);
+  const transfersToSavingsAmount = transfersInPeriod.reduce((sum, transfer) => {
     const amountInARS = convertToARS(transfer.convertedAmount, 'ARS', settings.exchangeRates);
-    const amountInDisplayCurrency = settings.displayCurrency === 'ARS' 
-      ? amountInARS 
+    const amountInDisplayCurrency = settings.displayCurrency === 'ARS'
+      ? amountInARS
       : amountInARS / (settings.exchangeRates[settings.displayCurrency]?.toARS ?? 1);
     return sum + amountInDisplayCurrency;
   }, 0);
 
-  const netContribution = Math.max(0, netBalance);
-  const totalSaved = netContribution + transfersToSavingsAmount;
-  
+  // Transfers to savings are internal movements — they're already captured in netBalance.
+  // Adding them separately would double-count money from the same month's income.
+  const totalSaved = Math.max(0, netBalance);
+
   const savingsRate = income > 0 ? Math.min(100, (totalSaved / income) * 100) : 0;
-  
+
   const targetSavingsRate = settings.targetSavingsRate;
   const isTargetMet = targetSavingsRate === undefined || savingsRate >= targetSavingsRate;
-  
+
   const targetSavingsAmount = targetSavingsRate === undefined ? 0 : (income * targetSavingsRate / 100);
   const availableBudget = income - expenses - targetSavingsAmount;
   const budgetUsageRate = income > 0 ? ((expenses + targetSavingsAmount) / income) * 100 : 0;
@@ -132,18 +110,57 @@ export const calculateSavingsMetrics = async (
   };
 };
 
+const loadSharedData = async () => {
+  const settings = await getSettings();
+  if (!settings) throw new Error('Settings not initialized');
+
+  const db = getDB();
+  const [transactions, allTransfers, savingsAccounts] = await Promise.all([
+    db.transactions.toArray(),
+    db.transfers.toArray(),
+    getSavingsAccounts(),
+  ]);
+
+  const savingsAccountIds = new Set(
+    savingsAccounts.map(acc => acc.id).filter((id): id is number => id !== undefined)
+  );
+
+  return { settings, transactions, allTransfers, savingsAccountIds };
+};
+
+export const getTransfersToSavingsAccounts = async (
+  startDate: Date,
+  endDate: Date
+): Promise<Transfer[]> => {
+  const db = getDB();
+  const savingsAccounts = await getSavingsAccounts();
+  const savingsAccountIds = new Set(
+    savingsAccounts.map(acc => acc.id).filter((id): id is number => id !== undefined)
+  );
+  const allTransfers = await db.transfers.toArray();
+  return filterTransfersToSavings(allTransfers, savingsAccountIds, startDate, endDate);
+};
+
+export const calculateSavingsMetrics = async (
+  year: number,
+  month: number
+): Promise<SavingsMetrics> => {
+  const { settings, transactions, allTransfers, savingsAccountIds } = await loadSharedData();
+  return computeMetricsFromData(year, month, transactions, allTransfers, savingsAccountIds, settings);
+};
+
 export const calculateYearSavingsMetrics = async (
   year: number
 ): Promise<SavingsMetrics[]> => {
+  const { settings, transactions, allTransfers, savingsAccountIds } = await loadSharedData();
+
   const metrics: SavingsMetrics[] = [];
-  
   for (let month = 1; month <= 12; month++) {
-    const monthMetrics = await calculateSavingsMetrics(year, month);
+    const monthMetrics = computeMetricsFromData(year, month, transactions, allTransfers, savingsAccountIds, settings);
     if (monthMetrics.income > 0 || monthMetrics.expenses > 0 || monthMetrics.totalSaved > 0) {
       metrics.push(monthMetrics);
     }
   }
-  
   return metrics;
 };
 
@@ -156,17 +173,15 @@ export const calculateLast12MonthsSavingsMetrics = async (): Promise<SavingsMetr
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
-  
+
+  const { settings, transactions, allTransfers, savingsAccountIds } = await loadSharedData();
+
   const metrics: SavingsMetrics[] = [];
-  
   for (let i = 11; i >= 0; i--) {
     const date = new Date(currentYear, currentMonth - 1 - i, 1);
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
-    
-    const monthMetrics = await calculateSavingsMetrics(year, month);
-    metrics.push(monthMetrics);
+    metrics.push(computeMetricsFromData(year, month, transactions, allTransfers, savingsAccountIds, settings));
   }
-  
   return metrics;
 };

@@ -13,6 +13,19 @@ interface TooltipProps {
   payload?: Array<{ payload: SavingsMetrics }>;
 }
 
+interface SavingsDotProps {
+  cx: number;
+  cy: number;
+  payload: SavingsMetrics & { monthLabel: string };
+}
+
+const SavingsDot = ({ cx, cy, payload }: SavingsDotProps) => {
+  const color = payload.isTargetMet ? '#12b886' : '#fab005';
+  return <circle cx={cx} cy={cy} r={4} fill={color} stroke={color} strokeWidth={1} />;
+};
+
+const renderSavingsDot = (dotProps: unknown) => <SavingsDot {...(dotProps as SavingsDotProps)} />;
+
 const CustomSavingsTooltip = ({ active, payload }: TooltipProps) => {
   if (active && payload?.length) {
     const data = payload[0].payload;
@@ -94,20 +107,7 @@ export const SavingsTimelineChart: React.FC<SavingsTimelineChartProps> = ({ data
           stroke="#12b886" 
           strokeWidth={2}
           name="Savings Rate (%)" 
-          dot={(props: any) => {
-            const { cx, cy, payload } = props;
-            const color = payload.isTargetMet ? '#12b886' : '#fab005';
-            return (
-              <circle 
-                cx={cx} 
-                cy={cy} 
-                r={4} 
-                fill={color} 
-                stroke={color}
-                strokeWidth={1}
-              />
-            );
-          }}
+          dot={renderSavingsDot}
           activeDot={{ r: 6 }}
         />
       </LineChart>
