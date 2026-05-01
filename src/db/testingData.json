@@ -47,16 +47,36 @@
     }
   ],
   "tags": [
-    { "name": "Groceries" },
-    { "name": "Essentials" },
-    { "name": "Dining" },
-    { "name": "Rent" },
-    { "name": "Income" },
-    { "name": "Utilities" },
-    { "name": "Transport" },
-    { "name": "Entertainment" },
-    { "name": "Health" },
-    { "name": "Work" }
+    {
+      "name": "Groceries"
+    },
+    {
+      "name": "Essentials"
+    },
+    {
+      "name": "Dining"
+    },
+    {
+      "name": "Rent"
+    },
+    {
+      "name": "Income"
+    },
+    {
+      "name": "Utilities"
+    },
+    {
+      "name": "Transport"
+    },
+    {
+      "name": "Entertainment"
+    },
+    {
+      "name": "Health"
+    },
+    {
+      "name": "Work"
+    }
   ],
   "transactions": [
     {
@@ -66,7 +86,10 @@
       "amount": 4500,
       "description": "Supermarket weekly shop",
       "daysAgo": 2,
-      "tagNames": ["Groceries", "Essentials"]
+      "tagNames": [
+        "Groceries",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Fuel",
@@ -75,7 +98,10 @@
       "amount": 3200,
       "description": "Gas station",
       "daysAgo": 3,
-      "tagNames": ["Transport", "Essentials"]
+      "tagNames": [
+        "Transport",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Restaurants",
@@ -84,7 +110,9 @@
       "amount": 2800,
       "description": "Lunch with colleagues",
       "daysAgo": 1,
-      "tagNames": ["Dining"]
+      "tagNames": [
+        "Dining"
+      ]
     },
     {
       "categoryName": "Restaurants",
@@ -93,7 +121,9 @@
       "amount": 1950,
       "description": "Coffee and pastry",
       "daysAgo": 0,
-      "tagNames": ["Dining"]
+      "tagNames": [
+        "Dining"
+      ]
     },
     {
       "categoryName": "Utilities",
@@ -102,7 +132,10 @@
       "amount": 8500,
       "description": "Electricity bill",
       "daysAgo": 5,
-      "tagNames": ["Utilities", "Essentials"]
+      "tagNames": [
+        "Utilities",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Internet",
@@ -111,7 +144,9 @@
       "amount": 2500,
       "description": "Internet subscription",
       "daysAgo": 7,
-      "tagNames": ["Utilities"]
+      "tagNames": [
+        "Utilities"
+      ]
     },
     {
       "categoryName": "Entertainment",
@@ -120,7 +155,9 @@
       "amount": 1500,
       "description": "Movie tickets",
       "daysAgo": 4,
-      "tagNames": ["Entertainment"]
+      "tagNames": [
+        "Entertainment"
+      ]
     },
     {
       "categoryName": "Shopping",
@@ -138,7 +175,9 @@
       "amount": 3500,
       "description": "Pharmacy",
       "daysAgo": 3,
-      "tagNames": ["Health"]
+      "tagNames": [
+        "Health"
+      ]
     },
     {
       "categoryName": "Personal Care",
@@ -156,7 +195,9 @@
       "amount": 2100,
       "description": "Uber rides",
       "daysAgo": 2,
-      "tagNames": ["Transport"]
+      "tagNames": [
+        "Transport"
+      ]
     },
     {
       "categoryName": "Rent",
@@ -165,7 +206,10 @@
       "amount": 45000,
       "description": "Monthly rent",
       "daysAgo": 12,
-      "tagNames": ["Rent", "Essentials"]
+      "tagNames": [
+        "Rent",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Education",
@@ -174,7 +218,9 @@
       "amount": 5000,
       "description": "Online course",
       "daysAgo": 15,
-      "tagNames": ["Work"]
+      "tagNames": [
+        "Work"
+      ]
     },
     {
       "categoryName": "Misc",
@@ -192,7 +238,9 @@
       "amount": 2400,
       "description": "Office supplies",
       "daysAgo": 11,
-      "tagNames": ["Work"]
+      "tagNames": [
+        "Work"
+      ]
     },
     {
       "categoryName": "Phone",
@@ -201,7 +249,9 @@
       "amount": 1800,
       "description": "Mobile bill",
       "daysAgo": 10,
-      "tagNames": ["Utilities"]
+      "tagNames": [
+        "Utilities"
+      ]
     },
     {
       "categoryName": "Home",
@@ -237,7 +287,9 @@
       "amount": 120000,
       "description": "February salary",
       "daysAgo": 5,
-      "tagNames": ["Income"]
+      "tagNames": [
+        "Income"
+      ]
     },
     {
       "categoryName": "Rent",
@@ -246,7 +298,10 @@
       "amount": 45000,
       "description": "February rent",
       "daysAgo": 3,
-      "tagNames": ["Rent", "Essentials"]
+      "tagNames": [
+        "Rent",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Utilities",
@@ -255,7 +310,10 @@
       "amount": 8500,
       "description": "February electricity",
       "daysAgo": 4,
-      "tagNames": ["Utilities", "Essentials"]
+      "tagNames": [
+        "Utilities",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Salary",
@@ -264,7 +322,9 @@
       "amount": 115000,
       "description": "January salary",
       "daysAgo": 35,
-      "tagNames": ["Income"]
+      "tagNames": [
+        "Income"
+      ]
     },
     {
       "categoryName": "Freelance",
@@ -273,7 +333,10 @@
       "amount": 22000,
       "description": "January freelance",
       "daysAgo": 40,
-      "tagNames": ["Work", "Income"]
+      "tagNames": [
+        "Work",
+        "Income"
+      ]
     },
     {
       "categoryName": "Rent",
@@ -282,7 +345,10 @@
       "amount": 45000,
       "description": "January rent",
       "daysAgo": 33,
-      "tagNames": ["Rent", "Essentials"]
+      "tagNames": [
+        "Rent",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Utilities",
@@ -291,7 +357,10 @@
       "amount": 7800,
       "description": "January utilities",
       "daysAgo": 34,
-      "tagNames": ["Utilities", "Essentials"]
+      "tagNames": [
+        "Utilities",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Salary",
@@ -300,7 +369,9 @@
       "amount": 118000,
       "description": "December salary",
       "daysAgo": 65,
-      "tagNames": ["Income"]
+      "tagNames": [
+        "Income"
+      ]
     },
     {
       "categoryName": "Freelance",
@@ -309,7 +380,10 @@
       "amount": 15000,
       "description": "December freelance",
       "daysAgo": 70,
-      "tagNames": ["Work", "Income"]
+      "tagNames": [
+        "Work",
+        "Income"
+      ]
     },
     {
       "categoryName": "Rent",
@@ -318,7 +392,10 @@
       "amount": 43000,
       "description": "December rent",
       "daysAgo": 63,
-      "tagNames": ["Rent", "Essentials"]
+      "tagNames": [
+        "Rent",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Utilities",
@@ -327,7 +404,10 @@
       "amount": 9200,
       "description": "December utilities",
       "daysAgo": 64,
-      "tagNames": ["Utilities", "Essentials"]
+      "tagNames": [
+        "Utilities",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Salary",
@@ -336,7 +416,9 @@
       "amount": 112000,
       "description": "November salary",
       "daysAgo": 95,
-      "tagNames": ["Income"]
+      "tagNames": [
+        "Income"
+      ]
     },
     {
       "categoryName": "Freelance",
@@ -345,7 +427,10 @@
       "amount": 18000,
       "description": "November freelance",
       "daysAgo": 100,
-      "tagNames": ["Work", "Income"]
+      "tagNames": [
+        "Work",
+        "Income"
+      ]
     },
     {
       "categoryName": "Rent",
@@ -354,7 +439,10 @@
       "amount": 42000,
       "description": "November rent",
       "daysAgo": 93,
-      "tagNames": ["Rent", "Essentials"]
+      "tagNames": [
+        "Rent",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Utilities",
@@ -363,7 +451,10 @@
       "amount": 7500,
       "description": "November utilities",
       "daysAgo": 94,
-      "tagNames": ["Utilities", "Essentials"]
+      "tagNames": [
+        "Utilities",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Salary",
@@ -372,7 +463,9 @@
       "amount": 110000,
       "description": "October salary",
       "daysAgo": 125,
-      "tagNames": ["Income"]
+      "tagNames": [
+        "Income"
+      ]
     },
     {
       "categoryName": "Freelance",
@@ -381,7 +474,10 @@
       "amount": 16000,
       "description": "October freelance",
       "daysAgo": 130,
-      "tagNames": ["Work", "Income"]
+      "tagNames": [
+        "Work",
+        "Income"
+      ]
     },
     {
       "categoryName": "Rent",
@@ -390,7 +486,10 @@
       "amount": 42000,
       "description": "October rent",
       "daysAgo": 123,
-      "tagNames": ["Rent", "Essentials"]
+      "tagNames": [
+        "Rent",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Utilities",
@@ -399,7 +498,10 @@
       "amount": 7200,
       "description": "October utilities",
       "daysAgo": 124,
-      "tagNames": ["Utilities", "Essentials"]
+      "tagNames": [
+        "Utilities",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Salary",
@@ -408,7 +510,9 @@
       "amount": 108000,
       "description": "September salary",
       "daysAgo": 155,
-      "tagNames": ["Income"]
+      "tagNames": [
+        "Income"
+      ]
     },
     {
       "categoryName": "Rent",
@@ -417,7 +521,10 @@
       "amount": 40000,
       "description": "September rent",
       "daysAgo": 153,
-      "tagNames": ["Rent", "Essentials"]
+      "tagNames": [
+        "Rent",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Utilities",
@@ -426,7 +533,10 @@
       "amount": 7000,
       "description": "September utilities",
       "daysAgo": 154,
-      "tagNames": ["Utilities", "Essentials"]
+      "tagNames": [
+        "Utilities",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Home",
@@ -444,7 +554,9 @@
       "amount": 105000,
       "description": "August salary",
       "daysAgo": 185,
-      "tagNames": ["Income"]
+      "tagNames": [
+        "Income"
+      ]
     },
     {
       "categoryName": "Freelance",
@@ -453,7 +565,10 @@
       "amount": 12000,
       "description": "August freelance",
       "daysAgo": 190,
-      "tagNames": ["Work", "Income"]
+      "tagNames": [
+        "Work",
+        "Income"
+      ]
     },
     {
       "categoryName": "Rent",
@@ -462,7 +577,10 @@
       "amount": 40000,
       "description": "August rent",
       "daysAgo": 183,
-      "tagNames": ["Rent", "Essentials"]
+      "tagNames": [
+        "Rent",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Utilities",
@@ -471,7 +589,10 @@
       "amount": 6800,
       "description": "August utilities",
       "daysAgo": 184,
-      "tagNames": ["Utilities", "Essentials"]
+      "tagNames": [
+        "Utilities",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Salary",
@@ -480,7 +601,9 @@
       "amount": 102000,
       "description": "July salary",
       "daysAgo": 215,
-      "tagNames": ["Income"]
+      "tagNames": [
+        "Income"
+      ]
     },
     {
       "categoryName": "Rent",
@@ -489,7 +612,10 @@
       "amount": 38000,
       "description": "July rent",
       "daysAgo": 213,
-      "tagNames": ["Rent", "Essentials"]
+      "tagNames": [
+        "Rent",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Utilities",
@@ -498,7 +624,10 @@
       "amount": 6500,
       "description": "July utilities",
       "daysAgo": 214,
-      "tagNames": ["Utilities", "Essentials"]
+      "tagNames": [
+        "Utilities",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Shopping",
@@ -516,7 +645,9 @@
       "amount": 100000,
       "description": "June salary",
       "daysAgo": 245,
-      "tagNames": ["Income"]
+      "tagNames": [
+        "Income"
+      ]
     },
     {
       "categoryName": "Freelance",
@@ -525,7 +656,10 @@
       "amount": 14000,
       "description": "June freelance",
       "daysAgo": 250,
-      "tagNames": ["Work", "Income"]
+      "tagNames": [
+        "Work",
+        "Income"
+      ]
     },
     {
       "categoryName": "Rent",
@@ -534,7 +668,10 @@
       "amount": 38000,
       "description": "June rent",
       "daysAgo": 243,
-      "tagNames": ["Rent", "Essentials"]
+      "tagNames": [
+        "Rent",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Utilities",
@@ -543,7 +680,10 @@
       "amount": 6200,
       "description": "June utilities",
       "daysAgo": 244,
-      "tagNames": ["Utilities", "Essentials"]
+      "tagNames": [
+        "Utilities",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Salary",
@@ -552,7 +692,9 @@
       "amount": 98000,
       "description": "May salary",
       "daysAgo": 275,
-      "tagNames": ["Income"]
+      "tagNames": [
+        "Income"
+      ]
     },
     {
       "categoryName": "Rent",
@@ -561,7 +703,10 @@
       "amount": 36000,
       "description": "May rent",
       "daysAgo": 273,
-      "tagNames": ["Rent", "Essentials"]
+      "tagNames": [
+        "Rent",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Utilities",
@@ -570,7 +715,10 @@
       "amount": 6000,
       "description": "May utilities",
       "daysAgo": 274,
-      "tagNames": ["Utilities", "Essentials"]
+      "tagNames": [
+        "Utilities",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Health",
@@ -579,7 +727,9 @@
       "amount": 42000,
       "description": "Medical procedure",
       "daysAgo": 276,
-      "tagNames": ["Health"]
+      "tagNames": [
+        "Health"
+      ]
     },
     {
       "categoryName": "Salary",
@@ -588,7 +738,9 @@
       "amount": 95000,
       "description": "April salary",
       "daysAgo": 305,
-      "tagNames": ["Income"]
+      "tagNames": [
+        "Income"
+      ]
     },
     {
       "categoryName": "Freelance",
@@ -597,7 +749,10 @@
       "amount": 10000,
       "description": "April freelance",
       "daysAgo": 310,
-      "tagNames": ["Work", "Income"]
+      "tagNames": [
+        "Work",
+        "Income"
+      ]
     },
     {
       "categoryName": "Rent",
@@ -606,7 +761,10 @@
       "amount": 36000,
       "description": "April rent",
       "daysAgo": 303,
-      "tagNames": ["Rent", "Essentials"]
+      "tagNames": [
+        "Rent",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Utilities",
@@ -615,7 +773,10 @@
       "amount": 5800,
       "description": "April utilities",
       "daysAgo": 304,
-      "tagNames": ["Utilities", "Essentials"]
+      "tagNames": [
+        "Utilities",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Salary",
@@ -624,7 +785,9 @@
       "amount": 92000,
       "description": "March salary",
       "daysAgo": 335,
-      "tagNames": ["Income"]
+      "tagNames": [
+        "Income"
+      ]
     },
     {
       "categoryName": "Rent",
@@ -633,7 +796,10 @@
       "amount": 35000,
       "description": "March rent",
       "daysAgo": 333,
-      "tagNames": ["Rent", "Essentials"]
+      "tagNames": [
+        "Rent",
+        "Essentials"
+      ]
     },
     {
       "categoryName": "Utilities",
@@ -642,10 +808,13 @@
       "amount": 5500,
       "description": "March utilities",
       "daysAgo": 334,
-      "tagNames": ["Utilities", "Essentials"]
+      "tagNames": [
+        "Utilities",
+        "Essentials"
+      ]
     },
     {
-      "categoryName": "Car",
+      "categoryName": "Transport",
       "type": "expense",
       "accountIndex": 0,
       "amount": 38000,
@@ -660,7 +829,9 @@
       "amount": 2300,
       "description": "Dividend payment",
       "daysAgo": 5,
-      "tagNames": ["Income"]
+      "tagNames": [
+        "Income"
+      ]
     },
     {
       "categoryName": "Reimbursements",
@@ -669,7 +840,9 @@
       "amount": 5600,
       "description": "Travel reimbursement",
       "daysAgo": 8,
-      "tagNames": ["Income"]
+      "tagNames": [
+        "Income"
+      ]
     },
     {
       "categoryName": "Misc Income",
@@ -687,7 +860,9 @@
       "amount": 45,
       "description": "USD snacks",
       "daysAgo": 1,
-      "tagNames": ["Groceries"]
+      "tagNames": [
+        "Groceries"
+      ]
     },
     {
       "categoryName": "Restaurants",
@@ -696,7 +871,9 @@
       "amount": 32,
       "description": "Dinner USD",
       "daysAgo": 4,
-      "tagNames": ["Dining"]
+      "tagNames": [
+        "Dining"
+      ]
     },
     {
       "categoryName": "Transport",
@@ -705,7 +882,9 @@
       "amount": 18,
       "description": "Cab ride",
       "daysAgo": 7,
-      "tagNames": ["Transport"]
+      "tagNames": [
+        "Transport"
+      ]
     },
     {
       "categoryName": "Entertainment",
@@ -714,7 +893,9 @@
       "amount": 2500,
       "description": "Concert tickets",
       "daysAgo": 16,
-      "tagNames": ["Entertainment"]
+      "tagNames": [
+        "Entertainment"
+      ]
     }
   ]
 }
