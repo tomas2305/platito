@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Button, Group, Modal, Select, Stack, Text, TextInput, Title } from '@mantine/core';
+import { Button, Checkbox, Group, Modal, Select, Stack, Text, TextInput, Title } from '@mantine/core';
 import type { Account, Currency } from '../types';
 import { SUPPORTED_CURRENCIES } from '../utils/currency';
 import { COLOR_PALETTE, type ColorName } from '../utils/colors';
@@ -32,6 +32,7 @@ export const AccountForm = ({ account, opened, onClose, onSubmit }: AccountFormP
   const [initialBalance, setInitialBalance] = useState('');
   const [color, setColor] = useState<ColorName>('green');
   const [icon, setIcon] = useState('IconCash');
+  const [isSavingsAccount, setIsSavingsAccount] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -41,12 +42,14 @@ export const AccountForm = ({ account, opened, onClose, onSubmit }: AccountFormP
       setInitialBalance(formatNumberToMonetary(account.initialBalance));
       setColor(account.color);
       setIcon(account.icon);
+      setIsSavingsAccount(account.isSavingsAccount ?? false);
     } else {
       setName('');
       setCurrency('ARS');
       setInitialBalance('');
       setColor('green');
       setIcon('IconCash');
+      setIsSavingsAccount(false);
     }
   }, [account, opened]);
 
@@ -64,6 +67,7 @@ export const AccountForm = ({ account, opened, onClose, onSubmit }: AccountFormP
         name,
         currency,
         initialBalance: parseMonetaryValue(initialBalance),
+        isSavingsAccount,
         color,
         icon,
         isArchived: account?.isArchived ?? false,
@@ -163,6 +167,14 @@ export const AccountForm = ({ account, opened, onClose, onSubmit }: AccountFormP
               ))}
             </Group>
           </div>
+
+          <Checkbox
+            label="Mark as Savings Account"
+            description="Transfers to this account will count toward your savings rate"
+            checked={isSavingsAccount}
+            onChange={(e) => setIsSavingsAccount(e.currentTarget.checked)}
+            disabled={loading}
+          />
 
           <Group justify="flex-end" gap="sm" mt="md">
             <Button variant="subtle" onClick={onClose} disabled={loading}>

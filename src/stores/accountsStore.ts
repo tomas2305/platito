@@ -52,3 +52,23 @@ export const getAccountById = async (
   const db = getDB();
   return db.accounts.get(id);
 };
+
+export const setSavingsAccount = async (
+  id: number,
+  isSavings: boolean
+): Promise<void> => {
+  const db = getDB();
+  await db.accounts.update(id, { isSavingsAccount: isSavings });
+};
+
+export const getSavingsAccounts = async (): Promise<Account[]> => {
+  const db = getDB();
+  return db.accounts.filter(account => account.isSavingsAccount === true).toArray();
+};
+
+export const getActiveSavingsAccounts = async (): Promise<Account[]> => {
+  const db = getDB();
+  return db.accounts
+    .filter(account => account.isSavingsAccount === true && account.isArchived === false)
+    .toArray();
+};

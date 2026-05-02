@@ -1,5 +1,5 @@
 import React from 'react';
-import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar } from 'recharts';
+import { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line } from 'recharts';
 import { formatNumberToMonetary } from '../utils/formatters';
 
 export interface TimeSeriesChartProps {
@@ -24,7 +24,7 @@ const CustomTimeSeriesTooltip = ({ active, payload }: TooltipProps) => {
       }}>
         <p style={{ margin: 0, fontWeight: 'bold', fontSize: '14px', color: '#000' }}>{data.date}</p>
         <p style={{ margin: '6px 0 0 0', color: '#8884d8', fontSize: '14px' }}>
-          amount: {formatNumberToMonetary(data.amount)}
+          Amount: {formatNumberToMonetary(data.amount)}
         </p>
       </div>
     );
@@ -51,14 +51,14 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
 
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={data}>
+      <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" />
         <YAxis tickFormatter={formatYAxis} />
         <Tooltip content={<CustomTimeSeriesTooltip />} />
         <Legend />
-        <Bar dataKey="amount" fill="#8884d8" />
-      </BarChart>
+        <Line type="monotone" dataKey="amount" stroke="#8884d8" name="Amount" />
+      </LineChart>
     </ResponsiveContainer>
   );
 };
