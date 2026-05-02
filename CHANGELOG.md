@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-05-01
+
 ### Added
 - Global sticky header for dashboard filters that remains visible when scrolling through the entire page
 - Dashboard filters now positioned outside individual cards for page-wide accessibility
