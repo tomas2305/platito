@@ -18,6 +18,7 @@ export interface Account {
   color: ColorName;
   icon: string;
   isArchived: boolean;
+  isSavingsAccount?: boolean;
 }
 
 export interface Category {
@@ -68,4 +69,19 @@ export interface AppSettings {
   autoUpdateInterval: AutoUpdateInterval;
   lastFxUpdate?: string;
   fxUpdateCount: number;
+  targetSavingsRate?: number;
+}
+
+export interface SavingsMetrics {
+  period: string;
+  income: number;
+  expenses: number;
+  netBalance: number;
+  transfersToSavings: number;
+  totalSaved: number;
+  savingsRate: number;
+  targetSavingsRate?: number;
+  isTargetMet: boolean;
+  availableBudget: number;
+  budgetUsageRate: number;
 }

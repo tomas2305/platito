@@ -1,0 +1,30 @@
+.pageContainer {
+  min-height: 100vh;
+}
+
+.stickyFiltersContainer {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: box-shadow 0.2s ease;
+}
+
+/* Add shadow when scrolling */
+@supports (animation-timeline: scroll()) {
+  .stickyFiltersContainer {
+    animation: sticky-shadow linear;
+    animation-timeline: scroll();
+    animation-range: 0 100px;
+  }
+}
+
+@keyframes sticky-shadow {
+  to {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* Fallback for browsers that don't support animation-timeline */
+.stickyFiltersContainer.scrolled {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}

@@ -7,17 +7,22 @@ import { CategoryBreakdown } from '../components/CategoryBreakdown';
 import { CurrencySelector } from '../components/CurrencySelector';
 import { ActionToggle } from '../components/ActionToggle';
 import { IncomeOutcomeComparison } from '../components/IncomeOutcomeComparison';
+import { SavingsRateWidget } from '../components/SavingsRateWidget';
+import { BudgetUsageIndicator } from '../components/BudgetUsageIndicator';
+import { SavingsTimelineChart } from '../components/SavingsTimelineChart';
 import { getAllAccounts } from '../stores/accountsStore';
 import { getAllCategories } from '../stores/categoriesStore';
 import { getAllTransactions } from '../stores/transactionsStore';
 import { getAllTransfers } from '../stores/transfersStore';
 import { AccountIcon } from '../components/AccountIcon';
 import { autoUpdateExchangeRates, fetchAndUpdateExchangeRates, getSettings, initializeSettings } from '../stores/settingsStore';
+import { calculateSavingsMetrics, calculateLast12MonthsSavingsMetrics } from '../stores/savingsStore';
 import { convertAmount, convertToARS } from '../utils/currency';
 import { formatNumberToMonetary } from '../utils/formatters';
 import { formatPeriodLabel } from '../utils/dateFormatters';
 import { getStartOfPeriod, getEndOfPeriod } from '../utils/periodHelpers';
-import type { Account, AppSettings, Category, Currency, ExchangeRates, Transaction, Transfer, TransactionType, TimeWindow } from '../types';
+import type { Account, AppSettings, Category, Currency, ExchangeRates, SavingsMetrics, Transaction, Transfer, TransactionType, TimeWindow } from '../types';
+import styles from './HomePage.module.css';
 
 // Helper function to calculate total for a specific type and period
 const calculatePeriodTotal = (
@@ -67,6 +72,10 @@ export const HomePage = () => {
   const [fetchingRates, setFetchingRates] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState<number>(0);
   const [isBalanceHidden, setIsBalanceHidden] = useState(true);
+  const [currentSavingsMetrics, setCurrentSavingsMetrics] = useState<SavingsMetrics | null>(null);
+  const [previousSavingsMetrics, setPreviousSavingsMetrics] = useState<SavingsMetrics | null>(null);
+  const [savingsTimelineData, setSavingsTimelineData] = useState<SavingsMetrics[]>([]);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const isBalanceNegative = useMemo(() => {
     return totalDisplay.startsWith('-');
@@ -261,6 +270,51 @@ export const HomePage = () => {
     return () => clearInterval(interval);
   }, [settings?.lastFxUpdate]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const recalculateSavingsMetrics = async () => {
+      if (!settings) return;
+      
+      // Only calculate savings metrics for month/year views
+      if (timeWindow !== 'month' && timeWindow !== 'year') {
+        setCurrentSavingsMetrics(null);
+        setPreviousSavingsMetrics(null);
+        return;
+      }
+
+      // Get period dates
+      const currentPeriodStart = getStartOfPeriod(timeWindow, rangeOffset);
+      const previousPeriodStart = getStartOfPeriod(timeWindow, rangeOffset + 1);
+
+      // Get year and month from the current filtered period
+      const periodYear = currentPeriodStart.getFullYear();
+      const periodMonth = currentPeriodStart.getMonth() + 1; // getMonth() returns 0-11
+      
+      const currentMetrics = await calculateSavingsMetrics(periodYear, periodMonth);
+      setCurrentSavingsMetrics(currentMetrics);
+      
+      // Get year and month from the previous period
+      const prevPeriodYear = previousPeriodStart.getFullYear();
+      const prevPeriodMonth = previousPeriodStart.getMonth() + 1;
+      
+      const previousMetrics = await calculateSavingsMetrics(prevPeriodYear, prevPeriodMonth);
+      setPreviousSavingsMetrics(previousMetrics);
+
+      const timelineData = await calculateLast12MonthsSavingsMetrics();
+      setSavingsTimelineData(timelineData);
+    };
+
+    recalculateSavingsMetrics();
+  }, [settings, transactions, transfers, accounts, timeWindow, rangeOffset]);
+
   const startOfPeriod = useMemo(() => getStartOfPeriod(timeWindow, rangeOffset), [timeWindow, rangeOffset]);
   const endOfPeriod = useMemo(() => getEndOfPeriod(timeWindow, rangeOffset), [timeWindow, rangeOffset]);
   
@@ -330,7 +384,7 @@ export const HomePage = () => {
   }, [byCategory]);
 
   const timeSeriesData = useMemo(() => {
-    const NUM_PERIODS = 6;
+    const NUM_PERIODS = timeWindow === 'month' ? 12 : 6;
     const periods: { date: string; amount: number }[] = [];
     const now = new Date();
     now.setHours(0, 0, 0, 0);
@@ -595,31 +649,38 @@ export const HomePage = () => {
               </Group>
             </Card>
           </Grid.Col>
+        </Grid>
+      </div>
 
+      <div className={`${styles.stickyFiltersContainer} ${isScrolled ? styles.scrolled : ''}`}>
+        <DashboardFilters
+          typeFilter={typeFilter}
+          setTypeFilter={setTypeFilter}
+          timeWindow={timeWindow}
+          setTimeWindow={setTimeWindow}
+          periodLabel={periodLabel}
+          handlePrevPeriod={handlePrevPeriod}
+          handleNextPeriod={handleNextPeriod}
+          disableNext={disableNext}
+        />
+      </div>
+
+      <div style={{ padding: '12px' }}>
+        <Grid gutter="md">
           <Grid.Col span={{ base: 12, lg: 7 }} style={{ display: 'flex' }}>
             <Card shadow="sm" padding="md" radius="md" withBorder style={{ flex: 1 }}>
               <Stack gap="md">
                 <Title order={4} size="h5">Dashboard</Title>
-                  <DashboardFilters
-                    typeFilter={typeFilter}
-                    setTypeFilter={setTypeFilter}
-                    timeWindow={timeWindow}
-                    setTimeWindow={setTimeWindow}
-                    periodLabel={periodLabel}
-                    handlePrevPeriod={handlePrevPeriod}
-                    handleNextPeriod={handleNextPeriod}
-                    disableNext={disableNext}
-                  />
-                  <DashboardCharts
-                    timeWindow={timeWindow}
-                    timeSeriesData={timeSeriesData}
-                    pieChartData={pieChartData}
-                    timelineData={timelineData}
-                    isBalanceHidden={isBalanceHidden}
-                    periodLabel={periodLabel}
-                  />
-                </Stack>
-              </Card>
+                <DashboardCharts
+                  timeWindow={timeWindow}
+                  timeSeriesData={timeSeriesData}
+                  pieChartData={pieChartData}
+                  timelineData={timelineData}
+                  isBalanceHidden={isBalanceHidden}
+                  periodLabel={periodLabel}
+                />
+              </Stack>
+            </Card>
           </Grid.Col>
 
           <Grid.Col span={{ base: 12, lg: 5 }} style={{ display: 'flex' }}>
@@ -658,6 +719,44 @@ export const HomePage = () => {
               </Stack>
             </Card>
           </Grid.Col>
+
+          {currentSavingsMetrics && !isBalanceHidden && (
+            <>
+              <Grid.Col span={12}>
+                <Card shadow="sm" padding="md" radius="md" withBorder>
+                  <Stack gap="md">
+                    <Group justify="space-between" align="center">
+                      <Title order={4} size="h5">Savings Rate Timeline</Title>
+                      {currentSavingsMetrics.targetSavingsRate !== undefined && (
+                        <Text size="sm" c="dimmed">
+                          Target: {currentSavingsMetrics.targetSavingsRate}%
+                        </Text>
+                      )}
+                    </Group>
+                    <SavingsTimelineChart 
+                      data={savingsTimelineData} 
+                      targetRate={settings?.targetSavingsRate}
+                    />
+                  </Stack>
+                </Card>
+              </Grid.Col>
+
+              <Grid.Col span={{ base: 12, lg: 6 }}>
+                <SavingsRateWidget
+                  metrics={currentSavingsMetrics}
+                  previousMetrics={previousSavingsMetrics ?? undefined}
+                  currency={settings?.displayCurrency ?? 'ARS'}
+                />
+              </Grid.Col>
+
+              <Grid.Col span={{ base: 12, lg: 6 }}>
+                <BudgetUsageIndicator
+                  metrics={currentSavingsMetrics}
+                  currency={settings?.displayCurrency ?? 'ARS'}
+                />
+              </Grid.Col>
+            </>
+          )}
         </Grid>
       </div>
     </div>
