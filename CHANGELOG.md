@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-05-26
+
+### Added
+- Bulk import page for loading multiple transactions and transfers at once via a structured JSON payload
+- AI-assisted import prompt that embeds the user's current accounts, categories and tags so an AI agent can generate correctly referenced IDs
+- Real-time JSON validation panel showing record counts, affected accounts, field errors, and duplicate warnings before committing the import
+- Automated release workflow using GitHub Actions: triggers from `develop`, creates a versioned release branch, bumps `package.json`, updates `CHANGELOG.md`, opens a PR to `main`, and auto-merges when checks pass
+- Automated post-merge workflow that creates a GitHub Release with notes extracted from `CHANGELOG.md` and opens a backport PR to `develop`
+
 ## [1.8.0] - 2026-05-01
 
 ### Added
