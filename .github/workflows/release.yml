@@ -15,6 +15,8 @@ permissions:
 jobs:
   create-release:
     runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ inputs.version }}
 
     steps:
       - uses: actions/checkout@v4
@@ -33,37 +35,36 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Create release branch
-        run: git checkout -b release/${{ inputs.version }}
+        run: git checkout -b release/$VERSION
 
       - name: Bump version in package.json
-        run: npm version ${{ inputs.version }} --no-git-tag-version
+        run: npm version $VERSION --no-git-tag-version
 
       - name: Update CHANGELOG.md
-        env:
-          VERSION: ${{ inputs.version }}
         run: node .github/scripts/update-changelog.js
 
       - name: Commit and push
         run: |
           git add package.json package-lock.json CHANGELOG.md
-          git commit -m "chore: release ${{ inputs.version }}"
-          git push origin release/${{ inputs.version }}
+          git commit -m "chore: release $VERSION"
+          git push origin release/$VERSION
 
       - name: Create PR to main
         id: pr
         run: |
           URL=$(gh pr create \
             --base main \
-            --head release/${{ inputs.version }} \
-            --title "release: ${{ inputs.version }}" \
-            --body "Automated release PR for v${{ inputs.version }}. See [CHANGELOG.md](CHANGELOG.md) for details.")
+            --head release/$VERSION \
+            --title "release: $VERSION" \
+            --body "Automated release PR for v$VERSION. See [CHANGELOG.md](CHANGELOG.md) for details.")
           echo "url=$URL" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Enable auto-merge
-        run: |
-          gh pr merge release/${{ inputs.version }} --auto --merge \
-            || echo "::warning::Auto-merge unavailable — enable it in repo Settings → Pull Requests, or merge ${{ steps.pr.outputs.url }} manually."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ steps.pr.outputs.url }}
+        run: |
+          gh pr merge release/$VERSION --auto --merge \
+            || echo "::warning::Auto-merge unavailable — enable it in repo Settings → Pull Requests, or merge $PR_URL manually."

@@ -18,9 +18,9 @@ jobs:
     steps:
       - name: Extract version
         id: meta
-        run: |
-          BRANCH="${{ github.event.pull_request.head.ref }}"
-          echo "version=${BRANCH#release/}" >> $GITHUB_OUTPUT
+        env:
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: echo "version=${BRANCH#release/}" >> $GITHUB_OUTPUT
 
       - uses: actions/checkout@v4
         with:
@@ -32,15 +32,18 @@ jobs:
           node-version: '20'
 
       - name: Extract release notes
-        run: node .github/scripts/extract-release-notes.js ${{ steps.meta.outputs.version }} > /tmp/release-notes.txt
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: node .github/scripts/extract-release-notes.js "$VERSION" > /tmp/release-notes.txt
 
       - name: Create GitHub Release
-        run: |
-          gh release create "${{ steps.meta.outputs.version }}" \
-            --title "v${{ steps.meta.outputs.version }}" \
-            --notes-file /tmp/release-notes.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          gh release create "$VERSION" \
+            --title "v$VERSION" \
+            --notes-file /tmp/release-notes.txt
 
       - name: Configure git
         run: |
@@ -49,8 +52,9 @@ jobs:
 
       - name: Create backport branch and merge
         id: backport
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
         run: |
-          VERSION="${{ steps.meta.outputs.version }}"
           git fetch origin develop
           git checkout -b backport/$VERSION origin/develop
 
@@ -64,25 +68,30 @@ jobs:
 
       - name: Push backport branch
         if: steps.backport.outputs.merged == 'true'
-        run: git push origin backport/${{ steps.meta.outputs.version }}
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: git push origin backport/$VERSION
 
       - name: Create backport PR
         if: steps.backport.outputs.merged == 'true'
         id: backport-pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.meta.outputs.version }}
         run: |
           URL=$(gh pr create \
             --base develop \
-            --head backport/${{ steps.meta.outputs.version }} \
-            --title "chore: backport ${{ steps.meta.outputs.version }} to develop" \
-            --body "Automated backport of release ${{ steps.meta.outputs.version }} to develop.")
+            --head backport/$VERSION \
+            --title "chore: backport $VERSION to develop" \
+            --body "Automated backport of release $VERSION to develop.")
           echo "url=$URL" >> $GITHUB_OUTPUT
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Enable auto-merge on backport
         if: steps.backport.outputs.merged == 'true'
-        run: |
-          gh pr merge backport/${{ steps.meta.outputs.version }} --auto --merge \
-            || echo "::warning::Auto-merge unavailable — merge ${{ steps.backport-pr.outputs.url }} manually."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          PR_URL: ${{ steps.backport-pr.outputs.url }}
+        run: |
+          gh pr merge backport/$VERSION --auto --merge \
+            || echo "::warning::Auto-merge unavailable — merge $PR_URL manually."
