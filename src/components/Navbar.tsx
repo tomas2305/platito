@@ -9,6 +9,7 @@ import {
   IconSettings,
   IconArrowsExchange,
   IconBrandGithub,
+  IconTableImport,
 } from '@tabler/icons-react';
 import { Stack, UnstyledButton } from '@mantine/core';
 import classes from './Navbar.module.css';
@@ -41,6 +42,7 @@ const navigationLinks = [
   { icon: IconWallet, label: 'Accounts', path: '/accounts' },
   { icon: IconFolder, label: 'Categories', path: '/categories' },
   { icon: IconTag, label: 'Tags', path: '/tags' },
+  { icon: IconTableImport, label: 'Import', path: '/bulk-import' },
   { icon: IconSettings, label: 'Settings', path: '/settings' },
 ];
 

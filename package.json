@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource-variable/manrope": "^5.2.8",
     "@mantine/carousel": "^8.3.9",
     "@mantine/core": "^8.3.9",
     "@mantine/dates": "^8.3.9",

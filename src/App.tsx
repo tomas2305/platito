@@ -8,6 +8,7 @@ import { CategoriesPage } from './pages/CategoriesPage';
 import { TagsPage } from './pages/TagsPage';
 import { TransactionsPage } from './pages/TransactionsPage';
 import { TransfersPage } from './pages/TransfersPage';
+import { BulkImportPage } from './pages/BulkImportPage';
 import { initializeSettings } from './stores/settingsStore';
 import { ensureDefaultCategories } from './stores/categoriesStore';
 import './App.css';
@@ -31,6 +32,7 @@ function App() {
             <Route path="/tags" element={<TagsPage />} />
             <Route path="/transactions" element={<TransactionsPage />} />
             <Route path="/transfers" element={<TransfersPage />} />
+            <Route path="/bulk-import" element={<BulkImportPage />} />
           </Routes>
         </main>
       </div>
