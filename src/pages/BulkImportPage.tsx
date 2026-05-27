@@ -29,7 +29,7 @@ interface BulkTransaction {
   categoryId: number;
   type: 'expense' | 'income';
   amount: number;
-  currency: string;
+  currency: 'ARS' | 'USD_BLUE' | 'USD_MEP' | 'USDT';
   date: string;
   description: string;
   tagIds?: number[];
