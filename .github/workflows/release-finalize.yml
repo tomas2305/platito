@@ -1,0 +1,88 @@
+name: Finalize Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  finalize:
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Extract version
+        id: meta
+        run: |
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          echo "version=${BRANCH#release/}" >> $GITHUB_OUTPUT
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Extract release notes
+        run: node .github/scripts/extract-release-notes.js ${{ steps.meta.outputs.version }} > /tmp/release-notes.txt
+
+      - name: Create GitHub Release
+        run: |
+          gh release create "${{ steps.meta.outputs.version }}" \
+            --title "v${{ steps.meta.outputs.version }}" \
+            --notes-file /tmp/release-notes.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create backport branch and merge
+        id: backport
+        run: |
+          VERSION="${{ steps.meta.outputs.version }}"
+          git fetch origin develop
+          git checkout -b backport/$VERSION origin/develop
+
+          if git merge --no-edit origin/release/$VERSION; then
+            echo "merged=true" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::Merge conflict on backport/$VERSION — resolve it manually."
+            git merge --abort
+            echo "merged=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Push backport branch
+        if: steps.backport.outputs.merged == 'true'
+        run: git push origin backport/${{ steps.meta.outputs.version }}
+
+      - name: Create backport PR
+        if: steps.backport.outputs.merged == 'true'
+        id: backport-pr
+        run: |
+          URL=$(gh pr create \
+            --base develop \
+            --head backport/${{ steps.meta.outputs.version }} \
+            --title "chore: backport ${{ steps.meta.outputs.version }} to develop" \
+            --body "Automated backport of release ${{ steps.meta.outputs.version }} to develop.")
+          echo "url=$URL" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable auto-merge on backport
+        if: steps.backport.outputs.merged == 'true'
+        run: |
+          gh pr merge backport/${{ steps.meta.outputs.version }} --auto --merge \
+            || echo "::warning::Auto-merge unavailable — merge ${{ steps.backport-pr.outputs.url }} manually."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
