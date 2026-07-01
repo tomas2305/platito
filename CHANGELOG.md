@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-07-01
+
+### Added
+- Essential baseline widget showing average monthly essential spending (1y, 6m, or all-time), with category breakdown and percent of income
+- Category-level `isEssential` flag and per-transaction essential override for classifying spending as essential vs. discretionary
+- Runway widget estimating months of financial runway based on conservative and current-habits spending scenarios
+
 ## [1.9.0] - 2026-05-26
 
 ### Added
@@ -217,7 +224,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - React Router for navigation
 - Recharts for data visualization
 
-[Unreleased]: https://github.com/tomas2305/platito/compare/1.3.1...HEAD
+[Unreleased]: https://github.com/tomas2305/platito/compare/1.10.0...HEAD
+[1.10.0]: https://github.com/tomas2305/platito/compare/1.9.0...1.10.0
 [1.3.1]: https://github.com/tomas2305/platito/compare/1.3.0...1.3.1
 [1.3.0]: https://github.com/tomas2305/platito/compare/1.2.0...1.3.0
 [1.2.0]: https://github.com/tomas2305/platito/compare/1.1.1...1.2.0

@@ -28,6 +28,7 @@ export interface Category {
   color: ColorName;
   icon: string;
   isDefault?: boolean;
+  isEssential?: boolean;
 }
 
 export interface Tag {
@@ -45,6 +46,7 @@ export interface Transaction {
   date: string;
   description: string;
   tagIds: number[];
+  essentialOverride?: boolean;
 }
 
 export interface Transfer {
@@ -84,4 +86,34 @@ export interface SavingsMetrics {
   isTargetMet: boolean;
   availableBudget: number;
   budgetUsageRate: number;
+}
+
+export type BaselinePeriod = '1y' | '6m' | 'ever';
+
+export interface CategoryContribution {
+  categoryId: number;
+  categoryName: string;
+  categoryColor: ColorName;
+  monthlyAverage: number;
+}
+
+export interface EssentialBaselineMetrics {
+  period: BaselinePeriod;
+  monthsIncluded: number;
+  isLowSample: boolean;
+  monthlyAverage: number;
+  monthlyMedian: number;
+  stdDev: number;
+  min: number;
+  max: number;
+  categoryBreakdown: CategoryContribution[];
+  avgMonthlyIncome: number;
+  percentOfIncome: number;
+  totalMonthlyAverage: number;
+}
+
+export interface RunwayMetrics {
+  totalBalance: number;
+  conservativeRunwayMonths: number | null;
+  currentHabitsRunwayMonths: number | null;
 }
