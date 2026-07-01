@@ -1,5 +1,5 @@
 // Usage: node extract-release-notes.js <version>
-const fs = require('fs');
+import fs from 'node:fs';
 
 const version = process.argv[2];
 if (!version) {
