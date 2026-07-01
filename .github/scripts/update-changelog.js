@@ -1,5 +1,5 @@
 // Usage: VERSION=1.9.0 node update-changelog.js
-const fs = require('fs');
+import fs from 'node:fs';
 
 const version = process.env.VERSION;
 const date = new Date().toISOString().split('T')[0];
