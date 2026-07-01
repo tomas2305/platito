@@ -22,7 +22,7 @@ import { CircularSelector } from './CircularSelector';
 import { EssentialOverrideControl } from './EssentialOverrideControl';
 import type { Account, Category, Tag, Transaction, TransactionType } from '../types';
 import { formatMonetaryValue, parseMonetaryValue } from '../utils/formatters';
-import { essentialOverrideToOption, optionToEssentialOverride } from '../utils/essentialOverride';
+import { essentialOverrideToOption, optionToEssentialOverride, type EssentialOverrideOption } from '../utils/essentialOverride';
 
 interface FormState {
   id?: number;

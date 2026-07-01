@@ -29,7 +29,14 @@ const getCompleteMonthsList = (
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
 
-  const monthsBack = period === '1y' ? 12 : period === '6m' ? 6 : null;
+  let monthsBack: number | null;
+  if (period === '1y') {
+    monthsBack = 12;
+  } else if (period === '6m') {
+    monthsBack = 6;
+  } else {
+    monthsBack = null;
+  }
 
   if (monthsBack !== null) {
     const months: Array<{ year: number; month: number }> = [];
@@ -44,20 +51,15 @@ const getCompleteMonthsList = (
 
   const earliestDate = transactions.reduce((min, tx) => {
     const d = new Date(tx.date + 'T00:00:00');
-    return Number.isNaN(d.getTime()) ? min : (d < min ? d : min);
+    if (Number.isNaN(d.getTime())) return min;
+    return d < min ? d : min;
   }, new Date(transactions[0].date + 'T00:00:00'));
 
-  let year = earliestDate.getFullYear();
-  let month = earliestDate.getMonth() + 1;
-
   const months: Array<{ year: number; month: number }> = [];
-  while (year < currentYear || (year === currentYear && month < currentMonth)) {
-    months.push({ year, month });
-    month += 1;
-    if (month > 12) {
-      month = 1;
-      year += 1;
-    }
+  let cursor = new Date(earliestDate.getFullYear(), earliestDate.getMonth(), 1);
+  while (cursor.getFullYear() < currentYear || (cursor.getFullYear() === currentYear && cursor.getMonth() + 1 < currentMonth)) {
+    months.push({ year: cursor.getFullYear(), month: cursor.getMonth() + 1 });
+    cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
   }
   return months;
 };
