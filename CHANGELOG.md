@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Essential baseline widget showing average monthly essential spending (1y, 6m, or all-time), with category breakdown and percent of income
+- Category-level `isEssential` flag and per-transaction essential override for classifying spending as essential vs. discretionary
+- Runway widget estimating months of financial runway based on conservative and current-habits spending scenarios
+
 ## [1.9.0] - 2026-05-26
 
 ### Added
