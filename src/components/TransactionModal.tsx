@@ -19,8 +19,10 @@ import styles from './TransactionModal.module.css';
 import { AccountIcon } from './AccountIcon';
 import { CategoryIcon } from './CategoryIcon';
 import { CircularSelector } from './CircularSelector';
+import { EssentialOverrideControl } from './EssentialOverrideControl';
 import type { Account, Category, Tag, Transaction, TransactionType } from '../types';
 import { formatMonetaryValue, parseMonetaryValue } from '../utils/formatters';
+import { essentialOverrideToOption, optionToEssentialOverride, type EssentialOverrideOption } from '../utils/essentialOverride';
 
 interface FormState {
   id?: number;
@@ -31,6 +33,7 @@ interface FormState {
   tagIds: number[];
   description: string;
   date: Date | null;
+  essentialOverride: EssentialOverrideOption;
 }
 
 interface Props {
@@ -85,6 +88,7 @@ export const TransactionModal = ({
         tagIds: transaction.tagIds ?? [],
         description: transaction.description,
         date: parseISOToDate(transaction.date.slice(0, 10)),
+        essentialOverride: essentialOverrideToOption(transaction.essentialOverride),
       };
     }
     const firstExpenseCategory = categories.find(c => c.type === 'expense');
@@ -96,6 +100,7 @@ export const TransactionModal = ({
       tagIds: [],
       description: '',
       date: today(),
+      essentialOverride: 'default',
     };
   };
 
@@ -118,6 +123,7 @@ export const TransactionModal = ({
         tagIds: transaction.tagIds ?? [],
         description: transaction.description,
         date: parseISOToDate(transaction.date.slice(0, 10)),
+        essentialOverride: essentialOverrideToOption(transaction.essentialOverride),
       });
     }
   }, [opened, transaction, categoryMap]);
@@ -173,6 +179,7 @@ export const TransactionModal = ({
       description: form.description.trim(),
       date: formatDateToISO(form.date),
       tagIds: form.tagIds,
+      essentialOverride: optionToEssentialOverride(form.essentialOverride),
     };
 
     try {
@@ -355,6 +362,14 @@ export const TransactionModal = ({
               onSelect={(id) => setForm((prev) => ({ ...prev, categoryId: String(id) }))}
               maxVisible={10}
             />
+
+            {form.transactionType === 'expense' && (
+              <EssentialOverrideControl
+                value={form.essentialOverride}
+                onChange={(value) => setForm((prev) => ({ ...prev, essentialOverride: value }))}
+                labelWeight={500}
+              />
+            )}
 
             <Textarea
               label="Description"

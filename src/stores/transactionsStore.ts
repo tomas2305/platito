@@ -10,6 +10,7 @@ export type CreateTransactionInput = {
   description: string;
   date: string; // ISO string
   tagIds: number[];
+  essentialOverride?: boolean;
 };
 
 const assertPositiveAmount = (amount: number): void => {
@@ -47,6 +48,7 @@ export const createTransaction = async (input: CreateTransactionInput): Promise<
     date: input.date,
     description: input.description,
     tagIds: input.tagIds ?? [],
+    essentialOverride: input.essentialOverride,
   };
 
   return db.transactions.add(transaction);
@@ -68,6 +70,9 @@ export const updateTransaction = async (
   const nextDate = patch.date ?? current.date;
   const nextDescription = patch.description ?? current.description;
   const nextTagIds = patch.tagIds ?? current.tagIds;
+  // `essentialOverride: undefined` is a meaningful value ("clear the override"), not "field omitted",
+  // so it can't use the `??` fallback pattern used for the other fields above.
+  const nextEssentialOverride = 'essentialOverride' in patch ? patch.essentialOverride : current.essentialOverride;
 
   assertPositiveAmount(nextAmount);
 
@@ -90,6 +95,7 @@ export const updateTransaction = async (
     date: nextDate,
     description: nextDescription,
     tagIds: nextTagIds,
+    essentialOverride: nextEssentialOverride,
   });
 };
 

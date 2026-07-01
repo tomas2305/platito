@@ -20,7 +20,7 @@ const filterTransfersToSavings = (
   );
 };
 
-const calculatePeriodTransactions = (
+export const calculatePeriodTransactions = (
   transactions: Transaction[],
   type: 'income' | 'expense',
   startDate: Date,

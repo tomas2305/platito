@@ -10,6 +10,8 @@ import { IncomeOutcomeComparison } from '../components/IncomeOutcomeComparison';
 import { SavingsRateWidget } from '../components/SavingsRateWidget';
 import { BudgetUsageIndicator } from '../components/BudgetUsageIndicator';
 import { SavingsTimelineChart } from '../components/SavingsTimelineChart';
+import { EssentialBaselineWidget } from '../components/EssentialBaselineWidget';
+import { RunwayWidget } from '../components/RunwayWidget';
 import { getAllAccounts } from '../stores/accountsStore';
 import { getAllCategories } from '../stores/categoriesStore';
 import { getAllTransactions } from '../stores/transactionsStore';
@@ -17,11 +19,13 @@ import { getAllTransfers } from '../stores/transfersStore';
 import { AccountIcon } from '../components/AccountIcon';
 import { autoUpdateExchangeRates, fetchAndUpdateExchangeRates, getSettings, initializeSettings } from '../stores/settingsStore';
 import { calculateSavingsMetrics, calculateLast12MonthsSavingsMetrics } from '../stores/savingsStore';
+import { computeEssentialBaselineFromData, calculateBaselineTrend, computeTotalBalance, computeRunwayMetrics } from '../stores/essentialBaselineStore';
 import { convertAmount, convertToARS } from '../utils/currency';
+import { computeAccountBalance } from '../utils/balances';
 import { formatNumberToMonetary } from '../utils/formatters';
 import { formatPeriodLabel } from '../utils/dateFormatters';
 import { getStartOfPeriod, getEndOfPeriod } from '../utils/periodHelpers';
-import type { Account, AppSettings, Category, Currency, ExchangeRates, SavingsMetrics, Transaction, Transfer, TransactionType, TimeWindow } from '../types';
+import type { Account, AppSettings, BaselinePeriod, Category, Currency, ExchangeRates, SavingsMetrics, Transaction, Transfer, TransactionType, TimeWindow } from '../types';
 import styles from './HomePage.module.css';
 
 // Helper function to calculate total for a specific type and period
@@ -76,6 +80,7 @@ export const HomePage = () => {
   const [previousSavingsMetrics, setPreviousSavingsMetrics] = useState<SavingsMetrics | null>(null);
   const [savingsTimelineData, setSavingsTimelineData] = useState<SavingsMetrics[]>([]);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [baselinePeriod, setBaselinePeriod] = useState<BaselinePeriod>('1y');
 
   const isBalanceNegative = useMemo(() => {
     return totalDisplay.startsWith('-');
@@ -138,53 +143,6 @@ export const HomePage = () => {
 
     const divisor = rates[displayCurrency]?.toARS ?? 1;
     return divisor === 0 ? totalARS : totalARS / divisor;
-  };
-
-  const computeAccountBalance = (
-    account: Account,
-    transactionsList: Transaction[],
-    transfersList: Transfer[],
-    rates: ExchangeRates,
-    displayCurrency: Currency
-  ): number => {
-    let balance = account.initialBalance;
-    
-    const accountTransactions = transactionsList.filter(tx => tx.accountId === account.id);
-    for (const tx of accountTransactions) {
-      const amountInAccountCurrency = convertAmount(
-        tx.amount,
-        tx.currency,
-        account.currency,
-        rates
-      );
-      
-      if (tx.type === 'income') {
-        balance += amountInAccountCurrency;
-      } else {
-        balance -= amountInAccountCurrency;
-      }
-    }
-    
-    const accountTransfers = transfersList.filter(
-      t => t.fromAccountId === account.id || t.toAccountId === account.id
-    );
-    for (const transfer of accountTransfers) {
-      if (transfer.fromAccountId === account.id) {
-        balance -= transfer.amount;
-      }
-      if (transfer.toAccountId === account.id) {
-        balance += transfer.convertedAmount;
-      }
-    }
-    
-    const balanceInARS = convertToARS(balance, account.currency, rates);
-    
-    if (displayCurrency === 'ARS') {
-      return balanceInARS;
-    }
-    
-    const divisor = rates[displayCurrency]?.toARS ?? 1;
-    return divisor === 0 ? balanceInARS : balanceInARS / divisor;
   };
 
   useEffect(() => {
@@ -353,7 +311,40 @@ export const HomePage = () => {
 
   const totalAmount = useMemo(() => byCategory.reduce((sum, x) => sum + x.amount, 0), [byCategory]);
 
-  const periodIncomeTotal = useMemo(() => 
+  const baselineMetrics = useMemo(
+    () => (settings ? computeEssentialBaselineFromData(baselinePeriod, new Date(), transactions, categories, settings) : null),
+    [baselinePeriod, transactions, categories, settings]
+  );
+
+  const baseline6m = useMemo(
+    () => (settings ? computeEssentialBaselineFromData('6m', new Date(), transactions, categories, settings) : null),
+    [transactions, categories, settings]
+  );
+
+  const baseline1y = useMemo(
+    () => (settings ? computeEssentialBaselineFromData('1y', new Date(), transactions, categories, settings) : null),
+    [transactions, categories, settings]
+  );
+
+  const baselineTrend = useMemo(
+    () => (baseline6m && baseline1y ? calculateBaselineTrend(baseline6m, baseline1y) : null),
+    [baseline6m, baseline1y]
+  );
+
+  const runwayMetrics = useMemo(() => {
+    if (!settings || !baselineMetrics) return null;
+    // Same set of accounts used for the "Total Balance" figure at the top of the dashboard.
+    const totalBalance = computeTotalBalance(
+      accounts,
+      transactions,
+      transfers,
+      settings.exchangeRates,
+      settings.displayCurrency
+    );
+    return computeRunwayMetrics(baselineMetrics, totalBalance);
+  }, [baselineMetrics, accounts, transactions, transfers, settings]);
+
+  const periodIncomeTotal = useMemo(() =>
     calculatePeriodTotal(transactions, 'income', accountFilter, startOfPeriod, endOfPeriod, settings, true),
     [transactions, accountFilter, startOfPeriod, endOfPeriod, settings]
   );
@@ -755,6 +746,27 @@ export const HomePage = () => {
                   currency={settings?.displayCurrency ?? 'ARS'}
                 />
               </Grid.Col>
+
+              {baselineMetrics && (
+                <Grid.Col span={{ base: 12, lg: 6 }}>
+                  <EssentialBaselineWidget
+                    metrics={baselineMetrics}
+                    trend={baselineTrend}
+                    period={baselinePeriod}
+                    onPeriodChange={setBaselinePeriod}
+                    currency={settings?.displayCurrency ?? 'ARS'}
+                  />
+                </Grid.Col>
+              )}
+
+              {runwayMetrics && (
+                <Grid.Col span={{ base: 12, lg: 6 }}>
+                  <RunwayWidget
+                    metrics={runwayMetrics}
+                    currency={settings?.displayCurrency ?? 'ARS'}
+                  />
+                </Grid.Col>
+              )}
             </>
           )}
         </Grid>
