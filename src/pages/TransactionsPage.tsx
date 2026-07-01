@@ -75,6 +75,7 @@ export const TransactionsPage = () => {
       description: data.description,
       date: data.date,
       tagIds: data.tagIds,
+      essentialOverride: data.essentialOverride,
     });
     await loadData();
   };
@@ -87,6 +88,7 @@ export const TransactionsPage = () => {
       description: data.description,
       date: data.date,
       tagIds: data.tagIds,
+      essentialOverride: data.essentialOverride,
     });
     await loadData();
   };

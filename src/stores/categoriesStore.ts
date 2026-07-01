@@ -50,7 +50,7 @@ export const createCategory = async (data: Omit<Category, 'id'>): Promise<number
 
   const name = normalizeName(data.name);
   const icon = data.icon || 'tag';
-  return db.categories.add({ ...data, name, icon, isDefault: data.isDefault ?? false });
+  return db.categories.add({ ...data, name, icon, isDefault: data.isDefault ?? false, isEssential: data.isEssential ?? false });
 };
 
 export const updateCategory = async (

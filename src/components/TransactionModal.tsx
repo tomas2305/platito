@@ -22,6 +22,14 @@ import { CircularSelector } from './CircularSelector';
 import type { Account, Category, Tag, Transaction, TransactionType } from '../types';
 import { formatMonetaryValue, parseMonetaryValue } from '../utils/formatters';
 
+type EssentialOverrideOption = 'default' | 'essential' | 'discretionary';
+
+const essentialOverrideToOption = (value?: boolean): EssentialOverrideOption =>
+  value === undefined ? 'default' : value ? 'essential' : 'discretionary';
+
+const optionToEssentialOverride = (option: EssentialOverrideOption): boolean | undefined =>
+  option === 'default' ? undefined : option === 'essential';
+
 interface FormState {
   id?: number;
   amount: string;
@@ -31,6 +39,7 @@ interface FormState {
   tagIds: number[];
   description: string;
   date: Date | null;
+  essentialOverride: EssentialOverrideOption;
 }
 
 interface Props {
@@ -85,6 +94,7 @@ export const TransactionModal = ({
         tagIds: transaction.tagIds ?? [],
         description: transaction.description,
         date: parseISOToDate(transaction.date.slice(0, 10)),
+        essentialOverride: essentialOverrideToOption(transaction.essentialOverride),
       };
     }
     const firstExpenseCategory = categories.find(c => c.type === 'expense');
@@ -96,6 +106,7 @@ export const TransactionModal = ({
       tagIds: [],
       description: '',
       date: today(),
+      essentialOverride: 'default',
     };
   };
 
@@ -118,6 +129,7 @@ export const TransactionModal = ({
         tagIds: transaction.tagIds ?? [],
         description: transaction.description,
         date: parseISOToDate(transaction.date.slice(0, 10)),
+        essentialOverride: essentialOverrideToOption(transaction.essentialOverride),
       });
     }
   }, [opened, transaction, categoryMap]);
@@ -173,6 +185,7 @@ export const TransactionModal = ({
       description: form.description.trim(),
       date: formatDateToISO(form.date),
       tagIds: form.tagIds,
+      essentialOverride: optionToEssentialOverride(form.essentialOverride),
     };
 
     try {
@@ -355,6 +368,21 @@ export const TransactionModal = ({
               onSelect={(id) => setForm((prev) => ({ ...prev, categoryId: String(id) }))}
               maxVisible={10}
             />
+
+            {form.transactionType === 'expense' && (
+              <Stack gap={4}>
+                <Text size="sm" fw={500}>Essential classification</Text>
+                <SegmentedControl
+                  value={form.essentialOverride}
+                  onChange={(value) => setForm((prev) => ({ ...prev, essentialOverride: value as EssentialOverrideOption }))}
+                  data={[
+                    { label: 'Use category default', value: 'default' },
+                    { label: 'Mark as essential', value: 'essential' },
+                    { label: 'Mark as discretionary', value: 'discretionary' },
+                  ]}
+                />
+              </Stack>
+            )}
 
             <Textarea
               label="Description"

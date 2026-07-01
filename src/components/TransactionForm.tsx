@@ -6,6 +6,7 @@ import {
   Checkbox,
   Group,
   Modal,
+  SegmentedControl,
   Stack,
   Text,
   Textarea,
@@ -20,6 +21,11 @@ import { CircularSelector } from './CircularSelector';
 import type { Account, Category, Tag, Transaction, TransactionType } from '../types';
 import { formatMonetaryValue, parseMonetaryValue } from '../utils/formatters';
 
+type EssentialOverrideOption = 'default' | 'essential' | 'discretionary';
+
+const optionToEssentialOverride = (option: EssentialOverrideOption): boolean | undefined =>
+  option === 'default' ? undefined : option === 'essential';
+
 interface FormState {
   amount: string;
   accountId: string;
@@ -28,6 +34,7 @@ interface FormState {
   tagIds: number[];
   description: string;
   date: Date | null;
+  essentialOverride: EssentialOverrideOption;
 }
 
 interface Props {
@@ -120,6 +127,7 @@ export const TransactionForm = ({
     tagIds: [],
     description: '',
     date: getLastUsedDate(),
+    essentialOverride: 'default',
   });
 
   const [error, setError] = useState<string | null>(null);
@@ -225,6 +233,7 @@ export const TransactionForm = ({
       description: form.description.trim(),
       date: formatDateToISO(form.date),
       tagIds: form.tagIds,
+      essentialOverride: optionToEssentialOverride(form.essentialOverride),
     };
 
     try {
@@ -263,6 +272,7 @@ export const TransactionForm = ({
         transactionType: form.transactionType,
         tagIds: form.tagIds,
         description: '',
+        essentialOverride: 'default',
         date: form.date, // Keep the same date
       });
     } catch (err) {
@@ -382,6 +392,21 @@ export const TransactionForm = ({
                 onSelect={(id) => setForm((prev) => ({ ...prev, categoryId: String(id) }))}
                 maxVisible={7}
               />
+
+              {form.transactionType === 'expense' && (
+                <Stack gap={4}>
+                  <Text size="sm" c="dimmed">Essential classification</Text>
+                  <SegmentedControl
+                    value={form.essentialOverride}
+                    onChange={(value) => setForm((prev) => ({ ...prev, essentialOverride: value as EssentialOverrideOption }))}
+                    data={[
+                      { label: 'Use category default', value: 'default' },
+                      { label: 'Mark as essential', value: 'essential' },
+                      { label: 'Mark as discretionary', value: 'discretionary' },
+                    ]}
+                  />
+                </Stack>
+              )}
 
               <Textarea
                 label="Description"

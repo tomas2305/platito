@@ -6,6 +6,7 @@ import {
   Group,
   Select,
   Stack,
+  Switch,
   Text,
   TextInput,
   Title,
@@ -122,6 +123,15 @@ export const CategoriesPage = () => {
     }
   };
 
+  const handleToggleEssential = async (category: Category, isEssential: boolean) => {
+    try {
+      await updateCategory(category.id!, { isEssential });
+      await loadCategories();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error updating category');
+    }
+  };
+
   const handleCancel = () => {
     setForm(initialFormState);
     setError(null);
@@ -227,6 +237,15 @@ export const CategoriesPage = () => {
                       <ColorSwatch color={getColorHex(cat.color)} size={18} radius="sm" style={{ flexShrink: 0 }} />
                       <CategoryIcon name={cat.icon} size={20} />
                       <Text style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left' }}>{cat.name}</Text>
+                      {type === 'expense' && (
+                        <Switch
+                          size="sm"
+                          label="Essential"
+                          checked={cat.isEssential ?? false}
+                          onChange={(e) => handleToggleEssential(cat, e.currentTarget.checked)}
+                          style={{ flexShrink: 0 }}
+                        />
+                      )}
                       {!cat.isDefault && (
                         <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
                           <Button size="xs" variant="light" onClick={() => handleEdit(cat)}>Edit</Button>
