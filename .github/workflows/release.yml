@@ -34,6 +34,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Delete stale remote release branch (if any)
+        run: git push origin --delete release/$VERSION || true
+
       - name: Create release branch
         run: git checkout -b release/$VERSION
 
