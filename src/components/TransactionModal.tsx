@@ -19,16 +19,10 @@ import styles from './TransactionModal.module.css';
 import { AccountIcon } from './AccountIcon';
 import { CategoryIcon } from './CategoryIcon';
 import { CircularSelector } from './CircularSelector';
+import { EssentialOverrideControl } from './EssentialOverrideControl';
 import type { Account, Category, Tag, Transaction, TransactionType } from '../types';
 import { formatMonetaryValue, parseMonetaryValue } from '../utils/formatters';
-
-type EssentialOverrideOption = 'default' | 'essential' | 'discretionary';
-
-const essentialOverrideToOption = (value?: boolean): EssentialOverrideOption =>
-  value === undefined ? 'default' : value ? 'essential' : 'discretionary';
-
-const optionToEssentialOverride = (option: EssentialOverrideOption): boolean | undefined =>
-  option === 'default' ? undefined : option === 'essential';
+import { essentialOverrideToOption, optionToEssentialOverride } from '../utils/essentialOverride';
 
 interface FormState {
   id?: number;
@@ -370,18 +364,11 @@ export const TransactionModal = ({
             />
 
             {form.transactionType === 'expense' && (
-              <Stack gap={4}>
-                <Text size="sm" fw={500}>Essential classification</Text>
-                <SegmentedControl
-                  value={form.essentialOverride}
-                  onChange={(value) => setForm((prev) => ({ ...prev, essentialOverride: value as EssentialOverrideOption }))}
-                  data={[
-                    { label: 'Use category default', value: 'default' },
-                    { label: 'Mark as essential', value: 'essential' },
-                    { label: 'Mark as discretionary', value: 'discretionary' },
-                  ]}
-                />
-              </Stack>
+              <EssentialOverrideControl
+                value={form.essentialOverride}
+                onChange={(value) => setForm((prev) => ({ ...prev, essentialOverride: value }))}
+                labelWeight={500}
+              />
             )}
 
             <Textarea

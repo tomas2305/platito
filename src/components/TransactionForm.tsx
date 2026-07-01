@@ -6,7 +6,6 @@ import {
   Checkbox,
   Group,
   Modal,
-  SegmentedControl,
   Stack,
   Text,
   Textarea,
@@ -18,13 +17,10 @@ import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { CategoryIcon } from './CategoryIcon';
 import { CircularSelector } from './CircularSelector';
+import { EssentialOverrideControl } from './EssentialOverrideControl';
 import type { Account, Category, Tag, Transaction, TransactionType } from '../types';
 import { formatMonetaryValue, parseMonetaryValue } from '../utils/formatters';
-
-type EssentialOverrideOption = 'default' | 'essential' | 'discretionary';
-
-const optionToEssentialOverride = (option: EssentialOverrideOption): boolean | undefined =>
-  option === 'default' ? undefined : option === 'essential';
+import { optionToEssentialOverride, type EssentialOverrideOption } from '../utils/essentialOverride';
 
 interface FormState {
   amount: string;
@@ -394,18 +390,10 @@ export const TransactionForm = ({
               />
 
               {form.transactionType === 'expense' && (
-                <Stack gap={4}>
-                  <Text size="sm" c="dimmed">Essential classification</Text>
-                  <SegmentedControl
-                    value={form.essentialOverride}
-                    onChange={(value) => setForm((prev) => ({ ...prev, essentialOverride: value as EssentialOverrideOption }))}
-                    data={[
-                      { label: 'Use category default', value: 'default' },
-                      { label: 'Mark as essential', value: 'essential' },
-                      { label: 'Mark as discretionary', value: 'discretionary' },
-                    ]}
-                  />
-                </Stack>
+                <EssentialOverrideControl
+                  value={form.essentialOverride}
+                  onChange={(value) => setForm((prev) => ({ ...prev, essentialOverride: value }))}
+                />
               )}
 
               <Textarea
