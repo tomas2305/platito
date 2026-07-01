@@ -56,6 +56,7 @@ jobs:
           VERSION: ${{ steps.meta.outputs.version }}
         run: |
           git fetch origin develop
+          git push origin --delete backport/$VERSION || true
           git checkout -b backport/$VERSION origin/develop
 
           if git merge --no-edit origin/release/$VERSION; then
